@@ -3,6 +3,10 @@
 **Last&Brow Atelier** to nowoczesna, responsywna strona internetowa stworzona dla stylistki rzęs i brwi.  
 Projekt został wykonany w technologii **React + Tailwind CSS**, z zachowaniem spójnej estetyki, intuicyjnej nawigacji oraz mobilnej responsywności.
 
+## 🚀 Live Demo
+
+[Kliknij tutaj, aby zobaczyć działającą wersję projektu](https://lash-brow-atelier-production.up.railway.app)
+
 ## 🎯 Funkcje i sekcje
 
 - **Strona główna (Hero Banner)** – duże zdjęcie wprowadzające, krótki opis oferty i przycisk CTA.
