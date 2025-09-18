@@ -1,5 +1,5 @@
-
-
+import emailjs from "@emailjs/browser";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 
 const Contact = () => {
@@ -8,6 +8,8 @@ const Contact = () => {
     phone: "",
     email: "",
     message: "",
+    privacyConsent: false,
+    regConsent:  false,
   });
   const [errors, setErrors] = useState({});
 
@@ -20,7 +22,7 @@ const Contact = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -28,9 +30,30 @@ const Contact = () => {
       return;
     }
     setErrors({});
-    console.log("Formularz wysłany:", formData);
-    alert("Dziękujemy za wiadomość! Skontaktujemy się wkrótce.");
-    // TODO: Integracja z backendem/email API
+
+    try {
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          reply_to: formData.email,
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      );
+
+      console.log("Formularz wysłany:", formData);
+      alert("Dziękujemy za wiadomość! Skontaktujemy się wkrótce. Sprawdź folder spam w skrzynace mailowej.");
+      setFormData({name: "", phone: "", email: "", message: "", consent: false});
+    } catch (err) {
+     
+      console.error("Błąd wysylki: ", err);
+      alert("Ups! Nie udało sie wysłać wiadomości. Spróbuj ponownie.");
+      
+    }
   };
 
   return (
@@ -47,25 +70,17 @@ const Contact = () => {
           <h2 className="text-2xl font-semibold text-[var(--gold)] mb-4">
             Dane kontaktowe
           </h2>
-          <p className="text-white/80 mb-2">📍 ul. Sezamkowa 8, 20-200 Parczew</p>
-          <p className="text-white/80 mb-2">📞 +48 000 000 000</p>
+          <p className="text-white/80 mb-2">📍 ul. Kościelna 26 - 1 piętro,
+           21-200 Parczew</p>
+          <p className="text-white/80 mb-2">📞 +48 534 345 432</p>
           <p className="text-white/80 mb-6">📧 kontakt@atelier.pl</p>
-          <a
-            href="https://booksy.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full hover:bg-[var(--gold)] hover:text-black transition"
-          >
-            Umów się przez Booksy
-          </a>
+          
         </div>
 
         {/* Mapa */}
         <div className="rounded-4xl overflow-hidden border border-[var(--gold)]/70">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d19530.7841978406!2d19.
-            9485!3d50.0619!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTAu
-            MDYxOTAyLCAxOS45NDg1MDA!5e0!3m2!1spl!2spl!4v1691234567890"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2461.2928733624517!2d22.90202597675496!3d51.63579887184077!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4721bc15ce7fdd8d%3A0x1a9d3eec4b4634c!2sKo%C5%9Bcielna%2026%2C%2021-200%20Parczew!5e0!3m2!1spl!2spl!4v1726500000000!5m2!1spl!2spl"
             width="100%"
             height="100%"
             style={{ minHeight: "300px", border: 0 }}
@@ -137,10 +152,57 @@ const Contact = () => {
               <p className="text-red-400 text-sm mt-1">{errors.message}</p>
             )}
           </div>
+          <div>
+            <label className="flex items-start gap-3 text-sm text-white/80">
+             <input
+               type="checkbox"
+               name="privacyConsent"
+                checked={formData.privacyConsent}
+               onChange={(e) =>
+                  setFormData({ ...formData, privacyConsent: e.target.checked })
+                }
+                required
+                className="mt-1"
+              />
+              <span>
+               Wyrażam zgodę na przetwarzanie moich danych osobowych w celu kontaktu. 
+                Szczegóły znajdziesz w 
+                <Link to="/polityka-prywatnosci" className="underline ml-1">
+                  Polityce prywatności
+                </Link>.
+              </span>
+            </label>
+            {errors.privacyConsent && (
+              <p className="text-red-400 text-sm mt-1">{errors.privacyConsent}</p>
+            )}
+          </div>
+             <div>
+            <label className="flex items-start gap-3 text-sm text-white/80">
+             <input
+               type="checkbox"
+               name="regConsent"
+                checked={formData.regConsent}
+               onChange={(e) =>
+                  setFormData({ ...formData, regConsent: e.target.checked })
+                }
+                required
+                className="mt-1"
+              />
+              <span>
+               Zapoznałam się oraz akceptuję
+                <Link to="/regulamin" className="underline ml-1">
+                  Regulamin
+                </Link>.
+              </span>
+            </label>
+            {errors.regConsent && (
+              <p className="text-red-400 text-sm mt-1">{errors.regConsent}</p>
+            )}
+          </div>
           <button
             type="submit"
             className="w-full px-6 py-3 bg-[var(--background)] text-[var(--gold)] border border-[var(--gold)]
-            hover:bg-[var(--gold)] hover:text-black rounded-full "
+            hover:bg-[var(--gold)] hover:text-black rounded-full active:bg-[var(--gold)] active:text-black hover: cursor-pointer"
           >
             Wyślij wiadomość
           </button>

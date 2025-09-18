@@ -29,7 +29,8 @@ const Gallery = () => {
        <Link
         to="/contact"
         className="relative inline-block text-[var(--gold)] font-semibold px-6 py-3 mt-4 rounded-full 
-                   bg-[var(--background)] border-2 border-[var(--gold)] hover:border-white hover:text-white">
+                   bg-[var(--background)] border-2 border-[var(--gold)] hover:bg-[var(--gold)] hover:text-black active:bg-[var(--gold)]
+                    active:text-black">
         Umów się na wizytę
       </Link>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import logo from '../assets/images/logo.png';
+import { Link, NavLink } from "react-router-dom";
+import logo from '../assets/head-images/logo.png';
 import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
@@ -34,9 +34,14 @@ const Navbar = () => {
 
                     <div className="hidden md:flex space-x-6 items-center">
                         {navigation.map((item) => (
-                            <Link key={item.name} to={item.href} className="text-[var(--gold)] hover:text-white font-medium">
+                            <NavLink key={item.name} to={item.href} className={({ isActive }) => `${
+                                isActive
+                                ? "text-white"
+                                : "text-[var(--gold)] hover:text-white font-medium"
+                                }`
+                                }>
                                 {item.name}
-                            </Link>
+                            </NavLink>
                         ))}
                     </div>
 
@@ -51,9 +56,15 @@ const Navbar = () => {
                 {isOpen && (
                     <div className="md:hidden mt-2 space-y-2 pb-4">
                         {navigation.map((item) => (
-                            <Link key={item.name} to={item.href} className="block text-[var(--gold)] text-center" onClick={() => setOpen(false)}>
+                            <NavLink key={item.name} to={item.href} className={({ isActive }) => 
+                                `block text-center ${isActive
+                                    ? "text-white"
+                                    : "text-[var(--gold)]" 
+                                 }`
+                                 }
+                                  onClick={() => setOpen(false)}>
                                 {item.name}
-                            </Link>
+                            </NavLink>
                         ))}
                     </div>
                 )}

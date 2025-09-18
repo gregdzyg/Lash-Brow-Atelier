@@ -1,4 +1,4 @@
-import aboutImage from "../assets/images/about-placeholder.png"; // Wstaw swoją ścieżkę do wygenerowanego zdjęcia
+import aboutImage from "../assets/head-images/about.jpg"; // Wstaw swoją ścieżkę do wygenerowanego zdjęcia
 import eyeTop from "../assets/images/eyeTop.jpg";    // np. plik z prawego górnego rogu
 import eyeBottom from "../assets/images/eyeBottom.jpg";
 import { Link } from "react-router-dom";
@@ -25,7 +25,7 @@ const About = () => {
         {/* Tekst */}
         <div className="text-gray-300 leading-relaxed space-y-4">
           <p>
-            Nazywam się <span className="text-[var(--gold)] font-semibold">Paulina Tarnowska</span> i od kilku lat z pasją tworzę 
+            Nazywam się <span className="text-[var(--gold)] font-semibold">Paulina Tarnowska</span>, z pasją tworzę 
             piękne i naturalne stylizacje rzęs oraz brwi. 
             Każda klientka jest dla mnie wyjątkowa, dlatego każdy zabieg wykonuję z 
             pełnym zaangażowaniem, dbając o najmniejszy detal.
@@ -49,12 +49,12 @@ const About = () => {
       <img
         src={eyeTop}
         alt="Dekoracyjne rzęsy góra"
-        className="absolute top-0 right-0 w-32 md:w-40 opacity-30 rounded-bl-[2rem]"
+        className="absolute top-0 right-0 w-28 md:w-40 opacity-30 rounded-bl-[2rem]"
       />
       <img
         src={eyeBottom}
         alt="Dekoracyjne rzęsy dół"
-        className="absolute bottom-0 left-0 w-32 md:w-40 opacity-30 rounded-tr-[2rem]"
+        className="absolute bottom-0 left-0 w-28 md:w-40 opacity-30 rounded-tr-[2rem]"
       />
 
       {/* Tekst sekcji */}
@@ -70,13 +70,13 @@ const About = () => {
          Kurs Stylizacji Rzęs 2D–6D – Zaawansowane techniki objętościowe, dopasowane do urody klientki.
         </p>
         <p className="text-md md:text-lg mb-4">
-        Szkolenie Liftingu i Botoksu Rzęs – Naturalne podkręcenie i odżywienie rzęs.
+        Szkolenie Liftingu i Botoksu Rzęs – Naturalne podkręcenie i nadanie zdrowego połysku.
         </p>
         <p className="text-md md:text-lg mb-4">
-        Kurs Makijażu Okolicznościowego – Stylizacje na śluby, sesje zdjęciowe i inne wyjątkowe okazje.
+        Geometria brwi wraz z farbą/henna – Modelowanie brwi z wykorzystaniem farby/henny nadające im idealny kształt i kolor.
         </p>
         <p className="text-md md:text-lg mb-4">
-        Warsztaty z Higieny i Bezpieczeństwa w Kosmetologii – Zasady sterylności i bezpieczeństwa pracy z klientem.
+        Szkolenie z efektów niestandardowych rzęs – Tworzenie whispy, mokrego efektu, e-liner'a, Kim Kardashian.
         </p>
       </div>
       </section>
@@ -84,7 +84,7 @@ const About = () => {
       <Link
           to="/contact"
           className="inline-block mt-4 px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full 
-          hover:bg-[var(--gold)] hover:text-black transition"
+          hover:bg-[var(--gold)] hover:text-black active:bg-[var(--gold)] active:text-black"
         >
           Umów się na wizytę
         </Link>

@@ -9,8 +9,8 @@ const Footer = () => {
         {/* Kontakt */}
         <div className="space-y-1">
           <p className="text-[var(--gold)] font-medium mb-1">Kontakt</p>
-          <p className="text-xs">📍 ul. Sezamkowa 8, 20-200 Parczew</p>
-          <p className="text-xs">📞 +48 000 000 000</p>
+          <p className="text-xs">📍 ul. Kościelna 26, 21-200 Parczew</p>
+          <p className="text-xs">📞 +48 534 345 432</p>
           <p className="text-xs">📧 kontakt@atelier.pl</p>
         </div>
         {/* Dodatkowe linki */}
@@ -23,12 +23,12 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <span className="text-xs">🕒 Godziny otwarcia: 9–17</span>
+              <span className="text-xs">🕒 Godziny otwarcia: 8–17</span>
             </li>
             <li>
-              <a href="#" className="text-xs hover:underline">
-                Rezerwuj przez Booksy
-              </a>
+              <Link to="/regulamin" className="text-xs hover:underline">
+                Regulamin
+              </Link>
             </li>
           </ul>
         </div>
@@ -39,15 +39,15 @@ const Footer = () => {
 
       {/* Ikony social media */}
       <div className="flex justify-center items-center space-x-6">
-        <a href="#" aria-label="Instagram" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+        <a href="https://www.instagram.com/paulina_tarnowska_?igsh=MWNreGprdDRzN3mbA==" aria-label="Instagram" className="hover:text-[var(--gold)] transition flex items-center gap-1">
           <FaInstagram size={18} />
           <span className="text-xs">Instagram</span>
         </a>
-        <a href="#" aria-label="Facebook" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+        <a href="https://facebook.com/share/1CXJKitwvD/" aria-label="Facebook" className="hover:text-[var(--gold)] transition flex items-center gap-1">
           <FaFacebookF size={18} />
           <span className="text-xs">Facebook</span>
         </a>
-        <a href="#" aria-label="TikTok" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+        <a href="https://www.tiktok.com/@lashbrowatelierpaula" aria-label="TikTok" className="hover:text-[var(--gold)] transition flex items-center gap-1">
           <FaTiktok size={18} />
           <span className="text-xs">TikTok</span>
         </a>
