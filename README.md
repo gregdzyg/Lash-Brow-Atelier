@@ -1,46 +1,67 @@
-# Last&Brow Atelier – Strona internetowa
+# P&T Lash & Brow Atelier – Website
 
-**Last&Brow Atelier** to nowoczesna, responsywna strona internetowa stworzona dla stylistki rzęs i brwi.  
-Projekt został wykonany w technologii **React + Tailwind CSS**, z zachowaniem spójnej estetyki, intuicyjnej nawigacji oraz mobilnej responsywności.
+**P&T Lash & Brow Atelier** is a modern, responsive website created for a professional lash and brow stylist.  
+The project was built with **React + Tailwind CSS**, ensuring a cohesive aesthetic, intuitive navigation, and full mobile responsiveness.  
+
+---
 
 ## 🚀 Live Demo
 
-[Kliknij tutaj, aby zobaczyć działającą wersję projektu](https://lash-brow-atelier-production.up.railway.app)
-
-## 🎯 Funkcje i sekcje
-
-- **Strona główna (Hero Banner)** – duże zdjęcie wprowadzające, krótki opis oferty i przycisk CTA.
-- **Usługi** – karty z opisami głównych zabiegów oferowanych przez salon.
-- **Sekcja „O nas”** – opis działalności i wartości marki, ozdobiony dekoracyjnymi grafikami.
-- **Kwalifikacje** – lista certyfikatów i szkoleń z branży beauty.
-- **Oferta** – lista usług w formie kart z opisem i ceną.
-- **Kontakt** – dane kontaktowe, mapa dojazdu, formularz kontaktowy z walidacją oraz link do rezerwacji przez Booksy.
-
-## 🛠 Technologie
-
-- **React** – budowa komponentów i zarządzanie interfejsem.
-- **React Router** – obsługa podstron.
-- **Tailwind CSS** – stylizacja i responsywność.
-- **Railway / GitHub Pages** – hosting (w zależności od środowiska).
-
-## 📱 Responsywność
-
-Projekt jest w pełni responsywny i dopasowany do:
-- urządzeń mobilnych,
-- tabletów,
-- ekranów desktopowych.
-
-## 📌 Dalsze kroki rozwoju
-
-- Integracja formularza z EmailJS lub własnym backendem.
-- Dodanie polityki prywatności i plików cookies.
-- Wprowadzenie rzeczywistych treści, zdjęć i danych kontaktowych od klientki.
-- Rozbudowa sekcji portfolio o zdjęcia z realizacji.
-
-
-## 📄 Prawa autorskie
-© 2025 **[Grzegorz Dżyg]**  
-Projekt wykonany na zamówienie komercyjne.  
-Wszelkie prawa zastrzeżone – kopiowanie lub wykorzystywanie całości lub części projektu bez zgody autora jest zabronione.
+👉 [Visit the live website](https://atelierbypaula.pl)
 
 ---
+
+## 🎯 Features & Sections
+
+- **Homepage (Hero Banner)** – welcoming hero image, short service introduction, and CTA button.  
+- **Services** – cards with detailed descriptions of the main beauty treatments.  
+- **About Us** – brand story and values presented with decorative visuals.  
+- **Qualifications** – list of certificates and professional training in the beauty industry.  
+- **Offer & Pricing** – transparent list of treatments with descriptions and prices.  
+- **Reviews** – testimonials from satisfied clients.  
+- **Contact** – contact details, interactive Google Map, validated contact form with EmailJS integration, and links to social media.  
+
+---
+
+## 🛠️ Tech Stack
+
+- **React** – component-based UI development.  
+- **React Router** – routing and subpage navigation.  
+- **Tailwind CSS** – styling and responsive layout.  
+- **EmailJS** – sending messages via contact form.  
+- **Vercel** – production hosting.  
+
+---
+
+## 📱 Responsiveness
+
+The website is fully optimized for:  
+- 📱 mobile devices  
+- 📟 tablets  
+- 💻 desktop screens  
+
+---
+
+## 🔍 SEO & Meta Configuration
+
+- Custom **meta tags** for description, keywords, and author.  
+- **Favicon** and proper `<title>` tags for branding.  
+
+---
+
+
+## 📄 License & Copyright
+
+© 2025 **Grzegorz Dżyg**  
+This project was developed as a commercial order for **P&T Lash & Brow Atelier**.  
+
+All rights reserved. Copying, modifying, or redistributing any part of this project without explicit permission from the author is prohibited.  
+
+---
+
+## 👨‍💻 Author
+
+Created with 💻 by **Grzegorz Dżyg**  
+- 🌐 [Portfolio](#) *(coming soon)*  
+- 💼 [LinkedIn](https://www.linkedin.com/in/gregdzyg/)  
+- 📧 gregdzyg@gmail.com  

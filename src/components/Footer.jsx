@@ -11,7 +11,7 @@ const Footer = () => {
           <p className="text-[var(--gold)] font-medium mb-1">Kontakt</p>
           <p className="text-xs">📍 ul. Kościelna 26, 21-200 Parczew</p>
           <p className="text-xs">📞 +48 534 345 432</p>
-          <p className="text-xs">📧 kontakt@atelier.pl</p>
+          <p className="text-xs">📧 kontakt@atelierbypaula.pl</p>
         </div>
         {/* Dodatkowe linki */}
         <div>

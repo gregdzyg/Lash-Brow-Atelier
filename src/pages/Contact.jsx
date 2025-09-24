@@ -73,7 +73,7 @@ const Contact = () => {
           <p className="text-white/80 mb-2">📍 ul. Kościelna 26 - 1 piętro,
            21-200 Parczew</p>
           <p className="text-white/80 mb-2">📞 +48 534 345 432</p>
-          <p className="text-white/80 mb-6">📧 kontakt@atelier.pl</p>
+          <p className="text-white/80 mb-6">📧 kontakt@atelierbypaula.pl</p>
           
         </div>
 

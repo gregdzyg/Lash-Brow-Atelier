@@ -21,7 +21,7 @@ const Navbar = () => {
                 <div className="flex justify-around items-center h-20">
 
                     <Link to='/' className="flex items-center space-x-3">
-                        <img src={logo} alt="Logo" className="h-8 w-auto sm:h-10 rounded-full" />
+                        <img src={logo} alt="Logo" className="h-10 w-auto sm:h-12 rounded-full" />
                         <div className="flex flex-col leading-tight text-white">
                             <span className="text-sm sm:text-base font-semibold text-[var(--rose)]">
                                 Lash&Brow Atelier
