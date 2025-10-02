@@ -53,7 +53,7 @@ const services = [
     description: "Zabieg podkreślający naturalne rzęsy, nadający podkręcenie, objętość i zdrowy połysk.",
     price: "100 zł"
   },
-   {
+  {
     id: 10,
     name: "Rzęsy UV",
     description: "Stylizacja przy użyciu specjalnego kleju utwardzonego światłem UV. Zapewnia mocną i trwałą retencję rzęs.",
@@ -61,30 +61,36 @@ const services = [
   },
   {
     id: 11,
+    name: "Uzupełnienie rzęs",
+    description: "Uzupełnienie rzęs jest możliwe do 3.5 tygodnia od ostatniej wizyty. Po tym czasie usługa traktowana jest jako nowe założenie.",
+    price: "- 20 zł od ceny regularnej"
+  },
+  {
+    id: 12,
     name: "Sciągniecie rzęs",
     description: "Profesjonalne usunięcie przedłużonych rzęs w bezpieczny i delikatny sposób.",
     price: "30 zł"
   },
   {
-    id: 12,
+    id: 13,
     name: "Geometria brwi wraz z henną",
     description: "Modelowanie brwi z wykorzystaniem henny, które nadaje kształt dopasowany do twarzy i intesnywny, naturalny kolor.",
     price: "60 zł"
   },
   {
-    id: 13,
+    id: 14,
     name: "Geometria wraz z farbą",
     description: "Modelowanie brwi z wykorzystaniem farby, nadające im idealny kształt i równomierny kolor.",
     price: "60 zł"
   },
   {
-    id: 14,
+    id: 15,
     name: "Laminacja brwi plus farba",
     description: "Zabieg podreślający naturalne brwi, nadający im kształt, objętość i intensywny kolor. Efekt jest trwały i harmonijnie podkreśla spojrzenie.",
     price: "100 zł"
   },
   {
-    id: 15,
+    id: 16,
     name: "Lami duet",
     description: "Laminacja rzęs i brwi wraz farbą.",
     price: "170 zł"
