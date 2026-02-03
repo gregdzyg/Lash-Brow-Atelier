@@ -1,6 +1,9 @@
 import emailjs from "@emailjs/browser";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import BooksySection from "../components/BooksySection";
+
+
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -47,7 +50,7 @@ const Contact = () => {
 
       console.log("Formularz wysłany:", formData);
       alert("Dziękujemy za wiadomość! Skontaktujemy się wkrótce. Sprawdź folder spam w skrzynace mailowej.");
-      setFormData({name: "", phone: "", email: "", message: "", consent: false});
+      setFormData({name: "", phone: "", email: "", message: "",   privacyConsent: false, regConsent: false,});
     } catch (err) {
      
       console.error("Błąd wysylki: ", err);
@@ -74,9 +77,8 @@ const Contact = () => {
            21-200 Parczew</p>
           <p className="text-white/80 mb-2">📞 +48 534 345 432</p>
           <p className="text-white/80 mb-6">📧 kontakt@atelierbypaula.pl</p>
-          
         </div>
-
+      
         {/* Mapa */}
         <div className="rounded-4xl overflow-hidden border border-[var(--gold)]/70">
           <iframe
@@ -89,7 +91,7 @@ const Contact = () => {
           ></iframe>
         </div>
       </div>
-
+      <BooksySection />
       {/* Formularz */}
       <div className="bg-[var(--background)] p-6 rounded-4xl border border-[var(--gold)]/70">
         <h2 className="text-2xl font-semibold text-[var(--gold)] mb-4">

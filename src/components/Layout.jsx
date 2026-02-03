@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import CookieBanner from "./CookieBanner";
 
 const Layout = () => {
     return(
@@ -11,6 +12,7 @@ const Layout = () => {
             </main>
             <div className='w-4/5 mx-auto h-px bg-[var(--gold)]/50 my-1' />
             <Footer />
+            <CookieBanner />
         </div>
     ); 
 }

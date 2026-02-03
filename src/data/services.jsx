@@ -3,37 +3,37 @@ const services = [
     id: 1,
     name: "Przedłużanie rzęs 1:1",
     description: "Delikatna i naturalna metoda przedłużania rzęs.",
-    price: "130 zł"
+    price: "150 zł"
   },
   {
     id: 2,
     name: "Przedłużanie rzęs 2D–3D",
     description: "Subtelna objętość, która nadaje spojrzeniu wyrazistości i lekkości.",
-    price: "140 zł"
+    price: "160 zł"
   },
   {
     id: 3,
     name: "Przedłużanie rzęs 3D-4D",
     description: "Pełniejszy i bardziej wyrazisty efekt. To propozycja dla osób, które chca podkreślić oczy mocniej, ale nadal w elegancki sposób.",
-    price: "150 zł"
+    price: "170 zł"
   },
   {
     id: 4,
     name: "Przedłużanie rzęs 4D-6D",
     description: "Wyraźna objętość, która nadaje spojrzeniu głębi i intensywności. Idealny dla osób lubiących mocniej podkreślone rzęsy.",
-    price: "160 zł"
+    price: "180 zł"
   },
   {
     id: 5,
     name: "Mega volume",
     description: "Spektakularna stylizacja dla osób, które marzą o bardzo gęstych i wyrazistych rzęsach. Idealny dla fanek odważnego look'u.",
-    price: "180 zł"
+    price: "200 zł"
   },
   {
     id: 6,
     name: "Efekty niestandardowe",
     description: "Whispy, mokry efekt, Kim Kardashian, efekt eye-liner'a.",
-    price: "150 zł"
+    price: "170 zł"
   },
   {
     id: 7,
@@ -51,7 +51,7 @@ const services = [
     id: 9,
     name: "Lifting i laminacja rzęs",
     description: "Zabieg podkreślający naturalne rzęsy, nadający podkręcenie, objętość i zdrowy połysk.",
-    price: "100 zł"
+    price: "120 zł"
   },
   {
     id: 10,
@@ -69,31 +69,31 @@ const services = [
     id: 12,
     name: "Sciągniecie rzęs",
     description: "Profesjonalne usunięcie przedłużonych rzęs w bezpieczny i delikatny sposób.",
-    price: "30 zł"
+    price: "50 zł"
   },
   {
     id: 13,
     name: "Geometria brwi wraz z henną",
     description: "Modelowanie brwi z wykorzystaniem henny, które nadaje kształt dopasowany do twarzy i intesnywny, naturalny kolor.",
-    price: "60 zł"
+    price: "80 zł"
   },
   {
     id: 14,
     name: "Geometria wraz z farbą",
     description: "Modelowanie brwi z wykorzystaniem farby, nadające im idealny kształt i równomierny kolor.",
-    price: "60 zł"
+    price: "80 zł"
   },
   {
     id: 15,
     name: "Laminacja brwi plus farba",
     description: "Zabieg podreślający naturalne brwi, nadający im kształt, objętość i intensywny kolor. Efekt jest trwały i harmonijnie podkreśla spojrzenie.",
-    price: "100 zł"
+    price: "120 zł"
   },
   {
     id: 16,
     name: "Lami duet",
     description: "Laminacja rzęs i brwi wraz farbą.",
-    price: "170 zł"
+    price: "190 zł"
   },
 
 ];
