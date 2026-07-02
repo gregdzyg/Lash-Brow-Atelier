@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image:  postgres:16
+    container_name: atelier-postgres
+    environment:
+      POSTGRES_DB: atelier_db
+      POSTGRES_USER: atelier_user
+      POSTGRES_PASSWORD:  atelier_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - atelier_postgres_data:/var/lib/postgresql/data
+volumes:
+  atelier_postgres_data:
