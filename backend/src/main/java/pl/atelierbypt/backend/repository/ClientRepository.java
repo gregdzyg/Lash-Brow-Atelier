@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface ClientRepository extends Repository<Client, Long> {
 
     Client save(Client client);
-    Optional<Client> findById(Long id);
     List<Client> findByIsActiveTrue();
-    Optional<Client> findByPhoneNumber(String phoneNumber);
+    Optional<Client> findByIdAndIsActiveTrue(Long id);
+    Optional<Client> findByPhoneNumberAndIsActiveTrue(String phoneNumber);
 
 }

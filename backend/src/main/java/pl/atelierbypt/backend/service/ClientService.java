@@ -7,6 +7,7 @@ import pl.atelierbypt.backend.dto.ClientRequest;
 import pl.atelierbypt.backend.dto.ClientResponse;
 import pl.atelierbypt.backend.entity.Client;
 import pl.atelierbypt.backend.exception.ClientNotFoundException;
+import pl.atelierbypt.backend.exception.PhoneNumberConflictException;
 import pl.atelierbypt.backend.repository.ClientRepository;
 import java.util.List;
 
@@ -28,6 +29,9 @@ public class ClientService {
     }
 
     public ClientResponse createClient(ClientRequest clientRequest){
+        if(clientRepository.findByPhoneNumberAndIsActiveTrue(clientRequest.phoneNumber()).isPresent()){
+            throw new PhoneNumberConflictException("Podany numer telefonu już istnieje w systemie.");
+        }
         Client client = new Client();
         mapRequestToClient(client,  clientRequest);
         Client savedClient = clientRepository.save(client);
@@ -37,6 +41,12 @@ public class ClientService {
 
     public ClientResponse updateClient(Long id, ClientRequest clientRequest){
         Client client = findClientById(id);
+        clientRepository.findByPhoneNumberAndIsActiveTrue(clientRequest.phoneNumber()).ifPresent(
+                existingClient -> {
+                    if(!existingClient.getId().equals(client.getId())){
+                        throw new PhoneNumberConflictException("Podany numer telefonu juz  istnieje w systemie.");
+                    }
+                });
         mapRequestToClient(client,  clientRequest);
         Client savedClient = clientRepository.save(client);
         log.info("Client updated with id={}", savedClient.getId());
@@ -57,7 +67,7 @@ public class ClientService {
     }
 
     private Client findClientById(Long id) {
-        return clientRepository.findById(id).orElseThrow(() ->
+        return clientRepository.findByIdAndIsActiveTrue(id).orElseThrow(() ->
                 new ClientNotFoundException("Client with id " + id + " not found"));
     }
 
