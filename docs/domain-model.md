@@ -108,3 +108,18 @@ Fields:
 - tiktokUrl
 - workingHours
 - slotIntervalMinutes
+
+## WorkingHours
+
+Represents standard weekly worktime,
+a repeatable weekly schema
+
+Fields:
+- id
+- dayOfWeek
+- startTime
+- endTime
+- isWorkingDay
+- isActive
+- createdAt
+- updatedAt

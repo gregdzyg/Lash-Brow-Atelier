@@ -45,4 +45,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status).body(errorResponse);
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException e,
+                                                                   HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ErrorResponse errorResponse = new ErrorResponse(status.value(), status.getReasonPhrase(),
+                e.getMessage(), request.getRequestURI());
+
+        return ResponseEntity.status(status).body(errorResponse);
+    }
 }
