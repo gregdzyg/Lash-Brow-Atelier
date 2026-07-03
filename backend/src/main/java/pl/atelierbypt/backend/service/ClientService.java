@@ -68,7 +68,7 @@ public class ClientService {
 
     private Client findClientById(Long id) {
         return clientRepository.findByIdAndIsActiveTrue(id).orElseThrow(() ->
-                new ClientNotFoundException("Client with id " + id + " not found"));
+                new ClientNotFoundException("Nie zanleziono klienta o id " + id));
     }
 
     private void mapRequestToClient(Client client, ClientRequest request) {

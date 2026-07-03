@@ -10,11 +10,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Client extends BaseEntity {
+
     @NotBlank
     private String firstName;
+
     @NotBlank
     private String lastName;
-    @Column(unique = true)
+
     @NotBlank
     private String phoneNumber;
     private String email;

@@ -13,9 +13,9 @@ import pl.atelierbypt.backend.dto.error.ValidationErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ClientNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleClientNotFoundException(ClientNotFoundException e,
-                                                           HttpServletRequest request) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e,
+                                                                         HttpServletRequest request) {
 
         HttpStatus status = HttpStatus.NOT_FOUND;
         ErrorResponse errorResponse = new ErrorResponse(status.value(), status.getReasonPhrase(),
@@ -36,9 +36,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(errorResponse);
     }
 
-    @ExceptionHandler(PhoneNumberConflictException.class)
-    public ResponseEntity<ErrorResponse> handlePhoneNumberConflictException(PhoneNumberConflictException e,
-            HttpServletRequest request) {
+    @ExceptionHandler(BusinessConflictException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessConflictException(BusinessConflictException e,
+                                                                         HttpServletRequest request) {
         HttpStatus status = HttpStatus.CONFLICT;
         ErrorResponse errorResponse = new ErrorResponse(status.value(), status.getReasonPhrase(),
                 e.getMessage(), request.getRequestURI());

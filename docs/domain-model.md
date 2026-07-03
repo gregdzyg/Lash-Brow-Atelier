@@ -40,8 +40,6 @@ Fields:
 - durationMinutes
 - basePrice
 - category
-- imageUrl
-- displayOrder
 - isActive
 - createdAt
 - updatedAt
