@@ -1,12 +1,15 @@
 package pl.atelierbypt.backend.service;
 
 
+
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.atelierbypt.backend.dto.AppointmentRequest;
 import pl.atelierbypt.backend.dto.AppointmentResponse;
+import pl.atelierbypt.backend.dto.PatchAppointmentStatusRequest;
+import pl.atelierbypt.backend.dto.PatchAppointmentStatusResponse;
 import pl.atelierbypt.backend.entity.*;
 import pl.atelierbypt.backend.enums.AppointmentStatus;
 import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -32,19 +36,29 @@ public class AppointmentService {
     private final ClientRepository clientRepository;
     private final AppointmentRepository appointmentRepository;
 
+    public List<AppointmentResponse> getAppointments(LocalDate start,  LocalDate end) {
+        if (end.isBefore(start)) {
+            throw new AppointmentBadRequestException("Data zakończenia nie może być przed datą rozpoczęcia.");
+        }
+        return appointmentRepository.findActiveBetweenDates(start, end).stream()
+                .map(this::mapAppointmentToResponse).toList();
+    }
+
+    public AppointmentResponse getAppointmentById(Long id) {
+        return mapAppointmentToResponse(findAppointmentById(id));
+    }
+
     @Transactional
     public AppointmentResponse createAppointment(AppointmentRequest appointmentRequest) {
 
-        Client client = clientRepository.findByIdAndIsActiveTrue(appointmentRequest.clientId()).orElseThrow(() ->
-                new ClientNotFoundException("Nie znaleziono klienta z id " + appointmentRequest.clientId()));
-
-        OfferItem offerItem = offerItemRepository.findByIdAndIsActiveTrue(appointmentRequest.offerItemId())
-                .orElseThrow(() -> new OfferItemNotFoundException("Nie znaleziono oferty z id " + appointmentRequest.offerItemId())
-        );
+        Client client = findClientById(appointmentRequest.clientId());
+        OfferItem offerItem = findOfferItemById(appointmentRequest.offerItemId());
 
         Appointment appointment = new Appointment();
         mapRequestToAppointment(appointmentRequest, appointment,  client, offerItem);
-        validateAppointment(appointment);
+        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        appointment.setActive(true);
+        validateAppointmentForCreate(appointment);
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
@@ -58,20 +72,83 @@ public class AppointmentService {
         return mapAppointmentToResponse(savedAppointment);
     }
 
-    private void validateAppointment(Appointment  appointment) {
+    @Transactional
+    public AppointmentResponse updateAppointment(Long id, AppointmentRequest appointmentRequest) {
+
+        Appointment appointment = findAppointmentById(id);
+
+        Client client = findClientById(appointmentRequest.clientId());
+        OfferItem offerItem = findOfferItemById(appointmentRequest.offerItemId());
+
+        mapRequestToAppointment(appointmentRequest, appointment, client, offerItem);
+        validateAppointmentForUpdate(appointment);
+        Appointment updatedAppointment = appointmentRepository.save(appointment);
+        log.info("Updated appointment id={}, date={}, startTime={}",
+                updatedAppointment.getId(), updatedAppointment.getAppointmentDate(), updatedAppointment.getStartTime());
+        return mapAppointmentToResponse(updatedAppointment);
+    }
+
+    public PatchAppointmentStatusResponse changeAppointmentStatus(Long id, PatchAppointmentStatusRequest request) {
+        Appointment appointment = findAppointmentById(id);
+        appointment.setStatus(request.appointmentStatus());
+        appointmentRepository.save(appointment);
+        log.info("Changed appointment status={}, id={}", appointment.getStatus(), appointment.getId());
+        return new  PatchAppointmentStatusResponse(appointment.getId(), appointment.getStatus());
+    }
+
+    public void archiveAppointment(Long id) {
+        Appointment appointment = findAppointmentById(id);
+        appointment.setActive(false);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        log.info("Archived appointment id={}", savedAppointment.getId());
+    }
+
+    private OfferItem findOfferItemById(Long id) {
+        return offerItemRepository
+                .findByIdAndIsActiveTrue(id)
+                .orElseThrow(() -> new OfferItemNotFoundException(
+                        "Nie znaleziono oferty z id " + id
+                ));
+    }
+
+    private Client findClientById(Long id) {
+        return clientRepository.findByIdAndIsActiveTrue(id).orElseThrow(() ->
+                new ClientNotFoundException("Nie znaleziono klienta z id " + id));
+    }
+
+    private Appointment findAppointmentById(Long id) {
+        return appointmentRepository.findByIdAndIsActiveTrue(id).orElseThrow(() ->
+                new AppointmentNotFoundException("Nie znaleziono wizyty z id " + id));
+    }
+
+    private void validateAppointmentForCreate(Appointment  appointment) {
         validateBasicAppointmentRules(appointment);
         validateAvailability(appointment);
         validateCollision(appointment);
     }
 
+    private void validateAppointmentForUpdate(Appointment appointment) {
+        validateBasicAppointmentRules(appointment);
+        validateAvailability(appointment);
+        validateCollision(appointment, appointment.getId());
+    }
+
     private void validateCollision(Appointment appointment) {
+        validateCollision(appointment, null);
+    }
+
+    private void validateCollision(Appointment appointment, Long ignoredAppointmentId) {
 
         List<Appointment> appointments = appointmentRepository.findScheduledActiveByDate(appointment.getAppointmentDate());
         TimeRange timeRange = new TimeRange(appointment.getStartTime(), appointment.getStartTime().plusMinutes(
                 appointment.getDurationMinutes()
         ));
-        boolean collision = appointments.stream().map(a -> new TimeRange(a.getStartTime(),
-                a.getStartTime().plusMinutes(a.getDurationMinutes()))).anyMatch(r -> r.overlaps(timeRange));
+        boolean collision = appointments.stream()
+                .filter(existingAppointment -> !Objects.equals(existingAppointment.getId(),
+                        ignoredAppointmentId))
+                .map(a -> new TimeRange(
+                        a.getStartTime(), a.getStartTime().plusMinutes(a.getDurationMinutes())))
+                .anyMatch(r -> r.overlaps(timeRange));
         if (collision) throw new AppointmentTimeConflictException("Termin wizyty koliduje z istniejącymi.");
     }
 
@@ -139,9 +216,7 @@ public class AppointmentService {
                 : offerItem.getDurationMinutes());
         appointment.setPrice(appointmentRequest.price() != null ? appointmentRequest.price()
                 : offerItem.getBasePrice());
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointment.setNote(appointmentRequest.note());
-        appointment.setActive(true);
     }
 
     private AppointmentResponse mapAppointmentToResponse(Appointment appointment) {
