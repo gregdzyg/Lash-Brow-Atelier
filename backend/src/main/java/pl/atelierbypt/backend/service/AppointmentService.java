@@ -1,0 +1,165 @@
+package pl.atelierbypt.backend.service;
+
+
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import pl.atelierbypt.backend.dto.AppointmentRequest;
+import pl.atelierbypt.backend.dto.AppointmentResponse;
+import pl.atelierbypt.backend.entity.*;
+import pl.atelierbypt.backend.enums.AppointmentStatus;
+import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
+import pl.atelierbypt.backend.exception.*;
+import pl.atelierbypt.backend.repository.*;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AppointmentService {
+
+    private final AvailabilityExceptionRepository availabilityExceptionRepository;
+    private final WorkingHoursRepository workingHoursRepository;
+    private final OfferItemRepository offerItemRepository;
+    private final ClientRepository clientRepository;
+    private final AppointmentRepository appointmentRepository;
+
+    @Transactional
+    public AppointmentResponse createAppointment(AppointmentRequest appointmentRequest) {
+
+        Client client = clientRepository.findByIdAndIsActiveTrue(appointmentRequest.clientId()).orElseThrow(() ->
+                new ClientNotFoundException("Nie znaleziono klienta z id " + appointmentRequest.clientId()));
+
+        OfferItem offerItem = offerItemRepository.findByIdAndIsActiveTrue(appointmentRequest.offerItemId())
+                .orElseThrow(() -> new OfferItemNotFoundException("Nie znaleziono oferty z id " + appointmentRequest.offerItemId())
+        );
+
+        Appointment appointment = new Appointment();
+        mapRequestToAppointment(appointmentRequest, appointment,  client, offerItem);
+        validateAppointment(appointment);
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        log.info(
+                "Created appointment id={}, date={}, startTime={}",
+                savedAppointment.getId(),
+                savedAppointment.getAppointmentDate(),
+                savedAppointment.getStartTime()
+        );
+
+        return mapAppointmentToResponse(savedAppointment);
+    }
+
+    private void validateAppointment(Appointment  appointment) {
+        validateBasicAppointmentRules(appointment);
+        validateAvailability(appointment);
+        validateCollision(appointment);
+    }
+
+    private void validateCollision(Appointment appointment) {
+
+        List<Appointment> appointments = appointmentRepository.findScheduledActiveByDate(appointment.getAppointmentDate());
+        TimeRange timeRange = new TimeRange(appointment.getStartTime(), appointment.getStartTime().plusMinutes(
+                appointment.getDurationMinutes()
+        ));
+        boolean collision = appointments.stream().map(a -> new TimeRange(a.getStartTime(),
+                a.getStartTime().plusMinutes(a.getDurationMinutes()))).anyMatch(r -> r.overlaps(timeRange));
+        if (collision) throw new AppointmentTimeConflictException("Termin wizyty koliduje z istniejącymi.");
+    }
+
+    private void validateBasicAppointmentRules(Appointment appointment) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime appointmentStart = LocalDateTime.of(appointment.getAppointmentDate(), appointment.getStartTime());
+        LocalDateTime appointmentEnd = appointmentStart.plusMinutes(appointment.getDurationMinutes());
+
+        if(appointmentStart.isBefore(now)) {
+            throw new AppointmentBadRequestException("Nie można utworzyć wizyty w przeszłości.");
+        }
+        if(!appointmentEnd.toLocalDate().equals(appointmentStart.toLocalDate())) {
+            throw new AppointmentBadRequestException("Nie można umówić wizyty, która kończy się następnego dnia.");
+        }
+    }
+
+    private void validateAvailability(Appointment appointment) {
+
+        LocalDate date = appointment.getAppointmentDate();
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        LocalTime appointmentStartTime = appointment.getStartTime();
+        LocalTime appointmentEndTime = appointmentStartTime.plusMinutes(appointment.getDurationMinutes());
+
+        WorkingHours workingHours = workingHoursRepository.findByDayOfWeekAndIsActiveTrue(dayOfWeek)
+                .orElseThrow(() -> new WorkingHoursNotFoundException("Nie znaleziono godzin pracy dla danego dnia."));
+
+        List<AvailabilityException> availabilityExceptions = availabilityExceptionRepository
+                .findByDateAndIsActiveTrue(date);
+
+        boolean isClosedDay = availabilityExceptions.stream()
+                .anyMatch(e -> e.getType() == AvailabilityExceptionType.CLOSED_DAY);
+
+        if(isClosedDay) throw new AppointmentBadRequestException("Nie można utworzyć wizyty w dzień zamknięcia salonu.");
+
+        List<TimeRange> availableRanges = new ArrayList<>();
+
+        if(workingHours.isWorkingDay()) availableRanges.add(new TimeRange(workingHours.getStartTime(), workingHours.getEndTime()));
+        availabilityExceptions.stream().filter(e -> e.getType() == AvailabilityExceptionType.EXTRA_OPEN)
+                .forEach(a -> availableRanges.add(new TimeRange(a.getStartTime(), a.getEndTime())));
+
+        TimeRange appointmentTimeRange = new TimeRange(appointmentStartTime, appointmentEndTime);
+        boolean isAvailable = availableRanges.stream().anyMatch(timeRange ->  timeRange.contains(appointmentTimeRange));
+
+        if(!isAvailable) throw new AppointmentBadRequestException("Wizyta nie może zostać umówiona poza czasem dostępności salonu.");
+
+        boolean isBlocked = availabilityExceptions.stream()
+                .filter(e -> e.getType() == AvailabilityExceptionType.BLOCKED)
+                .map(e -> new TimeRange(e.getStartTime(), e.getEndTime()))
+                .anyMatch(blockedRange -> blockedRange.overlaps(appointmentTimeRange));
+
+        if(isBlocked) throw new AppointmentBadRequestException("Wizyta koliduje z blokadą dostępności salonu.");
+
+    }
+
+    private void mapRequestToAppointment(AppointmentRequest appointmentRequest, Appointment appointment,
+                                         Client client, OfferItem offerItem) {
+        appointment.setClient(client);
+        appointment.setOfferItem(offerItem);
+        appointment.setAppointmentDate(appointmentRequest.appointmentDate());
+        appointment.setStartTime(appointmentRequest.startTime());
+        appointment.setDurationMinutes(
+                appointmentRequest.durationMinutes() != null ? appointmentRequest.durationMinutes()
+                : offerItem.getDurationMinutes());
+        appointment.setPrice(appointmentRequest.price() != null ? appointmentRequest.price()
+                : offerItem.getBasePrice());
+        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        appointment.setNote(appointmentRequest.note());
+        appointment.setActive(true);
+    }
+
+    private AppointmentResponse mapAppointmentToResponse(Appointment appointment) {
+        return new AppointmentResponse(appointment.getId(), appointment.getClient().getId(),
+                appointment.getOfferItem().getId(), appointment.getAppointmentDate(),
+                appointment.getStartTime(), appointment.getDurationMinutes(), appointment.getPrice(),
+                appointment.getStatus(), appointment.getNote(), appointment.isActive());
+    }
+
+    private record TimeRange(LocalTime start, LocalTime end) {
+
+        boolean contains(TimeRange other) {
+            return !other.start().isBefore(start) && !other.end().isAfter(end);
+        }
+
+        boolean overlaps(TimeRange other) {
+            return start.isBefore(other.end())
+                    && end.isAfter(other.start());
+        }
+    }
+}

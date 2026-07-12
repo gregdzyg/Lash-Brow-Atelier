@@ -29,7 +29,7 @@ Fields:
 - createdAt
 - updatedAt
 
-## Service
+## OfferItem
 
 Represents a beauty service offered by the salon.
 
@@ -51,19 +51,19 @@ Represents a booked visit in the salon calendar.
 Fields:
 - id
 - client
-- service
-- startDateTime
-- endDateTime
+- offerItem
+- appointmentDate
+- startTime
+- durationMinutes
 - price
 - status
-- notes
-- cancellationReason
+- note
+- isActive
 - createdAt
 - updatedAt
 
 Possible statuses:
 - SCHEDULED
-- COMPLETED
 - CANCELLED
 - NO_SHOW
 

@@ -12,7 +12,7 @@ import pl.atelierbypt.backend.service.ClientService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/clients")
+@RequestMapping("/api/admin/clients")
 @RequiredArgsConstructor
 public class ClientController {
 

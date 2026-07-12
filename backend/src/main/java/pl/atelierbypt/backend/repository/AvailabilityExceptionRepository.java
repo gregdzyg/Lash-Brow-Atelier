@@ -12,4 +12,5 @@ public interface AvailabilityExceptionRepository extends Repository<Availability
     List<AvailabilityException> findByDateBetweenAndIsActiveTrue(LocalDate start, LocalDate end);
     Optional<AvailabilityException> findByIdAndIsActiveTrue(Long id);
     AvailabilityException save(AvailabilityException availabilityException);
+    List<AvailabilityException> findByDateAndIsActiveTrue(LocalDate date);
 }
