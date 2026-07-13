@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/offer-items")
+@RequestMapping("/api/admin/offer-items")
 public class OfferItemController {
 
     private final OfferItemService offerItemService;

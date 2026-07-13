@@ -1,7 +1,5 @@
 package pl.atelierbypt.backend.service;
 
-
-
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -221,7 +219,9 @@ public class AppointmentService {
 
     private AppointmentResponse mapAppointmentToResponse(Appointment appointment) {
         return new AppointmentResponse(appointment.getId(), appointment.getClient().getId(),
-                appointment.getOfferItem().getId(), appointment.getAppointmentDate(),
+                appointment.getClient().getFirstName(), appointment.getClient().getLastName(),
+                appointment.getOfferItem().getId(), appointment.getOfferItem().getName(),
+                appointment.getAppointmentDate(),
                 appointment.getStartTime(), appointment.getDurationMinutes(), appointment.getPrice(),
                 appointment.getStatus(), appointment.getNote(), appointment.isActive());
     }
