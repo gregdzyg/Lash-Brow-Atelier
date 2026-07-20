@@ -1,8 +1,7 @@
 import { ArrowRight, LockKeyhole, UserRound } from "lucide-react";
 import { useState } from "react";
-import { login } from "../../api/apiAuth";
-import { saveToken } from "../../auth/tokenStorage";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth";
 
 
 const LoginPage = () => {
@@ -12,6 +11,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -25,11 +25,10 @@ const LoginPage = () => {
         setIsSubmitting(true);
 
         try {
-            const loginResponse = await login(username.trim(), password);
-            saveToken(loginResponse.token);
-            console.log('Login successful');
+            await login(username.trim(), password);
             navigate("/admin");
         } catch (error) {
+            
               if (error.response?.status === 401) {
                 setError("Nieprawidłowa nazwa użytkownika lub hasło.");
             } else if (error.request) {

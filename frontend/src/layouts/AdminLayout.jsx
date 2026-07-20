@@ -1,6 +1,16 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 
 const AdminLayout = () => {
+
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/admin/login", {replace: true});
+    }
+
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-[var(--background)] text-white">
             <div
@@ -39,6 +49,7 @@ const AdminLayout = () => {
                         </p>
                         <button
                             type="button"
+                            onClick={handleLogout}
                             className="
                                 cursor-pointer rounded-full border border-[var(--gold)]/70
                                 px-4 py-2 text-sm font-medium text-[var(--gold)]

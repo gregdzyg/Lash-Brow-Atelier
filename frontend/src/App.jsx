@@ -12,6 +12,7 @@ import AuthLayout from "./layouts/AuthLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ProtectedRoute from './auth/ProtectedRoute';
 
 function App() {
   return (
@@ -30,10 +31,11 @@ function App() {
         <Route element={<AuthLayout />} >
           <Route path='/admin/login' element={<LoginPage />} />
         </Route>
+        <Route element={<ProtectedRoute />}>
         <Route path='/admin' element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
         </Route>
-        
+        </Route>
       </Routes>
     </BrowserRouter>
   );
