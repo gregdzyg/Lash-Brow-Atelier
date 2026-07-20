@@ -3,7 +3,7 @@ import galeria9 from "../assets/images/galeria9.JPG";
 import eyeTop from "../assets/images/eyeTop.jpg";    // np. plik z prawego górnego rogu
 import eyeBottom from "../assets/images/eyeBottom.jpg";
 import services from "../data/services";
-import ReviewsSection from "../components/ReviewsSection";
+import ReviewsSection from "../components/public/ReviewsSection";
 
 const Home = () => {
   return (

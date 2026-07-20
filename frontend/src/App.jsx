@@ -1,12 +1,12 @@
 import Privacy from './pages/Privacy';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
+import PublicLayout from './layouts/PublicLayout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Gallery from './pages/Galery';
 import Offer from './pages/Offer';
 import Contact from './pages/Contact';
-import ScrollToTop from './components/ScrollToTop';
+import ScrollToTop from './components/public/ScrollToTop';
 import Regulamin from './pages/Regulamin';
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
     <BrowserRouter>
     <ScrollToTop />
       <Routes>
-        <Route path='/' element={<Layout />}>
+        <Route path='/' element={<PublicLayout />}>
           <Route index element={<Home />} />
           <Route path='about' element={<About />} />
           <Route path='gallery' element={<Gallery />} />

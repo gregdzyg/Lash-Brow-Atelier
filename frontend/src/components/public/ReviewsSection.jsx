@@ -1,15 +1,15 @@
 import { useState } from "react";
 
-import op1 from "../assets/reviews/op1.png";
-import op2 from "../assets/reviews/op2.png";
-import op3 from "../assets/reviews/op3.png";
-import op4 from "../assets/reviews/op4.png";
-import op5 from "../assets/reviews/op5.png";
-import op6 from "../assets/reviews/op6.png";
-import op7 from "../assets/reviews/op7.png";
-import op8 from "../assets/reviews/op8.png";
-import op9 from "../assets/reviews/op9.png";
-import op10 from "../assets/reviews/op10.png";
+import op1 from "../../assets/reviews/op1.png";
+import op2 from "../../assets/reviews/op2.png";
+import op3 from "../../assets/reviews/op3.png";
+import op4 from "../../assets/reviews/op4.png";
+import op5 from "../../assets/reviews/op5.png";
+import op6 from "../../assets/reviews/op6.png";
+import op7 from "../../assets/reviews/op7.png";
+import op8 from "../../assets/reviews/op8.png";
+import op9 from "../../assets/reviews/op9.png";
+import op10 from "../../assets/reviews/op10.png";
 
 const reviews = [op1, op2, op3, op4, op5, op6, op7, op8, op9, op10];
 

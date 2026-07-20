@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import CookieBanner from "./CookieBanner";
+import Navbar from '../components/public/Navbar';
+import Footer from '../components/public/Footer';
+import CookieBanner from "../components/public/CookieBanner";
 
-const Layout = () => {
+const PublicLayout = () => {
     return(
         <div className='min-h-screen flex flex-col bg-[var(--background)] text-white'>
             <Navbar />
@@ -17,4 +17,4 @@ const Layout = () => {
     ); 
 }
 
-export default Layout;
+export default PublicLayout;

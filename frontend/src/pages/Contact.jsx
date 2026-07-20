@@ -1,7 +1,7 @@
 import emailjs from "@emailjs/browser";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import BooksySection from "../components/BooksySection";
+import BooksySection from "../components/public/BooksySection";
 
 
 
