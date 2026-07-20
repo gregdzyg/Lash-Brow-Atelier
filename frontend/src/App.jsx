@@ -10,6 +10,8 @@ import ScrollToTop from './components/public/ScrollToTop';
 import Regulamin from './pages/Regulamin';
 import AuthLayout from "./layouts/AuthLayout";
 import LoginPage from "./pages/auth/LoginPage";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -27,6 +29,9 @@ function App() {
         </Route>
         <Route element={<AuthLayout />} >
           <Route path='/admin/login' element={<LoginPage />} />
+        </Route>
+        <Route path='/admin' element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
         </Route>
         
       </Routes>

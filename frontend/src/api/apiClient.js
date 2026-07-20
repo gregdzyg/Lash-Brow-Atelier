@@ -5,7 +5,7 @@ const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 });
 
-apiCLient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config) => {
     const token = getToken();
 
     if(token && config.url?.startsWith("/api/admin")) {
@@ -15,4 +15,4 @@ apiCLient.interceptors.request.use((config) => {
     return config;
 });
 
-export default apiCLient;
+export default apiClient;

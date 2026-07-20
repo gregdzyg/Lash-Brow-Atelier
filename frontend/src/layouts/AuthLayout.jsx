@@ -6,25 +6,50 @@ const AuthLayout = () => {
         <main className="relative min-h-screen overflow-hidden bg-[var(--background)] text-white">
             <div
                 aria-hidden="true"
-                className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-[var(--rose)]/10 blur-3xl"
+                className="
+                    absolute -left-24 top-16 h-72 w-72
+                    rounded-full bg-[var(--rose)]/10 blur-3xl
+                "
             />
             <div
                 aria-hidden="true"
-                className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-[var(--gold)]/10 blur-3xl"
+                className="
+                    absolute -bottom-32 right-0 h-96 w-96
+                    rounded-full bg-[var(--gold)]/10 blur-3xl
+                "
             />
 
-            <div className="relative z-10 mx-auto grid min-h-screen max-w-7xl grid-rows-[auto_1fr] 
-            lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.78fr)] lg:grid-rows-1">
-                <section className="flex flex-col px-6 py-6 sm:px-10 sm:py-8 lg:px-16 lg:py-12">
+            <div className="
+                relative z-10 mx-auto grid min-h-screen max-w-7xl grid-rows-[auto_1fr]
+                lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.78fr)] lg:grid-rows-1
+            ">
+                <section className="
+                    flex flex-col px-6 py-6
+                    sm:px-10 sm:py-8
+                    lg:px-16 lg:py-12
+                ">
                     <Link
                         to="/"
                         aria-label="Wróć na stronę główną Atelier"
-                        className="flex w-fit items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--background)]"
+                        className="
+                            flex w-fit items-center gap-3
+
+                            rounded-full
+
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-[var(--gold)]
+                            focus-visible:ring-offset-4
+                            focus-visible:ring-offset-[var(--background)]
+                        "
                     >
                         <img
                             src={logo}
                             alt=""
-                            className="h-12 w-12 rounded-full border border-[var(--gold)]/40 object-cover sm:h-14 sm:w-14"
+                            className="
+                                h-12 w-12 rounded-full border border-[var(--gold)]/40 object-cover
+                                sm:h-14 sm:w-14
+                            "
                         />
                         <span className="flex flex-col leading-tight text-[var(--rose)]">
                             <span className="text-sm font-semibold tracking-wide sm:text-base">
@@ -38,7 +63,10 @@ const AuthLayout = () => {
 
                     <div className="hidden flex-1 items-center py-16 lg:flex">
                         <div className="max-w-xl">
-                            <p className="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+                            <p className="
+                                mb-5 flex items-center gap-3
+                                text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]
+                            ">
                                 <span className="h-px w-10 bg-[var(--gold)]/70" />
                                 Panel administracyjny
                             </p>
@@ -55,13 +83,23 @@ const AuthLayout = () => {
 
                     <Link
                         to="/"
-                        className="mt-6 hidden w-fit text-sm text-white/55 transition-colors hover:text-[var(--gold)] focus-visible:outline-none focus-visible:text-[var(--gold)] lg:block"
+                        className="
+                            mt-6 hidden w-fit text-sm text-white/55 transition-colors
+                            hover:text-[var(--gold)]
+                            focus-visible:outline-none focus-visible:text-[var(--gold)]
+                            lg:block
+                        "
                     >
                         ← Wróć na stronę Atelier
                     </Link>
                 </section>
 
-                <section className="flex items-center justify-center border-t border-[var(--gold)]/20 bg-white/[0.025] px-6 py-10 sm:px-10 lg:border-l lg:border-t-0 lg:px-14">
+                <section className="
+                    flex items-center justify-center
+                    border-t border-[var(--gold)]/20 bg-white/[0.025] px-6 py-10
+                    sm:px-10
+                    lg:border-l lg:border-t-0 lg:px-14
+                ">
                     <div className="w-full max-w-md">
                         <Outlet />
                     </div>

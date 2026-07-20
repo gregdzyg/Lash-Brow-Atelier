@@ -1,6 +1,47 @@
 import { ArrowRight, LockKeyhole, UserRound } from "lucide-react";
+import { useState } from "react";
+import { login } from "../../api/apiAuth";
+import { saveToken } from "../../auth/tokenStorage";
+import { useNavigate } from "react-router-dom";
+
 
 const LoginPage = () => {
+
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setError('');
+
+        if(!username.trim() || !password) {
+            setError('Wprowadź nazwę użytkownika i hasło.');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const loginResponse = await login(username.trim(), password);
+            saveToken(loginResponse.token);
+            console.log('Login successful');
+            navigate("/admin");
+        } catch (error) {
+              if (error.response?.status === 401) {
+                setError("Nieprawidłowa nazwa użytkownika lub hasło.");
+            } else if (error.request) {
+                setError("Nie udało się połączyć z serwerem.");
+            } else {
+                setError("Wystąpił nieoczekiwany błąd.");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div>
             <div className="mb-8 sm:mb-10">
@@ -15,7 +56,7 @@ const LoginPage = () => {
                 </p>
             </div>
 
-            <form className="space-y-8">
+            <form className="space-y-8" onSubmit={handleSubmit}>
                 <div>
                     <label
                         htmlFor="username"
@@ -27,7 +68,10 @@ const LoginPage = () => {
                         <UserRound
                             aria-hidden="true"
                             size={19}
-                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--gold)]/80"
+                            className="
+                                pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                                text-[var(--gold)]/80
+                            "
                         />
                         <input
                             id="username"
@@ -35,7 +79,15 @@ const LoginPage = () => {
                             type="text"
                             autoComplete="username"
                             placeholder="Wpisz swój login"
-                            className="w-full rounded-2xl border border-[var(--gold)]/45 bg-white/[0.06] py-3.5 pl-12 pr-4 text-white outline-none transition placeholder:text-white/30 hover:border-[var(--gold)]/70 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20"
+                            value={username}
+                            onChange={(event) => setUsername(event.target.value)}
+                            className="
+                                w-full rounded-2xl border border-[var(--gold)]/45
+                                bg-white/[0.06] py-3.5 pl-12 pr-4 text-white
+                                outline-none transition placeholder:text-white/30
+                                hover:border-[var(--gold)]/70
+                                focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20
+                            "
                         />
                     </div>
                 </div>
@@ -51,7 +103,10 @@ const LoginPage = () => {
                         <LockKeyhole
                             aria-hidden="true"
                             size={19}
-                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--gold)]/80"
+                            className="
+                                pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                                text-[var(--gold)]/80
+                            "
                         />
                         <input
                             id="password"
@@ -59,18 +114,50 @@ const LoginPage = () => {
                             type="password"
                             autoComplete="current-password"
                             placeholder="Wpisz swoje hasło"
-                            className="w-full rounded-2xl border border-[var(--gold)]/45 bg-white/[0.06] py-3.5 pl-12 pr-4 text-white outline-none transition placeholder:text-white/30 hover:border-[var(--gold)]/70 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            className="
+                                w-full rounded-2xl border border-[var(--gold)]/45
+                                bg-white/[0.06] py-3.5 pl-12 pr-4 text-white
+                                outline-none transition placeholder:text-white/30
+                                hover:border-[var(--gold)]/70
+                                focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20
+                            "
                         />
                     </div>
                 </div>
 
+                {error && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        {error}
+                    </div>
+                )}
+
                 <button
-                    type="button"
-                    className="group flex w-full cursor-pointer items-center justify-center gap-2 
-                    rounded-full border-2 border-[var(--gold)] bg-[var(--gold)] px-6 py-3.5 font-semibold
-                     text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none
-                     focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4 
-                     focus-visible:ring-offset-[var(--background)] active:bg-[var(--gold)] active:text-black"
+                    type="submit"
+                    className="
+                        group flex w-full cursor-pointer items-center justify-center gap-2
+
+                        rounded-full border-2 border-[var(--gold)]
+                        bg-[var(--gold)]
+
+                        px-6 py-3.5
+
+                        font-semibold text-black
+
+                        transition
+                        hover:bg-transparent
+                        hover:text-[var(--gold)]
+
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-[var(--gold)]
+                        focus-visible:ring-offset-4
+                        focus-visible:ring-offset-[var(--background)]
+
+                        active:bg-[var(--gold)]
+                        active:text-black
+                    "
                 >
                     Zaloguj się
                     <ArrowRight
