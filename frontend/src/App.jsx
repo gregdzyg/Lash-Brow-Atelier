@@ -8,6 +8,8 @@ import Offer from './pages/Offer';
 import Contact from './pages/Contact';
 import ScrollToTop from './components/public/ScrollToTop';
 import Regulamin from './pages/Regulamin';
+import AuthLayout from "./layouts/AuthLayout";
+import LoginPage from "./pages/auth/LoginPage";
 
 function App() {
   return (
@@ -23,6 +25,10 @@ function App() {
           <Route path="polityka-prywatnosci" element={<Privacy />} />
           <Route path="regulamin" element={<Regulamin />} />
         </Route>
+        <Route element={<AuthLayout />} >
+          <Route path='/admin/login' element={<LoginPage />} />
+        </Route>
+        
       </Routes>
     </BrowserRouter>
   );

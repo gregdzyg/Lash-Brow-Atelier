@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken } from "../auth/tokenStorage";
 
-const apiCLient = axios.create({
+const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 });
 
