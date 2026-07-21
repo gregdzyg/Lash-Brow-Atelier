@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { Link } from "react-router-dom";
 
 const AdminLayout = () => {
 
@@ -34,14 +35,17 @@ const AdminLayout = () => {
                     sm:flex-row sm:items-center sm:justify-between sm:px-10
                     lg:px-16
                 ">
-                    <div>
+                    <Link
+                    to="/admin"
+                    aria-label="Przejdź do panelu głównego"
+                    >
                         <p className="text-lg font-semibold tracking-wide text-[var(--gold)] sm:text-xl">
                             AtelierByPT — Administracja
                         </p>
                         <p className="mt-0.5 text-xs uppercase tracking-[0.2em] text-white/35">
                             Panel zarządzania
                         </p>
-                    </div>
+                    </Link>
 
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
                         <p className="text-sm text-white/65">
