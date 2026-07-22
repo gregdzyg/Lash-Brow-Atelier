@@ -1,104 +1,152 @@
 import { Link } from "react-router-dom";
 import galeria9 from "../assets/images/galeria9.JPG";
-import eyeTop from "../assets/images/eyeTop.jpg";    // np. plik z prawego górnego rogu
+import eyeTop from "../assets/images/eyeTop.jpg";
 import eyeBottom from "../assets/images/eyeBottom.jpg";
 import services from "../data/services";
 import ReviewsSection from "../components/public/ReviewsSection";
 
 const Home = () => {
   return (
-    <section className="text-white w-4/5 flex flex-col mx-auto pt-4">
+    <section className="mx-auto w-full max-w-7xl px-5 pb-8 pt-6 text-white sm:px-8 sm:pt-10 lg:px-12">
       {/* Hero Image */}
-      <div
-        className="h-60 sm:h-80 bg-cover bg-center rounded-4xl"
-        style={{ backgroundImage: `url(${galeria9})` }}
-      />
+      <div className="relative min-h-[34rem] overflow-hidden rounded-[2rem] sm:min-h-[38rem] lg:min-h-[42rem]">
+        <img
+          src={galeria9}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-transparent to-transparent" />
 
-      {/* Tekst + CTA pod zdjęciem */}
-      <div className="text-center px-4 py-10 max-w-4xl mx-auto">
-        <h1 className="text-3xl md:text-5xl font-bold text-[var(--gold)] mb-4">
-          Zadbam o PIĘKNO Twojego spojrzenia w atmosferze LUKSUSU
-        </h1>
-        <Link
-          to="/contact"
-          className="inline-block mt-4 px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full 
-          hover:bg-[var(--gold)] hover:text-black transition active:bg-[var(--gold)] active:text-black"
-        >
-          Umów się na wizytę
-        </Link>
+        {/* Tekst + CTA pod zdjęciem */}
+        <div className="relative z-10 flex min-h-[34rem] items-end p-6 sm:min-h-[38rem] sm:p-10 lg:min-h-[42rem] lg:p-14">
+          <div className="max-w-3xl">
+            <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Zadbam o <span className="text-[var(--gold)]">PIĘKNO</span> Twojego
+              spojrzenia w atmosferze <span className="text-[var(--rose)]">LUKSUSU</span>
+            </h1>
+            <Link
+              to="/contact"
+              className="
+                mt-8 inline-flex rounded-full border-2 border-[var(--gold)]
+                bg-[var(--gold)] px-6 py-3 font-semibold text-black
+                transition duration-300 hover:bg-transparent hover:text-[var(--gold)]
+                focus-visible:outline-none focus-visible:ring-2
+                focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+                focus-visible:ring-offset-black
+                active:bg-[var(--gold)] active:text-black
+              "
+            >
+              Umów się na wizytę
+            </Link>
+          </div>
+        </div>
       </div>
-      <div className="py-6 bg-[var(--background)]">
-        <h2 className="text-center text-2xl md:text-3xl font-bold text-[var(--gold)] mb-10">
+
+      <div className="py-16 sm:py-20 lg:py-24">
+        <h2 className="text-center text-3xl font-semibold text-[var(--gold)] sm:text-4xl">
           Nasze usługi
         </h2>
 
-       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 text-center">
-  {services.slice(0, 6).map((service) => (
-    <div
-      key={service.id}
-      className="bg-[var(--background)] p-6 rounded-4xl border border-[var(--gold)]/70 flex flex-col justify-center text-center"
-    >
-      <h3 className="text-xl font-semibold text-[var(--gold)]/90 mb-2">
-        {service.name}
-      </h3>
-      <p className="text-sm text-white/80">{service.description}</p>
-    </div>
-  ))}
-</div>
+        <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          {services.slice(0, 6).map((service) => (
+            <div
+              key={service.id}
+              className="
+                group flex min-h-52 flex-col justify-center rounded-3xl
+                border border-[var(--gold)]/25
+                bg-gradient-to-br from-white/[0.075] to-white/[0.02]
+                px-6 py-8 text-center backdrop-blur-xl
+                transition duration-300 hover:-translate-y-1
+                hover:border-[var(--gold)]/50 hover:bg-white/[0.08]
+                hover:shadow-xl hover:shadow-black/20 sm:px-7
+              "
+            >
+              <h3 className="text-lg font-semibold text-[var(--gold)] transition-colors group-hover:text-[#c8ad55] sm:text-xl">
+                {service.name}
+              </h3>
+              <p className="mt-4 text-sm leading-6 text-white/60">
+                {service.description}
+              </p>
+            </div>
+          ))}
+        </div>
 
-<div className="text-center mt-6">
-  <Link
-    to="/offer"
-    className="inline-block px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full 
-    hover:bg-[var(--gold)] hover:text-black active:bg-[var(--gold)] active:text-black"
-  >
-    Zobacz pełną ofertę
-  </Link>
-</div>
-
+        <div className="mt-10 text-center">
+          <Link
+            to="/offer"
+            className="
+              inline-flex rounded-full border border-[var(--gold)]/70 px-6 py-3
+              font-medium text-[var(--gold)] transition duration-300
+              hover:border-[var(--gold)] hover:bg-[var(--gold)] hover:text-black
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+              focus-visible:ring-offset-[var(--background)]
+            "
+          >
+            Zobacz pełną ofertę
+          </Link>
+        </div>
       </div>
-      <section className="relative bg-[var(--rose)] text-black py-16 px-6 md:px-12 rounded-4xl my-12 overflow-hidden">
-      {/* Dekoracyjne zdjęcia */}
-      <img
-        src={eyeTop}
-        alt="Dekoracyjne rzęsy góra"
-        className="absolute top-0 right-0 w-28 md:w-40 opacity-30 rounded-bl-[2rem]"
-      />
-      <img
-        src={eyeBottom}
-        alt="Dekoracyjne rzęsy dół"
-        className="absolute bottom-0 left-0 w-28 md:w-40 opacity-30 rounded-tr-[2rem]"
-      />
 
-      {/* Tekst sekcji */}
-      <div className="max-w-4xl mx-auto text-center relative z-10">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">Kilka słów o Atelier</h2>
-        <p className="text-md md:text-lg mb-4">
-          W Lash&Brow Atelier wierzymy, że piękno tkwi w detalach – w subtelnym spojrzeniu, delikatnym łuku brwi,
-          naturalnym podkreśleniu kobiecego uroku.
-        </p>
-        <p className="text-md md:text-lg mb-6">
-          Moją misją jest wydobycie Twojego wewnętrznego piękna w sposób, który daje pewność siebie – każdego dnia.
-        </p>
-        <Link
-          to="/about"
-          className="inline-block px-6 py-3 mt-4 border-2 border-black text-black rounded-full
-           hover:bg-black hover:text-white transition :bg-black active:text-white"
-        >
-          Dowiedz się więcej
-        </Link>
-      </div>
+      <section className="relative my-4 overflow-hidden rounded-[2rem] bg-[var(--rose)] px-6 py-16 text-black sm:px-12 lg:py-24">
+        {/* Dekoracyjne zdjęcia */}
+        <img
+          src={eyeTop}
+          alt="Dekoracyjne rzęsy góra"
+          className="absolute right-0 top-0 h-36 w-36 rounded-bl-[2rem] object-cover opacity-25 sm:h-52 sm:w-52"
+        />
+        <img
+          src={eyeBottom}
+          alt="Dekoracyjne rzęsy dół"
+          className="absolute bottom-0 left-0 h-36 w-36 rounded-tr-[2rem] object-cover opacity-25 sm:h-52 sm:w-52"
+        />
+
+        {/* Tekst sekcji */}
+        <div className="relative z-10 mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-semibold sm:text-4xl">Kilka słów o Atelier</h2>
+          <p className="mt-7 text-base leading-7 sm:text-lg">
+            W Lash&Brow Atelier wierzymy, że piękno tkwi w detalach – w subtelnym spojrzeniu, delikatnym łuku brwi,
+            naturalnym podkreśleniu kobiecego uroku.
+          </p>
+          <p className="mt-4 text-base leading-7 sm:text-lg">
+            Moją misją jest wydobycie Twojego wewnętrznego piękna w sposób, który daje pewność siebie – każdego dnia.
+          </p>
+          <Link
+            to="/about"
+            className="
+              mt-8 inline-flex rounded-full border-2 border-black px-6 py-3
+              font-medium text-black transition duration-300
+              hover:bg-black hover:text-white
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-black focus-visible:ring-offset-4
+              focus-visible:ring-offset-[var(--rose)]
+              active:bg-black active:text-white
+            "
+          >
+            Dowiedz się więcej
+          </Link>
+        </div>
       </section>
+
       <ReviewsSection />
-      <div className="text-center px-4 py-10 max-w-4xl mx-auto">
-       <Link
+
+      <div className="pb-10 text-center sm:pb-14">
+        <Link
           to="/contact"
-          className="inline-block mt-4 px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full 
-          hover:bg-[var(--gold)] hover:text-black transition active:bg-[var(--gold)] active:text-black"
+          className="
+            inline-flex rounded-full border-2 border-[var(--gold)]
+            bg-[var(--gold)] px-6 py-3 font-semibold text-black
+            transition duration-300 hover:bg-transparent hover:text-[var(--gold)]
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+            focus-visible:ring-offset-[var(--background)]
+            active:bg-[var(--gold)] active:text-black
+          "
         >
           Umów się na wizytę
         </Link>
-        </div>
+      </div>
     </section>
   );
 };

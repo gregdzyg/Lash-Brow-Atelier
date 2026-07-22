@@ -5,12 +5,25 @@ import CookieBanner from "../components/public/CookieBanner";
 
 const PublicLayout = () => {
     return(
-        <div className='min-h-screen flex flex-col bg-[var(--background)] text-white'>
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-[var(--background)] text-white">
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none fixed -left-40 top-36 h-96 w-96
+                    rounded-full bg-[var(--rose)]/7 blur-3xl
+                "
+            />
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none fixed -right-48 top-[38rem] h-[30rem] w-[30rem]
+                    rounded-full bg-[var(--gold)]/8 blur-3xl
+                "
+            />
             <Navbar />
-            <main className='flex-1'>
+            <main className="relative z-10 flex-1">
                 <Outlet />
             </main>
-            <div className='w-4/5 mx-auto h-px bg-[var(--gold)]/50 my-1' />
             <Footer />
             <CookieBanner />
         </div>

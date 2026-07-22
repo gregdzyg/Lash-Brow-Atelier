@@ -1,41 +1,61 @@
 import { Link } from "react-router-dom";
 import services from "../data/services";
 
-
 const Offer = () => {
   return (
-    <section className="text-white w-4/5 mx-auto py-12">
-      <h1 className="text-3xl md:text-5xl font-bold text-[var(--gold)] text-center mb-10">
-        Oferta
-      </h1>
+    <section className="mx-auto w-full max-w-7xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+      <div className="mb-12 flex items-center justify-center gap-3 sm:mb-16">
+        <span className="h-px w-10 bg-[var(--gold)]/70" />
+        <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          Oferta
+        </h1>
+        <span className="h-px w-10 bg-[var(--gold)]/70" />
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         {services.map((service) => (
-          <div
+          <article
             key={service.id}
-            className="bg-[var(--background)] border border-[var(--gold)] p-6 rounded-4xl flex flex-col justify-center text-center"
+            className="
+              group flex min-h-72 flex-col rounded-3xl
+              border border-[var(--gold)]/25
+              bg-gradient-to-br from-white/[0.075] to-white/[0.02]
+              p-7 backdrop-blur-xl transition duration-300
+              hover:-translate-y-1 hover:border-[var(--gold)]/50
+              hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20
+            "
           >
-            <h3 className="text-xl flex justify-center text-center font-semibold text-[var(--gold)]/90 mb-2">
+            <h2 className="text-xl font-semibold leading-snug text-[var(--gold)] transition-colors group-hover:text-[#c8ad55]">
               {service.name}
-            </h3>
-            <p className="text-sm flex justify-center text-center text-white/70 mb-4">
+            </h2>
+            <p className="mt-4 flex-1 text-sm leading-6 text-white/60">
               {service.description}
             </p>
-            <p className="text-lg flex justify-center text-center font-bold text-[var(--gold)]">
-              {service.price}
-            </p>
-          </div>
+            <div className="mt-6 border-t border-[var(--gold)]/15 pt-5">
+              <p className="text-lg font-semibold text-white">
+                {service.price}
+              </p>
+            </div>
+          </article>
         ))}
       </div>
-       <div className="text-center py-6 max-w-4xl mx-auto">
-      <Link
+
+      <div className="pt-12 text-center sm:pt-16">
+        <Link
           to="/contact"
-          className="inline-block mt-4 px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] rounded-full 
-          hover:bg-[var(--gold)] hover:text-black active:bg-[var(--gold)] active:text-black"
+          className="
+            inline-flex rounded-full border-2 border-[var(--gold)]
+            bg-[var(--gold)] px-6 py-3 font-semibold text-black
+            transition duration-300 hover:bg-transparent hover:text-[var(--gold)]
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+            focus-visible:ring-offset-[var(--background)]
+            active:bg-[var(--gold)] active:text-black
+          "
         >
           Umów się na wizytę
         </Link>
-       </div>
+      </div>
     </section>
   );
 };

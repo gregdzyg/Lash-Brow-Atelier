@@ -1,38 +1,63 @@
 import { Link } from "react-router-dom";
+
 const images = import.meta.glob('../assets/images/*.{jpg,jpeg,png,JPG}', {
   eager: true,
 });
 
 const galleryImages = Object.values(images)
   .map((mod) => mod.default)
-  .slice(0, 16); 
+  .slice(0, 16);
 
 const Gallery = () => {
   return (
-    <section className="py-10 sm:px-4 lg:px-8">
-      <h2 className="text-center text-2xl text-[var(--gold)] font-semibold mb-8">
-        Galeria
-      </h2>
+    <section className="mx-auto w-full max-w-7xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+      <div className="mb-12 flex items-center justify-center gap-3 sm:mb-16">
+        <span className="h-px w-10 bg-[var(--gold)]/70" />
+        <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          Galeria
+        </h1>
+        <span className="h-px w-10 bg-[var(--gold)]/70" />
+      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-6 w-4/5 mx-auto justify-center">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:gap-6">
         {galleryImages.map((src, index) => (
-          <div key={index} className="overflow-hidden rounded-full aspect-square shadow">
+          <div
+            key={index}
+            className="
+              group relative aspect-[4/5] overflow-hidden rounded-3xl
+              border border-[var(--gold)]/20 bg-white/[0.03]
+              shadow-[0_18px_45px_rgba(0,0,0,0.18)]
+              sm:even:translate-y-6
+            "
+          >
             <img
               src={src}
               alt={`Galeria ${index + 1}`}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 rounded-full"
+              className="
+                h-full w-full object-cover transition duration-500 ease-out
+                group-hover:scale-105 group-hover:brightness-110
+              "
             />
+            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
           </div>
         ))}
       </div>
-      <div className="flex justify-center mt-10">
-       <Link
-        to="/contact"
-        className="relative inline-block text-[var(--gold)] font-semibold px-6 py-3 mt-4 rounded-full 
-                   bg-[var(--background)] border-2 border-[var(--gold)] hover:bg-[var(--gold)] hover:text-black active:bg-[var(--gold)]
-                    active:text-black">
-        Umów się na wizytę
-      </Link>
+
+      <div className="mt-16 flex justify-center sm:mt-24">
+        <Link
+          to="/contact"
+          className="
+            inline-flex rounded-full border-2 border-[var(--gold)]
+            bg-[var(--gold)] px-6 py-3 font-semibold text-black
+            transition duration-300 hover:bg-transparent hover:text-[var(--gold)]
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+            focus-visible:ring-offset-[var(--background)]
+            active:bg-[var(--gold)] active:text-black
+          "
+        >
+          Umów się na wizytę
+        </Link>
       </div>
     </section>
   );

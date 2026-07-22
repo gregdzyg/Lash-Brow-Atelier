@@ -1,14 +1,19 @@
 const Privacy = () => {
   return (
-    <section className="text-white w-4/5 mx-auto py-12 mt-4">
-      <h1 className="text-3xl md:text-5xl font-bold text-[var(--gold)] text-center mb-10">
-        Polityka prywatności
-      </h1>
+    <section className="mx-auto w-full max-w-5xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+      <div className="mb-12 flex items-center justify-center gap-3 sm:mb-16">
+        <span className="h-px w-6 bg-[var(--gold)]/70 sm:w-10" />
+        <h1 className="text-center text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+          Polityka prywatności
+        </h1>
+        <span className="h-px w-6 bg-[var(--gold)]/70 sm:w-10" />
+      </div>
 
-      <div className="bg-[var(--background)] p-6 rounded-4xl border border-[var(--gold)]/70 space-y-4">
+      <div className="rounded-[2rem] border border-[var(--gold)]/20 bg-white/[0.025] p-6 text-sm leading-7 text-white/70 shadow-[0_24px_70px_rgba(0,0,0,0.16)] sm:p-10 sm:text-base sm:leading-8 lg:p-14">
+        <div className="space-y-6">
         <p>
           Administratorem danych osobowych jest{" "}
-          <strong>Lash&Brow Atelier by Paulina Tarnowska</strong>.
+          <strong className="font-semibold text-white">Lash&Brow Atelier by Paulina Tarnowska</strong>.
         </p>
 
         <p>
@@ -24,7 +29,7 @@ const Privacy = () => {
         <p>
           Odbiorcami danych mogą być zewnętrzni dostawcy usług technicznych,
           w szczególności:
-          <ul className="list-disc list-inside mt-2 space-y-1">
+          <ul className="mt-3 list-inside list-disc space-y-2 border-l border-[var(--gold)]/20 pl-4 text-white/60">
             <li>EmailJS – obsługa formularza kontaktowego,</li>
             <li>
               Booksy International sp. z o.o. – obsługa rezerwacji wizyt online,
@@ -67,8 +72,9 @@ const Privacy = () => {
 
         <p>
           W sprawach związanych z ochroną danych osobowych można skontaktować się pod
-          adresem e-mail: <strong>kontakt@lash-brow-atelier.pl</strong>.
+          adresem e-mail: <strong className="font-semibold text-[var(--gold)]">kontakt@lash-brow-atelier.pl</strong>.
         </p>
+        </div>
       </div>
     </section>
   );

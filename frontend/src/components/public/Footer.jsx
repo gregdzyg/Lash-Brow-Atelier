@@ -3,30 +3,30 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-[var(--background)] text-white text-sm py-10 px-4">
+    <footer className="relative z-10 mt-10 border-t border-[var(--gold)]/15 px-5 py-12 text-sm text-white sm:px-8 lg:mt-16 lg:px-12 lg:py-16">
       {/* Główna siatka */}
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-around items-center gap-y-6  text-center">
+      <div className="mx-auto grid max-w-2xl gap-10 text-center sm:grid-cols-2 sm:gap-12">
         {/* Kontakt */}
-        <div className="space-y-1">
-          <p className="text-[var(--gold)] font-medium mb-1">Kontakt</p>
-          <p className="text-xs">📍 ul. Kościelna 26, 21-200 Parczew</p>
-          <p className="text-xs">📞 +48 534 345 432</p>
-          <p className="text-xs">📧 kontakt@atelierbypaula.pl</p>
+        <div className="space-y-2">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">Kontakt</p>
+          <p className="text-sm text-white/65">📍 ul. Kościelna 26, 21-200 Parczew</p>
+          <p className="text-sm text-white/65">📞 +48 534 345 432</p>
+          <p className="text-sm text-white/65">📧 kontakt@atelierbypaula.pl</p>
         </div>
         {/* Dodatkowe linki */}
         <div>
-          <p className="text-[var(--gold)] font-medium">Informacje</p>
-          <ul className="space-y-1">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">Informacje</p>
+          <ul className="space-y-2 text-white/65">
             <li>
-              <Link to="/offer" className="hover:underline text-xs">
+              <Link to="/offer" className="text-sm transition-colors hover:text-[var(--gold)]">
                 Oferta
               </Link>
             </li>
             <li>
-              <span className="text-xs">🕒 Godziny otwarcia: 8–17</span>
+              <span className="text-sm">🕒 Godziny otwarcia: 8–17</span>
             </li>
             <li>
-              <Link to="/regulamin" className="text-xs hover:underline">
+              <Link to="/regulamin" className="text-sm transition-colors hover:text-[var(--gold)]">
                 Regulamin
               </Link>
             </li>
@@ -35,29 +35,29 @@ const Footer = () => {
       </div>
 
       {/* Separator */}
-      <div className="w-4/5 mx-auto h-px bg-[var(--gold)]/50 my-6" />
+      <div className="mx-auto my-8 h-px max-w-4xl bg-gradient-to-r from-transparent via-[var(--gold)]/35 to-transparent" />
 
       {/* Ikony social media */}
-      <div className="flex justify-center items-center space-x-6">
-        <a href="https://www.instagram.com/paulina_tarnowska_?igsh=MWNreGprdDRzN3mbA==" aria-label="Instagram" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-white/60">
+        <a href="https://www.instagram.com/paulina_tarnowska_?igsh=MWNreGprdDRzN3mbA==" aria-label="Instagram" className="flex items-center gap-2 transition-colors hover:text-[var(--gold)]">
           <FaInstagram size={18} />
           <span className="text-xs">Instagram</span>
         </a>
-        <a href="https://facebook.com/share/1CXJKitwvD/" aria-label="Facebook" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+        <a href="https://facebook.com/share/1CXJKitwvD/" aria-label="Facebook" className="flex items-center gap-2 transition-colors hover:text-[var(--gold)]">
           <FaFacebookF size={18} />
           <span className="text-xs">Facebook</span>
         </a>
-        <a href="https://www.tiktok.com/@lashbrowatelierpaula" aria-label="TikTok" className="hover:text-[var(--gold)] transition flex items-center gap-1">
+        <a href="https://www.tiktok.com/@lashbrowatelierpaula" aria-label="TikTok" className="flex items-center gap-2 transition-colors hover:text-[var(--gold)]">
           <FaTiktok size={18} />
           <span className="text-xs">TikTok</span>
         </a>
       </div>
        {/* Branding */}
-        <div className="text-center mt-4">
-          <span className="text-[var(--rose)] font-semibold mb-1">
+        <div className="mt-6 text-center text-white/40">
+          <span className="mb-1 font-semibold tracking-wide text-[var(--rose)]">
             Lash&Brow Atelier </span>
           
-          <span className="text-xs italic text-[var(--rose)]">by Paulina Tarnowska </span>
+          <span className="text-xs italic text-[var(--rose)]/80">by Paulina Tarnowska </span>
           <span className="text-xs">
             © 2025 
           </span>

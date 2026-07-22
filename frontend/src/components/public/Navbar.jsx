@@ -16,37 +16,72 @@ const Navbar = () => {
     ];
 
     return(
-        <header className="sticky top-0 z-50 shadow-md bg-[var(--background)] pt-2">
-            <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-around items-center h-20">
+        <header className="sticky top-0 z-50 border-b border-[var(--gold)]/15 bg-[var(--background)]/90 backdrop-blur-xl">
+            <nav className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+                <div className="flex h-20 items-center justify-between sm:h-24">
 
-                    <Link to='/' className="flex items-center space-x-3">
-                        <img src={logo} alt="Logo" className="h-10 w-auto sm:h-12 rounded-full" />
-                        <div className="flex flex-col leading-tight text-white">
-                            <span className="text-sm sm:text-base font-semibold text-[var(--rose)]">
+                    <Link
+                        to="/"
+                        className="
+                            flex items-center gap-3 rounded-full
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-[var(--gold)] focus-visible:ring-offset-4
+                            focus-visible:ring-offset-[var(--background)]
+                        "
+                    >
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="
+                                h-11 w-11 rounded-full border border-[var(--gold)]/40 object-cover
+                                sm:h-13 sm:w-13
+                            "
+                        />
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-sm font-semibold tracking-wide text-[var(--rose)] sm:text-base">
                                 Lash&Brow Atelier
                             </span>
-                             <span className="text-xs sm:text-sm italic text-[var(--rose)] text-center">
+                             <span className="text-center text-xs italic text-[var(--rose)]/80 sm:text-sm">
                                 by Paulina Tarnowska
                             </span>
                         </div>
                     </Link>
 
-                    <div className="hidden md:flex space-x-6 items-center">
+                    <div className="hidden items-center gap-1 md:flex">
                         {navigation.map((item) => (
-                            <NavLink key={item.name} to={item.href} className={({ isActive }) => `${
-                                isActive
-                                ? "text-white"
-                                : "text-[var(--gold)] hover:text-white font-medium"
-                                }`
-                                }>
+                            <NavLink
+                                key={item.name}
+                                to={item.href}
+                                className={({ isActive }) => `
+                                    rounded-full px-4 py-2 text-sm font-medium
+                                    transition-colors duration-300
+                                    focus-visible:outline-none focus-visible:ring-2
+                                    focus-visible:ring-[var(--gold)]
+                                    ${isActive
+                                        ? "bg-[var(--gold)]/12 text-white"
+                                        : "text-white/60 hover:bg-white/[0.04] hover:text-[var(--gold)]"
+                                    }
+                                `}
+                            >
                                 {item.name}
                             </NavLink>
                         ))}
                     </div>
 
                     <div className="md:hidden">
-                        <button onClick={() => setOpen(!isOpen)} className="text-[var(--gold)] focus:outline-none">
+                        <button
+                            type="button"
+                            aria-label={isOpen ? "Zamknij menu" : "Otwórz menu"}
+                            aria-expanded={isOpen}
+                            onClick={() => setOpen(!isOpen)}
+                            className="
+                                flex h-11 w-11 cursor-pointer items-center justify-center
+                                rounded-full border border-[var(--gold)]/35 text-[var(--gold)]
+                                transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/10
+                                focus-visible:outline-none focus-visible:ring-2
+                                focus-visible:ring-[var(--gold)]
+                            "
+                        >
                             {isOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
                     </div>
@@ -54,22 +89,27 @@ const Navbar = () => {
                 </div>
 
                 {isOpen && (
-                    <div className="md:hidden mt-2 space-y-2 pb-4">
+                    <div className="grid gap-1 border-t border-[var(--gold)]/15 py-4 md:hidden">
                         {navigation.map((item) => (
-                            <NavLink key={item.name} to={item.href} className={({ isActive }) => 
-                                `block text-center ${isActive
-                                    ? "text-white"
-                                    : "text-[var(--gold)]" 
-                                 }`
-                                 }
-                                  onClick={() => setOpen(false)}>
+                            <NavLink
+                                key={item.name}
+                                to={item.href}
+                                className={({ isActive }) => `
+                                    rounded-2xl px-4 py-3 text-center text-sm font-medium
+                                    transition-colors
+                                    ${isActive
+                                        ? "bg-[var(--gold)]/12 text-white"
+                                        : "text-[var(--gold)] hover:bg-white/[0.04]"
+                                    }
+                                `}
+                                onClick={() => setOpen(false)}
+                            >
                                 {item.name}
                             </NavLink>
                         ))}
                     </div>
                 )}
             </nav>
-           <div className='w-4/5 mx-auto h-px bg-[var(--gold)]/50' />
         </header>
     );
 }
