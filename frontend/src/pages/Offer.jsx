@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import services from "../data/services";
+import PublicOfferCards from "../components/public/PublicOfferCards";
 
 const Offer = () => {
   return (
@@ -12,32 +12,8 @@ const Offer = () => {
         <span className="h-px w-10 bg-[var(--gold)]/70" />
       </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-        {services.map((service) => (
-          <article
-            key={service.id}
-            className="
-              group flex min-h-72 flex-col rounded-3xl
-              border border-[var(--gold)]/25
-              bg-gradient-to-br from-white/[0.075] to-white/[0.02]
-              p-7 backdrop-blur-xl transition duration-300
-              hover:-translate-y-1 hover:border-[var(--gold)]/50
-              hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20
-            "
-          >
-            <h2 className="text-xl font-semibold leading-snug text-[var(--gold)] transition-colors group-hover:text-[#c8ad55]">
-              {service.name}
-            </h2>
-            <p className="mt-4 flex-1 text-sm leading-6 text-white/60">
-              {service.description}
-            </p>
-            <div className="mt-6 border-t border-[var(--gold)]/15 pt-5">
-              <p className="text-lg font-semibold text-white">
-                {service.price}
-              </p>
-            </div>
-          </article>
-        ))}
+      <div className="mx-auto max-w-6xl">
+        <PublicOfferCards />
       </div>
 
       <div className="pt-12 text-center sm:pt-16">

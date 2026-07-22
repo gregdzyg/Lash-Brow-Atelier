@@ -10,6 +10,7 @@ import pl.atelierbypt.backend.dto.AppointmentRequest;
 import pl.atelierbypt.backend.dto.AppointmentResponse;
 import pl.atelierbypt.backend.dto.PatchAppointmentStatusRequest;
 import pl.atelierbypt.backend.dto.PatchAppointmentStatusResponse;
+import pl.atelierbypt.backend.dto.SuggestedOfferItemResponse;
 import pl.atelierbypt.backend.service.AppointmentService;
 
 import java.time.LocalDate;
@@ -31,6 +32,13 @@ public class AppointmentController {
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentResponse> getAppointmentById(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.getAppointmentById(id));
+    }
+
+    @GetMapping("/suggested-offer-items")
+    public ResponseEntity<List<SuggestedOfferItemResponse>> getSuggestedOfferItems(
+            @RequestParam Long clientId
+    ) {
+        return ResponseEntity.ok(appointmentService.getSuggestedOfferItems(clientId));
     }
 
     @PostMapping

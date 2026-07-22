@@ -51,6 +51,7 @@ public interface AppointmentRepository extends Repository<Appointment, Long> {
     WHERE a.client.id = :clientId
         AND a.isActive = true
         AND a.status = 'SCHEDULED'
+        AND o.isActive = true
     ORDER BY a.appointmentDate DESC, a.startTime DESC
     """)
     List<OfferItem> findLastBookedServicesByClient(@Param("clientId") Long clientId);

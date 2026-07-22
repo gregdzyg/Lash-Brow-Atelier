@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.atelierbypt.backend.dto.OfferItemRequest;
 import pl.atelierbypt.backend.dto.OfferItemResponse;
+import pl.atelierbypt.backend.dto.PublicOfferItemResponse;
 import pl.atelierbypt.backend.entity.OfferItem;
 import pl.atelierbypt.backend.enums.OfferItemCategory;
 import pl.atelierbypt.backend.exception.OfferItemNameConflictException;
@@ -13,6 +14,7 @@ import pl.atelierbypt.backend.exception.OfferItemNotFoundException;
 import pl.atelierbypt.backend.repository.OfferItemRepository;
 
 import java.util.List;
+import java.util.Comparator;
 
 @Service
 @Slf4j
@@ -34,6 +36,13 @@ public class OfferItemService {
         return offerItemRepository.findByIsActiveTrue().stream()
                 .map(this::mapToOfferItemResponse
         ).toList();
+    }
+
+    public List<PublicOfferItemResponse> getPublicOfferItems() {
+        return offerItemRepository.findByIsActiveTrue().stream()
+                .sorted(Comparator.comparing(OfferItem::getId))
+                .map(this::mapToPublicOfferItemResponse)
+                .toList();
     }
 
 
@@ -79,6 +88,17 @@ public class OfferItemService {
         return new OfferItemResponse(offerItem.getId(), offerItem.getName(), offerItem.getCategory(),
                 offerItem.getDescription(), offerItem.getDurationMinutes(), offerItem.getBasePrice()
         ,offerItem.isActive());
+    }
+
+    private PublicOfferItemResponse mapToPublicOfferItemResponse(OfferItem offerItem) {
+        return new PublicOfferItemResponse(
+                offerItem.getId(),
+                offerItem.getName(),
+                offerItem.getCategory(),
+                offerItem.getDescription(),
+                offerItem.getDurationMinutes(),
+                offerItem.getBasePrice()
+        );
     }
 
     private void mapRequestToOfferItem(OfferItemRequest request, OfferItem offerItem) {

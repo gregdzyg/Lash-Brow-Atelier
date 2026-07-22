@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 const AdminLayout = () => {
 
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -49,7 +49,9 @@ const AdminLayout = () => {
 
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
                         <p className="text-sm text-white/65">
-                            Witaj, <span className="font-medium text-white">Administratorze</span>
+                            Witaj, <span className="font-medium text-white">
+                                {user?.username ?? "Administrator"}
+                            </span>
                         </p>
                         <button
                             type="button"

@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import galeria9 from "../assets/images/galeria9.JPG";
 import eyeTop from "../assets/images/eyeTop.jpg";
 import eyeBottom from "../assets/images/eyeBottom.jpg";
-import services from "../data/services";
 import ReviewsSection from "../components/public/ReviewsSection";
+import PublicOfferCards from "../components/public/PublicOfferCards";
 
 const Home = () => {
   return (
@@ -48,28 +48,8 @@ const Home = () => {
           Nasze usługi
         </h2>
 
-        <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-          {services.slice(0, 6).map((service) => (
-            <div
-              key={service.id}
-              className="
-                group flex min-h-52 flex-col justify-center rounded-3xl
-                border border-[var(--gold)]/25
-                bg-gradient-to-br from-white/[0.075] to-white/[0.02]
-                px-6 py-8 text-center backdrop-blur-xl
-                transition duration-300 hover:-translate-y-1
-                hover:border-[var(--gold)]/50 hover:bg-white/[0.08]
-                hover:shadow-xl hover:shadow-black/20 sm:px-7
-              "
-            >
-              <h3 className="text-lg font-semibold text-[var(--gold)] transition-colors group-hover:text-[#c8ad55] sm:text-xl">
-                {service.name}
-              </h3>
-              <p className="mt-4 text-sm leading-6 text-white/60">
-                {service.description}
-              </p>
-            </div>
-          ))}
+        <div className="mx-auto mt-10 max-w-6xl">
+          <PublicOfferCards limit={6} compact />
         </div>
 
         <div className="mt-10 text-center">

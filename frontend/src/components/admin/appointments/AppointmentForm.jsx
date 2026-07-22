@@ -1,7 +1,8 @@
 import { AlertCircle, ArrowLeft, LoaderCircle, Save } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getClients } from "../../../api/apiClients";
 import { getOfferItems } from "../../../api/apiOfferItems";
+import { getSuggestedOfferItems } from "../../../api/apiAppointments";
 import { formatLocalTime } from "../../../utils/dateTime";
 
 const emptyValues = {
@@ -48,6 +49,7 @@ const AppointmentForm = ({
     });
     const [clients, setClients] = useState([]);
     const [offerItems, setOfferItems] = useState([]);
+    const [suggestedOfferItemIds, setSuggestedOfferItemIds] = useState([]);
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -98,6 +100,54 @@ const AppointmentForm = ({
             isMounted = false;
         };
     }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchSuggestedOfferItems = async () => {
+            if (!formValues.clientId) {
+                setSuggestedOfferItemIds([]);
+                return;
+            }
+
+            try {
+                const response = await getSuggestedOfferItems(formValues.clientId);
+
+                if (isMounted) {
+                    setSuggestedOfferItemIds(
+                        (Array.isArray(response) ? response : [])
+                            .map((item) => item.id),
+                    );
+                }
+            } catch {
+                if (isMounted) {
+                    setSuggestedOfferItemIds([]);
+                }
+            }
+        };
+
+        fetchSuggestedOfferItems();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [formValues.clientId]);
+
+    const suggestedOfferItems = useMemo(
+        () => suggestedOfferItemIds
+            .map((suggestedId) => offerItems.find(
+                (offerItem) => offerItem.id === suggestedId,
+            ))
+            .filter(Boolean),
+        [offerItems, suggestedOfferItemIds],
+    );
+
+    const remainingOfferItems = useMemo(
+        () => offerItems.filter(
+            (offerItem) => !suggestedOfferItemIds.includes(offerItem.id),
+        ),
+        [offerItems, suggestedOfferItemIds],
+    );
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -231,11 +281,32 @@ const AppointmentForm = ({
                                 className={inputClassName}
                             >
                                 <option value="" disabled>Wybierz usługę</option>
-                                {offerItems.map((item) => (
-                                    <option key={item.id} value={item.id}>
-                                        {item.name}
-                                    </option>
-                                ))}
+                                {suggestedOfferItems.length > 0 ? (
+                                    <>
+                                        <optgroup label="Ostatnio wybierane">
+                                            {suggestedOfferItems.map((item) => (
+                                                <option key={item.id} value={item.id}>
+                                                    {item.name}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                        {remainingOfferItems.length > 0 && (
+                                            <optgroup label="Pozostałe usługi">
+                                                {remainingOfferItems.map((item) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.name}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                        )}
+                                    </>
+                                ) : (
+                                    offerItems.map((item) => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.name}
+                                        </option>
+                                    ))
+                                )}
                             </select>
                         </div>
 

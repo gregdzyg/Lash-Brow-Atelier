@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.atelierbypt.backend.dto.WorkingHoursRequest;
 import pl.atelierbypt.backend.dto.WorkingHoursResponse;
+import pl.atelierbypt.backend.dto.PublicWorkingHoursResponse;
 import pl.atelierbypt.backend.entity.WorkingHours;
 import pl.atelierbypt.backend.exception.WorkingHoursBadRequestException;
 import pl.atelierbypt.backend.exception.WorkingHoursNotFoundException;
@@ -29,6 +30,12 @@ public class WorkingHoursService {
                 new WorkingHoursNotFoundException("Nie znaleziono dnia id: " + id)));
     }
 
+    public List<PublicWorkingHoursResponse> getPublicWorkingHours() {
+        return workingHoursRepository.findByIsActiveTrue().stream()
+                .map(this::mapToPublicWorkingHoursResponse)
+                .toList();
+    }
+
     public WorkingHoursResponse updateWorkingHours(Long id, WorkingHoursRequest workingHoursRequest) {
         WorkingHours workingHours = workingHoursRepository.findByIdAndIsActiveTrue(id).orElseThrow(() ->
                 new WorkingHoursNotFoundException("Nie znaleziono dnia id: " + id));
@@ -44,6 +51,17 @@ public class WorkingHoursService {
     private WorkingHoursResponse mapToWorkingHoursResponse(WorkingHours workingHours) {
         return new WorkingHoursResponse(workingHours.getId(), workingHours.getDayOfWeek(), workingHours.getStartTime(),
                 workingHours.getEndTime(), workingHours.isWorkingDay(),  workingHours.isActive());
+    }
+
+    private PublicWorkingHoursResponse mapToPublicWorkingHoursResponse(
+            WorkingHours workingHours
+    ) {
+        return new PublicWorkingHoursResponse(
+                workingHours.getDayOfWeek(),
+                workingHours.getStartTime(),
+                workingHours.getEndTime(),
+                workingHours.isWorkingDay()
+        );
     }
 
     private void mapRequestToWorkingHours(WorkingHoursRequest request, WorkingHours workingHours) {

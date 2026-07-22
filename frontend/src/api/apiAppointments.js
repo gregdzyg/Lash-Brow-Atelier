@@ -16,6 +16,19 @@ export const getAppointment = async (appointmentId) => {
     return response.data;
 };
 
+export const getSuggestedOfferItems = async (clientId) => {
+    const response = await apiClient.get(
+        "/api/admin/appointments/suggested-offer-items",
+        {
+            params: {
+                clientId,
+            },
+        },
+    );
+
+    return response.data;
+};
+
 export const createAppointment = async (appointmentRequest) => {
     const response = await apiClient.post(
         "/api/admin/appointments",

@@ -17,23 +17,15 @@ const Privacy = () => {
         </p>
 
         <p>
-          Dane podane w formularzu kontaktowym (imię, adres e-mail, numer telefonu,
-          treść wiadomości) są przetwarzane wyłącznie w celu udzielenia odpowiedzi
-          na przesłane zapytanie.
+          Strona nie posiada formularza kontaktowego. Kontakt z Atelier odbywa się
+          telefonicznie, za pośrednictwem poczty elektronicznej lub mediów społecznościowych.
+          Dane przekazane dobrowolnie podczas kontaktu są przetwarzane wyłącznie w celu
+          udzielenia odpowiedzi i obsługi zapytania.
         </p>
 
         <p>
-          Podanie danych jest dobrowolne, jednak niezbędne do nawiązania kontaktu.
-        </p>
-
-        <p>
-          Odbiorcami danych mogą być zewnętrzni dostawcy usług technicznych,
-          w szczególności:
+          Strona wykorzystuje usługę zewnętrznego dostawcy:
           <ul className="mt-3 list-inside list-disc space-y-2 border-l border-[var(--gold)]/20 pl-4 text-white/60">
-            <li>EmailJS – obsługa formularza kontaktowego,</li>
-            <li>
-              Booksy International sp. z o.o. – obsługa rezerwacji wizyt online,
-            </li>
             <li>
               Google LLC – prezentacja lokalizacji salonu za pomocą Google Maps.
             </li>
@@ -41,15 +33,8 @@ const Privacy = () => {
         </p>
 
         <p>
-          Rezerwacja wizyty online odbywa się za pośrednictwem zewnętrznego serwisu
-          Booksy. Dane przekazywane w trakcie rezerwacji są przetwarzane zgodnie z
-          polityką prywatności tego serwisu.
-        </p>
-
-        <p>
           Strona korzysta z plików cookies w celu zapewnienia prawidłowego
-          funkcjonowania, obsługi rezerwacji online oraz prezentacji treści
-          zewnętrznych (np. map).
+          funkcjonowania oraz prezentacji treści zewnętrznych, takich jak mapa Google.
         </p>
 
         <p>
@@ -72,7 +57,7 @@ const Privacy = () => {
 
         <p>
           W sprawach związanych z ochroną danych osobowych można skontaktować się pod
-          adresem e-mail: <strong className="font-semibold text-[var(--gold)]">kontakt@lash-brow-atelier.pl</strong>.
+          adresem e-mail: <strong className="font-semibold text-[var(--gold)]">kontakt@atelierbypaula.pl</strong>.
         </p>
         </div>
       </div>

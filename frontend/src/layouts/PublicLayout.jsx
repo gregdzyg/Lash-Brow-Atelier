@@ -5,7 +5,7 @@ import CookieBanner from "../components/public/CookieBanner";
 
 const PublicLayout = () => {
     return(
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-[var(--background)] text-white">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[var(--background)] text-white">
             <div
                 aria-hidden="true"
                 className="

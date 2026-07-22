@@ -8,6 +8,7 @@ import pl.atelierbypt.backend.dto.AppointmentRequest;
 import pl.atelierbypt.backend.dto.AppointmentResponse;
 import pl.atelierbypt.backend.dto.PatchAppointmentStatusRequest;
 import pl.atelierbypt.backend.dto.PatchAppointmentStatusResponse;
+import pl.atelierbypt.backend.dto.SuggestedOfferItemResponse;
 import pl.atelierbypt.backend.entity.*;
 import pl.atelierbypt.backend.enums.AppointmentStatus;
 import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
@@ -16,8 +17,11 @@ import pl.atelierbypt.backend.repository.*;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -43,6 +47,25 @@ public class AppointmentService {
 
     public AppointmentResponse getAppointmentById(Long id) {
         return mapAppointmentToResponse(findAppointmentById(id));
+    }
+
+    public List<SuggestedOfferItemResponse> getSuggestedOfferItems(Long clientId) {
+        findClientById(clientId);
+
+        return appointmentRepository.findLastBookedServicesByClient(clientId).stream()
+                .collect(Collectors.toMap(
+                        OfferItem::getId,
+                        Function.identity(),
+                        (firstOfferItem, duplicateOfferItem) -> firstOfferItem,
+                        LinkedHashMap::new
+                ))
+                .values().stream()
+                .limit(3)
+                .map(offerItem -> new SuggestedOfferItemResponse(
+                        offerItem.getId(),
+                        offerItem.getName()
+                ))
+                .toList();
     }
 
     @Transactional

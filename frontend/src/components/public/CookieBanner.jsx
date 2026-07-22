@@ -53,7 +53,7 @@ const CookieBanner = () => {
           {/* ✅ DŁUŻSZY TEKST (jak wcześniej) */}
           <p className="mt-3 text-xs leading-relaxed text-white/65 sm:text-sm">
             Używamy plików cookies, aby zapewnić prawidłowe działanie strony oraz
-            obsłużyć rezerwacje i wyświetlanie treści zewnętrznych (np. Booksy, mapa).
+            wyświetlanie treści zewnętrznych, takich jak mapa Google.
             Kontynuując, akceptujesz ich użycie.
           </p>
 

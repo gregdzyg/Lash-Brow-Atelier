@@ -25,7 +25,7 @@ const Regulamin = () => {
         <ul className="mt-8 space-y-0 border-t border-[var(--gold)]/20">
           <li className="border-b border-[var(--gold)]/15 py-5">Proszę o zarezerwowanie sobie 2 - 2.5 godziny, w zależności od ilości naturalnych rzęs i wykonywanej stylizacji.</li>
           <li className="border-b border-[var(--gold)]/15 py-5">Na uzupełnienie zapraszam nie więcej niż 3.5 tygodnia. Po tym czasie zabieg będzie traktowany jako nowa usługa.</li>
-          <li className="border-b border-[var(--gold)]/15 py-5">Do zapisów zapraszam w wiadomości prywatnej, formularz kontaktowy, lub nr. telefonu.</li>
+          <li className="border-b border-[var(--gold)]/15 py-5">Do zapisów zapraszam w wiadomości prywatnej, wiadomości e-mail lub pod numerem telefonu.</li>
           <li className="border-b border-[var(--gold)]/15 py-5">Proszę o punktualność. Akceptuję spóźnienie do 15 min. Po tym czasie zastrzegam sobie prawo do niewykonania aplikacji lub nie wyklejenie 100% rzęs.</li>
           <li className="border-b border-[var(--gold)]/15 py-5">W przypadku braku obecności na wizycie oraz braku jej odwołania na 24h przed wizytą zostawiam sobie prawo do niezapisania na kolejną wizytę lub pobrania zadatku w wysokości 50 zł.</li>
           <li className="border-b border-[var(--gold)]/15 py-5">Reklamacja przyjmowana jest na trwałość aplikacji, pod warunkiem zastosowania się do zaleceń pozabiegowych. Długość rzęs, modelowanie, objętość będzie dobierana w dniu wizyty i nie podlega reklamacji. Reklamacja przyjmowania jest maksymalnie do 4 dni po ostatniej wizycie. W przypadku uznania reklamacji zapraszam na korektę w ciągu 48 godzin.</li>

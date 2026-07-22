@@ -1,7 +1,10 @@
 import { FaInstagram, FaFacebookF, FaTiktok } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import PublicWorkingHoursSummary from "./PublicWorkingHoursSummary";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="relative z-10 mt-10 border-t border-[var(--gold)]/15 px-5 py-12 text-sm text-white sm:px-8 lg:mt-16 lg:px-12 lg:py-16">
       {/* Główna siatka */}
@@ -22,9 +25,7 @@ const Footer = () => {
                 Oferta
               </Link>
             </li>
-            <li>
-              <span className="text-sm">🕒 Godziny otwarcia: 8–17</span>
-            </li>
+            <PublicWorkingHoursSummary />
             <li>
               <Link to="/regulamin" className="text-sm transition-colors hover:text-[var(--gold)]">
                 Regulamin
@@ -52,16 +53,22 @@ const Footer = () => {
           <span className="text-xs">TikTok</span>
         </a>
       </div>
-       {/* Branding */}
-        <div className="mt-6 text-center text-white/40">
-          <span className="mb-1 font-semibold tracking-wide text-[var(--rose)]">
-            Lash&Brow Atelier </span>
-          
-          <span className="text-xs italic text-[var(--rose)]/80">by Paulina Tarnowska </span>
-          <span className="text-xs">
-            © 2025 
+      {/* Branding */}
+      <div className="mt-6 text-center text-white/40">
+        <Link
+          to="/admin"
+          aria-label="Przejdź do panelu administracyjnego"
+          className="group inline-flex items-baseline rounded-sm transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+        >
+          <span className="font-semibold tracking-wide text-[var(--rose)] transition-colors group-hover:text-[var(--gold)]">
+            Lash&amp;Brow Atelier&nbsp;
           </span>
-        </div>
+          <span className="text-xs italic text-[var(--rose)]/80 transition-colors group-hover:text-[var(--gold)]/80">
+            by Paulina Tarnowska
+          </span>
+        </Link>
+        <span className="ml-1 text-xs">© {currentYear}</span>
+      </div>
     </footer>
   );
 };
