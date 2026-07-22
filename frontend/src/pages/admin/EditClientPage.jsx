@@ -29,8 +29,7 @@ const EditClientPage = () => {
     const submissionInProgress = useRef(false);
     const { clientId } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
-    const successMessage = location.state?.successMessage;
+    
 
     useEffect(() => {
         let isMounted = true;
@@ -140,14 +139,6 @@ const EditClientPage = () => {
                 </p>
             </div>
 
-            {successMessage && (
-                <div
-                    role="status"
-                    className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200"
-                >
-                    {successMessage}
-                </div>
-            )}
 
             {isLoading && (
                 <div

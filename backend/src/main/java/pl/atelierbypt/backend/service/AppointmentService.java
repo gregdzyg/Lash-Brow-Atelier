@@ -14,10 +14,7 @@ import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
 import pl.atelierbypt.backend.exception.*;
 import pl.atelierbypt.backend.repository.*;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +30,8 @@ public class AppointmentService {
     private final OfferItemRepository offerItemRepository;
     private final ClientRepository clientRepository;
     private final AppointmentRepository appointmentRepository;
+    private final Clock applicationClock;
+
 
     public List<AppointmentResponse> getAppointments(LocalDate start,  LocalDate end) {
         if (end.isBefore(start)) {
@@ -152,7 +151,7 @@ public class AppointmentService {
 
     private void validateBasicAppointmentRules(Appointment appointment) {
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(applicationClock);
 
         LocalDateTime appointmentStart = LocalDateTime.of(appointment.getAppointmentDate(), appointment.getStartTime());
         LocalDateTime appointmentEnd = appointmentStart.plusMinutes(appointment.getDurationMinutes());
@@ -218,12 +217,18 @@ public class AppointmentService {
     }
 
     private AppointmentResponse mapAppointmentToResponse(Appointment appointment) {
+        LocalDateTime appointmentEnd = LocalDateTime.of(
+                appointment.getAppointmentDate(),
+                appointment.getStartTime()
+        ).plusMinutes(appointment.getDurationMinutes());
+        boolean hasEnded = !appointmentEnd.isAfter(LocalDateTime.now(applicationClock));
+
         return new AppointmentResponse(appointment.getId(), appointment.getClient().getId(),
                 appointment.getClient().getFirstName(), appointment.getClient().getLastName(),
                 appointment.getOfferItem().getId(), appointment.getOfferItem().getName(),
                 appointment.getAppointmentDate(),
                 appointment.getStartTime(), appointment.getDurationMinutes(), appointment.getPrice(),
-                appointment.getStatus(), appointment.getNote(), appointment.isActive());
+                appointment.getStatus(), appointment.getNote(), hasEnded, appointment.isActive());
     }
 
     private record TimeRange(LocalTime start, LocalTime end) {

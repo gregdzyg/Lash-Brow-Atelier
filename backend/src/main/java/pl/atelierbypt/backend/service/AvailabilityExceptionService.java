@@ -10,6 +10,8 @@ import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
 import pl.atelierbypt.backend.exception.AvailabilityExceptionBadRequestException;
 import pl.atelierbypt.backend.exception.AvailabilityExceptionNotFoundException;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
+
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,6 +21,7 @@ import java.util.List;
 public class AvailabilityExceptionService {
 
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
+    private final Clock applicationClock;
 
     public List<AvailabilityExceptionResponse> getAvailabilityExceptions(
             LocalDate start, LocalDate end) {
@@ -81,6 +84,11 @@ public class AvailabilityExceptionService {
     }
 
     private void validateAvailabilityExceptionRequest(AvailabilityExceptionRequest request) {
+        if (request.date().isBefore(LocalDate.now(applicationClock))) {
+            throw new AvailabilityExceptionBadRequestException(
+                    "Data wyjątku nie może być z przeszłości.");
+        }
+
         if (request.type() == AvailabilityExceptionType.CLOSED_DAY) {
             if (request.startTime() != null || request.endTime() != null) {
                 throw new AvailabilityExceptionBadRequestException(

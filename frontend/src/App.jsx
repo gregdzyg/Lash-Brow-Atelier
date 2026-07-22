@@ -17,8 +17,17 @@ import ClientsPage from './pages/admin/ClientsPage';
 import NewClientPage from './pages/admin/NewClientPage';
 import ClientDetailsPage from './pages/admin/ClientDetailsPage';
 import EditClientPage from './pages/admin/EditClientPage';
+import OfferItemsPage from './pages/admin/OfferItemsPage';
+import NewOfferItemPage from './pages/admin/NewOfferItemPage';
+import OfferItemDetailsPage from './pages/admin/OfferItemDetailsPage';
+import EditOfferItemPage from './pages/admin/EditOfferItemPage';
+import AvailabilityPage from './pages/admin/AvailabilityPage';
+import AppointmentsPage from './pages/admin/AppointmentsPage';
+import NewAppointmentPage from './pages/admin/NewAppointmentPage';
+import AppointmentDetailsPage from './pages/admin/AppointmentDetailsPage';
+import EditAppointmentPage from './pages/admin/EditAppointmentPage';
 
-function App() {
+const App = () => {
   return (
     <BrowserRouter>
     <ScrollToTop />
@@ -42,10 +51,19 @@ function App() {
           <Route path='clients/new' element={<NewClientPage />} />
           <Route path='clients/:clientId' element={<ClientDetailsPage />} />
           <Route path="clients/:clientId/edit" element={<EditClientPage />} />
+          <Route path="offer" element={<OfferItemsPage />} />
+          <Route path="offer/new" element={<NewOfferItemPage />} />
+          <Route path="offer/:offerItemId" element={<OfferItemDetailsPage />} />
+          <Route path="offer/:offerItemId/edit" element={<EditOfferItemPage />} />
+          <Route path="availability" element={<AvailabilityPage />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="appointments/new" element={<NewAppointmentPage />} />
+          <Route path="appointments/:appointmentId" element={<AppointmentDetailsPage />} />
+          <Route path="appointments/:appointmentId/edit" element={<EditAppointmentPage />} />
         </Route>
         </Route>
       </Routes>
     </BrowserRouter>
   );
-}
+};
 export default App;

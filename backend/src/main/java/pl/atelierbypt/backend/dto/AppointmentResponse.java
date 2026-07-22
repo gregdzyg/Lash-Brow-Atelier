@@ -9,5 +9,6 @@ import java.time.LocalTime;
 public record AppointmentResponse(Long id, Long clientId, String clientFirstName, String clientLastName,
                                   Long offerItemId, String offerItemName, LocalDate appointmentDate,
                                   LocalTime startTime, Integer durationMinutes, BigDecimal price,
-                                  AppointmentStatus status, String note, boolean isActive) {
+                                  AppointmentStatus status, String note, boolean hasEnded,
+                                  boolean isActive) {
 }

@@ -14,7 +14,6 @@ public record AppointmentRequest(
         @NotNull(message = "Wybór usługi jest wymagany.")
         Long offerItemId,
 
-        @FutureOrPresent(message = "Data wizyty nie może być z przeszłości.")
         @NotNull(message = "Data wizyty jest wymagana.")
         LocalDate appointmentDate,
 

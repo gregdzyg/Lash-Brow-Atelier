@@ -1,5 +1,6 @@
 package pl.atelierbypt.backend.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -38,19 +40,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
        }
 
        String token = authorizationHeader.substring(7);
-       String username = jwtService.extractUsername(token);
-       UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
-       boolean isValid = jwtService.isTokenValid(token, userDetails);
-       if (!isValid) {
-           throw new BadCredentialsException("Invalid token");
+       try {
+           String username = jwtService.extractUsername(token);
+           UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+
+           boolean isValid = jwtService.isTokenValid(token, userDetails);
+           if (!isValid) {
+               throw new BadCredentialsException("Invalid token");
+           }
+
+           UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                   userDetails, null, userDetails.getAuthorities()
+           );
+           authentication.setDetails(new WebAuthenticationDetails(request));
+           SecurityContextHolder.getContext().setAuthentication(authentication);
+       } catch (JwtException | IllegalArgumentException | AuthenticationException e) {
+           SecurityContextHolder.clearContext();
+           response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token wygasł lub jest nieprawidłowy.");
+           return;
        }
-
-       UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-               userDetails, null, userDetails.getAuthorities()
-       );
-       authentication.setDetails(new WebAuthenticationDetails(request));
-       SecurityContextHolder.getContext().setAuthentication(authentication);
        filterChain.doFilter(request, response);
     }
 }
