@@ -1,15 +1,12 @@
 import {
     AlertCircle,
-    Archive,
     CalendarOff,
     ChevronLeft,
     ChevronRight,
     Clock3,
     LoaderCircle,
-    Pencil,
     Plus,
     RotateCcw,
-    X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -90,7 +87,6 @@ const AvailabilityExceptionsPanel = () => {
     const [formException, setFormException] = useState(undefined);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
-    const [confirmingArchiveId, setConfirmingArchiveId] = useState(null);
     const [archivingId, setArchivingId] = useState(null);
     const [archiveError, setArchiveError] = useState("");
     const [refreshError, setRefreshError] = useState("");
@@ -148,7 +144,6 @@ const AvailabilityExceptionsPanel = () => {
         ));
         setIsFormOpen(false);
         setFormException(undefined);
-        setConfirmingArchiveId(null);
         setArchiveError("");
         setRefreshError("");
         setSuccessMessage("");
@@ -159,7 +154,6 @@ const AvailabilityExceptionsPanel = () => {
         setSelectedMonth(new Date(today.getFullYear(), today.getMonth(), 1));
         setIsFormOpen(false);
         setFormException(undefined);
-        setConfirmingArchiveId(null);
         setArchiveError("");
         setRefreshError("");
         setSuccessMessage("");
@@ -168,7 +162,6 @@ const AvailabilityExceptionsPanel = () => {
     const openCreateForm = () => {
         setFormException(undefined);
         setIsFormOpen(true);
-        setConfirmingArchiveId(null);
         setArchiveError("");
         setRefreshError("");
         setSuccessMessage("");
@@ -177,7 +170,6 @@ const AvailabilityExceptionsPanel = () => {
     const openEditForm = (exception) => {
         setFormException(exception);
         setIsFormOpen(true);
-        setConfirmingArchiveId(null);
         setArchiveError("");
         setRefreshError("");
         setSuccessMessage("");
@@ -214,7 +206,6 @@ const AvailabilityExceptionsPanel = () => {
         try {
             await archiveAvailabilityException(exceptionId);
             setExceptions((current) => current.filter((item) => item.id !== exceptionId));
-            setConfirmingArchiveId(null);
             setSuccessMessage("Wyjątek został zarchiwizowany.");
 
             if (formException?.id === exceptionId) {
@@ -297,6 +288,12 @@ const AvailabilityExceptionsPanel = () => {
                         setFormException(undefined);
                     }}
                     onSuccess={handleFormSuccess}
+                    onArchive={formException
+                        ? () => handleArchive(formException.id)
+                        : undefined
+                    }
+                    isArchiving={archivingId === formException?.id}
+                    archiveError={archiveError}
                 />
             )}
 
@@ -310,7 +307,7 @@ const AvailabilityExceptionsPanel = () => {
                 </div>
             )}
 
-            {archiveError && (
+            {archiveError && !isFormOpen && (
                 <div
                     role="alert"
                     className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
@@ -382,91 +379,35 @@ const AvailabilityExceptionsPanel = () => {
             {!isLoading && !loadError && exceptions.length > 0 && (
                 <div className="overflow-hidden rounded-4xl border border-[var(--gold)]/30 bg-gradient-to-br from-white/[0.08] to-white/[0.025] backdrop-blur-xl">
                     <div className="divide-y divide-[var(--gold)]/15">
-                        {exceptions.map((exception) => {
-                            const isConfirming = confirmingArchiveId === exception.id;
-                            const isArchiving = archivingId === exception.id;
-
-                            return (
-                                <div key={exception.id} className="px-5 py-5 sm:px-7">
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                                        <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(11rem,1.1fr)_minmax(10rem,1fr)_minmax(8rem,0.8fr)_minmax(10rem,1.2fr)] sm:items-center">
-                                            <p className="font-semibold text-white">
-                                                {dateFormatter.format(parseLocalDate(exception.date))}
-                                            </p>
-                                            <span className="w-fit rounded-full border border-[var(--gold)]/25 bg-[var(--gold)]/[0.08] px-3 py-1 text-xs font-semibold text-[var(--gold)]">
-                                                {typeLabels[exception.type] || exception.type}
-                                            </span>
-                                            <span className="flex items-center gap-2 text-sm text-white/65">
-                                                <Clock3 aria-hidden="true" size={15} className="text-[var(--gold)]/75" />
-                                                {exception.type === "CLOSED_DAY"
-                                                    ? "Cały dzień"
-                                                    : `${normalizeTime(exception.startTime)}–${normalizeTime(exception.endTime)}`
-                                                }
-                                            </span>
-                                            <p className="break-words text-sm leading-6 text-white/50">
-                                                {exception.note?.trim() || "Brak notatki"}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => openEditForm(exception)}
-                                                disabled={isFormOpen || archivingId !== null}
-                                                className="flex cursor-pointer items-center gap-2 rounded-full border border-[var(--gold)]/45 px-4 py-2 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-45"
-                                            >
-                                                <Pencil aria-hidden="true" size={15} />
-                                                Edytuj
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setConfirmingArchiveId(exception.id);
-                                                    setArchiveError("");
-                                                }}
-                                                disabled={isFormOpen || archivingId !== null}
-                                                className="flex cursor-pointer items-center gap-2 rounded-full border border-red-300/25 px-4 py-2 text-sm font-semibold text-red-200/80 transition hover:border-red-300/50 hover:bg-red-300/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-not-allowed disabled:opacity-45"
-                                            >
-                                                <Archive aria-hidden="true" size={15} />
-                                                Archiwizuj
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {isConfirming && (
-                                        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-red-300/20 bg-red-300/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
-                                            <p className="text-sm text-red-100/80">
-                                                Archiwizuj wyjątek? Zniknie z aktywnej listy.
-                                            </p>
-                                            <div className="flex flex-wrap gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleArchive(exception.id)}
-                                                    disabled={isArchiving}
-                                                    className="flex cursor-pointer items-center gap-2 rounded-full bg-red-300 px-4 py-2 text-sm font-semibold text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-                                                >
-                                                    {isArchiving ? (
-                                                        <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
-                                                    ) : (
-                                                        <Archive aria-hidden="true" size={15} />
-                                                    )}
-                                                    {isArchiving ? "Archiwizowanie…" : "Archiwizuj wyjątek"}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setConfirmingArchiveId(null)}
-                                                    disabled={isArchiving}
-                                                    className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:cursor-not-allowed disabled:opacity-50"
-                                                >
-                                                    <X aria-hidden="true" size={15} />
-                                                    Anuluj
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {exceptions.map((exception) => (
+                            <button
+                                key={exception.id}
+                                type="button"
+                                onClick={() => openEditForm(exception)}
+                                disabled={isFormOpen || archivingId !== null}
+                                aria-label={`Edytuj wyjątek z dnia ${dateFormatter.format(parseLocalDate(exception.date))}`}
+                                className="block w-full cursor-pointer px-5 py-5 text-left transition hover:bg-white/[0.045] focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-45 sm:px-7"
+                            >
+                                <span className="grid min-w-0 gap-3 sm:grid-cols-[minmax(11rem,1.1fr)_minmax(10rem,1fr)_minmax(8rem,0.8fr)_minmax(10rem,1.2fr)] sm:items-center">
+                                    <span className="font-semibold text-white">
+                                        {dateFormatter.format(parseLocalDate(exception.date))}
+                                    </span>
+                                    <span className="w-fit rounded-full border border-[var(--gold)]/25 bg-[var(--gold)]/[0.08] px-3 py-1 text-xs font-semibold text-[var(--gold)]">
+                                        {typeLabels[exception.type] || exception.type}
+                                    </span>
+                                    <span className="flex items-center gap-2 text-sm text-white/65">
+                                        <Clock3 aria-hidden="true" size={15} className="text-[var(--gold)]/75" />
+                                        {exception.type === "CLOSED_DAY"
+                                            ? "Cały dzień"
+                                            : `${normalizeTime(exception.startTime)}–${normalizeTime(exception.endTime)}`
+                                        }
+                                    </span>
+                                    <span className="break-words text-sm leading-6 text-white/50">
+                                        {exception.note?.trim() || "Brak notatki"}
+                                    </span>
+                                </span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}

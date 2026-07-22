@@ -1,4 +1,4 @@
-import { LoaderCircle, Save, X } from "lucide-react";
+import { Archive, LoaderCircle, Save, X } from "lucide-react";
 import { useState } from "react";
 import {
     createAvailabilityException,
@@ -26,7 +26,14 @@ const inputClassName = `
     focus:ring-2 focus:ring-[var(--gold)]/20 disabled:cursor-not-allowed disabled:opacity-50
 `;
 
-const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
+const AvailabilityExceptionForm = ({
+    exception,
+    onCancel,
+    onSuccess,
+    onArchive,
+    isArchiving = false,
+    archiveError = "",
+}) => {
     const isEditMode = Boolean(exception);
     const minimumDate = formatLocalDate(new Date());
     const [formValues, setFormValues] = useState({
@@ -39,6 +46,8 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
     const [validationError, setValidationError] = useState("");
     const [apiError, setApiError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
+    const isBusy = isSubmitting || isArchiving;
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -87,7 +96,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (isSubmitting) {
+        if (isSubmitting || isArchiving) {
             return;
         }
 
@@ -153,7 +162,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                     <button
                         type="button"
                         onClick={onCancel}
-                        disabled={isSubmitting}
+                        disabled={isBusy}
                         aria-label="Zamknij formularz"
                         className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 text-white/55 transition hover:border-white/35 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -171,7 +180,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                             name="date"
                             required
                             min={minimumDate}
-                            disabled={isSubmitting}
+                            disabled={isBusy}
                             value={formValues.date}
                             onChange={handleChange}
                             className={inputClassName}
@@ -185,7 +194,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                         <select
                             name="type"
                             required
-                            disabled={isSubmitting}
+                            disabled={isBusy}
                             value={formValues.type}
                             onChange={handleChange}
                             className={inputClassName}
@@ -208,7 +217,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                                     type="time"
                                     name="startTime"
                                     required
-                                    disabled={isSubmitting}
+                                    disabled={isBusy}
                                     value={formValues.startTime}
                                     onChange={handleChange}
                                     className={inputClassName}
@@ -223,7 +232,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                                     type="time"
                                     name="endTime"
                                     required
-                                    disabled={isSubmitting}
+                                    disabled={isBusy}
                                     value={formValues.endTime}
                                     onChange={handleChange}
                                     className={inputClassName}
@@ -243,7 +252,7 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                             name="note"
                             rows={3}
                             maxLength={500}
-                            disabled={isSubmitting}
+                            disabled={isBusy}
                             value={formValues.note}
                             onChange={handleChange}
                             placeholder="Opcjonalna informacja o wyjątku"
@@ -260,33 +269,94 @@ const AvailabilityExceptionForm = ({ exception, onCancel, onSuccess }) => {
                         {validationError || apiError}
                     </div>
                 )}
+
+                {isEditMode && isConfirmingArchive && (
+                    <div className="mt-5 flex flex-col gap-4 rounded-2xl border border-red-300/25 bg-red-300/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-red-100">
+                                Archiwizować ten wyjątek?
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-red-100/60">
+                                Zniknie z aktywnej listy i przestanie wpływać na dostępność.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={onArchive}
+                                disabled={isArchiving}
+                                className="flex cursor-pointer items-center gap-2 rounded-full bg-red-300 px-4 py-2 text-sm font-semibold text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {isArchiving ? (
+                                    <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
+                                ) : (
+                                    <Archive aria-hidden="true" size={15} />
+                                )}
+                                {isArchiving ? "Archiwizowanie…" : "Potwierdź"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsConfirmingArchive(false)}
+                                disabled={isArchiving}
+                                className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Anuluj
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {archiveError && (
+                    <div
+                        role="alert"
+                        className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+                    >
+                        {archiveError}
+                    </div>
+                )}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-[var(--gold)]/20 bg-black/10 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    disabled={isSubmitting}
-                    className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/50 px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <X aria-hidden="true" size={16} />
-                    Anuluj
-                </button>
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    {isSubmitting ? (
-                        <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
-                    ) : (
-                        <Save aria-hidden="true" size={16} />
-                    )}
-                    {isSubmitting
-                        ? "Zapisywanie…"
-                        : isEditMode ? "Zapisz zmiany" : "Dodaj wyjątek"
-                    }
-                </button>
+            <div className="flex flex-col gap-3 border-t border-[var(--gold)]/20 bg-black/10 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                {isEditMode ? (
+                    <button
+                        type="button"
+                        onClick={() => setIsConfirmingArchive(true)}
+                        disabled={isSubmitting || isArchiving || isConfirmingArchive}
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-red-300/30 px-5 py-2.5 text-sm font-semibold text-red-200/80 transition hover:border-red-300/55 hover:bg-red-300/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                        <Archive aria-hidden="true" size={16} />
+                        Archiwizuj wyjątek
+                    </button>
+                ) : (
+                    <span />
+                )}
+
+                <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={isSubmitting || isArchiving}
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/50 px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <X aria-hidden="true" size={16} />
+                        Anuluj
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || isArchiving}
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isSubmitting ? (
+                            <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                        ) : (
+                            <Save aria-hidden="true" size={16} />
+                        )}
+                        {isSubmitting
+                            ? "Zapisywanie…"
+                            : isEditMode ? "Zapisz zmiany" : "Dodaj wyjątek"
+                        }
+                    </button>
+                </div>
             </div>
         </form>
     );
