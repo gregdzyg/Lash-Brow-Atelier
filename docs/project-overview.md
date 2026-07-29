@@ -1,9 +1,24 @@
-Project AtelierByPT is a management system for a beauty salon.
+# Project overview
 
-The main goal of the project is to replace paper-based appointment management
-with a digital solution.
+AtelierByPT is a management and scheduling system for an independent beauty
+stylist.
 
 The system consists of:
-- Public website for clients
-- Administrative panel for the salon owner
-- Database for storing appointments and client information
+
+- a public React website presenting the atelier and its services;
+- a public calendar showing backend-generated appointment suggestions;
+- an authenticated administration panel;
+- a Spring Boot REST API;
+- a PostgreSQL database managed with Flyway migrations.
+
+The administration panel manages clients, offer items, appointments, recurring
+working hours and date-specific availability exceptions.
+
+The key business module calculates real free time from weekly working hours,
+exceptions and scheduled appointments. The same calculator is used for
+appointment validation and both calendar views. The public API additionally
+converts free time into preferred appointment start times.
+
+The first stable release intentionally excludes database-managed gallery
+content, editable qualifications and news. These features remain candidates
+for post-release development.

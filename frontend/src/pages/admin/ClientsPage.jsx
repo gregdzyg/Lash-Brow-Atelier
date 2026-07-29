@@ -138,7 +138,7 @@ const ClientsPage = () => {
                     </div>
 
                     <div className="divide-y divide-[var(--gold)]/15">
-                        {clients.map((client, index) => (
+                        {clients.map((client) => (
                             <Link
                                 key={client.id}
                                 to={`/admin/clients/${client.id}`}
