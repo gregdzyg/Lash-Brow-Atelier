@@ -95,7 +95,7 @@ const WorkingHoursPanel = () => {
             startTime: normalizeTime(day.startTime),
             endTime: normalizeTime(day.endTime),
             publicStartIntervalMinutes:
-                String(day.publicStartIntervalMinutes || 60),
+                String(day.publicStartIntervalMinutes || 120),
         });
         setUpdateError("");
         setSuccessMessage("");

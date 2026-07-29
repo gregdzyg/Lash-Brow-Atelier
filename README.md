@@ -57,9 +57,9 @@ maintaining separate interpretations of the same business rules.
 
 The public calendar applies an additional presentation policy. The visitor
 selects a service first, and its duration determines how much uninterrupted
-free time is required. A configurable weekday interval (60 minutes by default)
-controls the proposed start times. A suggestion is returned only when the
-entire selected service fits within the actual free time.
+free time is required. A configurable weekday interval (120 minutes by
+default) controls the proposed starts within each real free range. A suggestion
+is returned only when the entire selected service fits within that range.
 
 ## Architecture
 

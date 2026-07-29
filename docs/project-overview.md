@@ -19,6 +19,8 @@ exceptions and scheduled appointments. The same calculator is used for
 appointment validation and both calendar views. The public API additionally
 converts free time into preferred appointment starts and returns only those
 that can contain the full duration of the service selected by the visitor.
+The start-time grid is anchored independently at the beginning of each real
+free range, so an appointment or block can begin a new sequence of suggestions.
 
 The first stable release intentionally excludes database-managed gallery
 content, editable qualifications and news. These features remain candidates
