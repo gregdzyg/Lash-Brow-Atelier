@@ -1,125 +1,89 @@
-# Domain Model
+# Domain model
 
-## User
+## AppUser
 
-Represents the salon owner or administrator who can log in to the admin panel.
+Represents an administrator allowed to use the management panel.
 
-Fields:
-- id
-- email
-- passwordHash
+Important fields:
+
+- username
+- password hash
 - role
-- isActive
-- createdAt
-- updatedAt
+- active status
 
 ## Client
 
 Represents a salon client.
 
-Fields:
-- id
-- firstName
-- lastName
-- phoneNumber
+Important fields:
+
+- first and last name
+- phone number
 - email
-- instagramUsername
-- notes
-- isActive
-- createdAt
-- updatedAt
+- Instagram username
+- internal notes
+- active status
 
 ## OfferItem
 
-Represents a beauty service offered by the salon.
+Represents a service offered by the salon.
 
-Fields:
-- id
-- name
-- description
-- durationMinutes
-- basePrice
+Important fields:
+
+- name and description
 - category
-- isActive
-- createdAt
-- updatedAt
+- default duration
+- base price
+- active status
 
 ## Appointment
 
-Represents a booked visit in the salon calendar.
+Represents a booked salon visit and references both a client and an offer item.
 
-Fields:
-- id
-- client
-- offerItem
-- appointmentDate
-- startTime
-- durationMinutes
-- price
+Important fields:
+
+- appointment date and start time
+- duration and price captured for the individual visit
 - status
-- note
-- isActive
-- createdAt
-- updatedAt
+- internal note
+- active status
 
-Possible statuses:
-- SCHEDULED
-- CANCELLED
-- NO_SHOW
+Supported statuses:
 
-## GalleryItem
+- `SCHEDULED`
+- `CANCELLED`
+- `NO_SHOW`
 
-Represents an image displayed in the public gallery.
-
-Fields:
-- id
-- title
-- description
-- imageUrl
-- displayOrder
-- isVisible
-- createdAt
-- updatedAt
-
-## PageContent
-
-Represents editable text content displayed on the public website.
-
-Fields:
-- id
-- sectionKey
-- title
-- content
-- isVisible
-- updatedAt
-
-## BusinessSettings
-
-Represents global salon settings.
-
-Fields:
-- id
-- salonName
-- phoneNumber
-- email
-- address
-- instagramUrl
-- facebookUrl
-- tiktokUrl
-- workingHours
-- slotIntervalMinutes
+Appointment duration and price can override the current offer defaults. This
+preserves the values agreed for a specific visit even when the offer later
+changes.
 
 ## WorkingHours
 
-Represents standard weekly worktime,
-a repeatable weekly schema
+Represents the recurring schedule for one day of the week.
 
-Fields:
-- id
-- dayOfWeek
-- startTime
-- endTime
-- isWorkingDay
-- isActive
-- createdAt
-- updatedAt
+Important fields:
+
+- day of week
+- start and end time
+- working-day flag
+- public slot interval in minutes
+- active status
+
+Exactly one active configuration is expected for every weekday.
+
+## AvailabilityException
+
+Represents a date-specific change to the recurring working schedule.
+
+Supported types:
+
+- `CLOSED_DAY` — closes the entire date;
+- `BLOCKED` — removes a time range from availability;
+- `EXTRA_OPEN` — adds an opening range.
+
+## Shared fields
+
+Persistent domain entities inherit an identifier, active status and creation
+and update timestamps. Archival uses soft deletion so historical references
+are not physically removed.
