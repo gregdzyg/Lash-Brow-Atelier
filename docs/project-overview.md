@@ -17,7 +17,8 @@ working hours and date-specific availability exceptions.
 The key business module calculates real free time from weekly working hours,
 exceptions and scheduled appointments. The same calculator is used for
 appointment validation and both calendar views. The public API additionally
-converts free time into preferred appointment start times.
+converts free time into preferred appointment starts and returns only those
+that can contain the full duration of the service selected by the visitor.
 
 The first stable release intentionally excludes database-managed gallery
 content, editable qualifications and news. These features remain candidates

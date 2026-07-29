@@ -26,8 +26,8 @@ The free Render instance can require a short warm-up on the first request.
 - Responsive presentation of the atelier, services and qualifications
 - Offer and pricing loaded from the backend
 - Public working-hours summary
-- Monthly availability calendar
-- Proposed appointment start times generated from weekly configuration
+- Service selection followed by a monthly availability calendar
+- Appointment starts matched to the selected service duration
 - Contact information, social links, privacy policy and terms
 
 ### Administration panel
@@ -48,16 +48,18 @@ Availability is calculated on the backend from:
 1. recurring weekly working hours;
 2. date-specific exceptions (`CLOSED_DAY`, `BLOCKED`, `EXTRA_OPEN`);
 3. active scheduled appointments;
-4. elapsed time for the current day.
+4. elapsed time for the current day;
+5. the duration of the service selected by the visitor.
 
 A shared calculator is used by appointment validation, the administration
 calendar and the public calendar. This prevents the frontend and backend from
 maintaining separate interpretations of the same business rules.
 
-The public calendar applies an additional presentation policy. For example,
-working hours from 08:00 to 17:00 with a 120-minute interval produce proposed
-start times at 08:00, 10:00, 12:00 and 14:00. A suggestion is returned only
-when the entire interval fits within the actual free time.
+The public calendar applies an additional presentation policy. The visitor
+selects a service first, and its duration determines how much uninterrupted
+free time is required. A configurable weekday interval (60 minutes by default)
+controls the proposed start times. A suggestion is returned only when the
+entire selected service fits within the actual free time.
 
 ## Architecture
 

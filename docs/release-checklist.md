@@ -5,7 +5,7 @@ This checklist covers the first stable AtelierByPT release.
 ## 1. Beta verification
 
 - [ ] Confirm the latest backend and frontend deployments completed successfully.
-- [ ] Confirm Flyway applied every migration, including V10.
+- [ ] Confirm Flyway applied every migration, including V11.
 - [ ] Refresh `/contact`, `/admin/login` and an authenticated admin route directly.
 - [ ] Confirm the Render rewrite `/*` → `/index.html` is enabled.
 - [ ] Test login after the backend has been idle.
@@ -13,9 +13,11 @@ This checklist covers the first stable AtelierByPT release.
 
 ## 2. Availability regression
 
-- [ ] Set a weekday to working hours 08:00–17:00 and “Terminy co” to 120 minutes.
-- [ ] Confirm the public starts are 08:00, 10:00, 12:00 and 14:00.
-- [ ] Change the interval to 90 minutes and confirm the public grid changes.
+- [ ] Set a weekday to working hours 08:00–17:00 and “Terminy co” to 60 minutes.
+- [ ] Select a 120-minute service and confirm the last proposed start is 15:00.
+- [ ] Change the interval to 90 minutes and confirm the public starts are spaced by 90 minutes.
+- [ ] Leave only 15:00–16:00 free and confirm it is shown for a 60-minute service.
+- [ ] Confirm the same 15:00 start is hidden for a service longer than 60 minutes.
 - [ ] Add a `BLOCKED` period and confirm overlapping suggestions disappear.
 - [ ] Add a `CLOSED_DAY` and confirm the day has no suggestions.
 - [ ] Add `EXTRA_OPEN` on a non-working day and confirm suggestions are generated.
