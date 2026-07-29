@@ -50,7 +50,8 @@ public class WorkingHoursService {
 
     private WorkingHoursResponse mapToWorkingHoursResponse(WorkingHours workingHours) {
         return new WorkingHoursResponse(workingHours.getId(), workingHours.getDayOfWeek(), workingHours.getStartTime(),
-                workingHours.getEndTime(), workingHours.isWorkingDay(),  workingHours.isActive());
+                workingHours.getEndTime(), workingHours.isWorkingDay(),
+                workingHours.getPublicSlotDurationMinutes(), workingHours.isActive());
     }
 
     private PublicWorkingHoursResponse mapToPublicWorkingHoursResponse(
@@ -68,6 +69,9 @@ public class WorkingHoursService {
         workingHours.setStartTime(request.startTime());
         workingHours.setEndTime(request.endTime());
         workingHours.setWorkingDay(request.isWorkingDay());
+        workingHours.setPublicSlotDurationMinutes(
+                request.publicSlotDurationMinutes()
+        );
     }
 
     private void validateWorkingHoursRequest(WorkingHoursRequest request) {

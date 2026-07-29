@@ -3,7 +3,6 @@ package pl.atelierbypt.backend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.atelierbypt.backend.dto.AvailableTimeRangeResponse;
 import pl.atelierbypt.backend.dto.PublicAvailabilityDayResponse;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.AvailabilityException;
@@ -13,12 +12,14 @@ import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
 import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
+import pl.atelierbypt.backend.service.availability.PublicSlotGenerator;
 import pl.atelierbypt.backend.service.availability.TimeRange;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ public class PublicAvailabilityService {
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
     private final AppointmentRepository appointmentRepository;
     private final DailyAvailabilityCalculator dailyAvailabilityCalculator;
+    private final PublicSlotGenerator publicSlotGenerator;
 
     public List<PublicAvailabilityDayResponse> getAvailability(
             LocalDate start,
@@ -131,14 +133,17 @@ public class PublicAvailabilityService {
                 LocalDateTime.now(applicationClock)
         );
 
-        List<AvailableTimeRangeResponse> responseRanges = availableRanges.stream()
-                .map(range -> new AvailableTimeRangeResponse(
-                        range.startTime(),
-                        range.endTime()
-                ))
-                .toList();
+        List<LocalTime> availableStartTimes =
+                publicSlotGenerator.generateStartTimes(
+                        workingHours,
+                        exceptions,
+                        availableRanges
+                );
 
-        return new PublicAvailabilityDayResponse(date, responseRanges);
+        return new PublicAvailabilityDayResponse(
+                date,
+                availableStartTimes
+        );
     }
 
 }
