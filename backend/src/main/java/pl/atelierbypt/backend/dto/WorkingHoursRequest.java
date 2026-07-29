@@ -13,9 +13,9 @@ public record WorkingHoursRequest(
         @NotNull(message = "Informacja, czy dzień jest pracujący, jest wymagana.")
         Boolean isWorkingDay,
 
-        @NotNull(message = "Długość publicznego slotu jest wymagana.")
-        @Min(value = 15, message = "Długość publicznego slotu nie może być krótsza niż 15 minut.")
-        @Max(value = 480, message = "Długość publicznego slotu nie może być dłuższa niż 480 minut.")
-        Integer publicSlotDurationMinutes
+        @NotNull(message = "Interwał publicznych terminów jest wymagany.")
+        @Min(value = 15, message = "Interwał publicznych terminów nie może być krótszy niż 15 minut.")
+        @Max(value = 480, message = "Interwał publicznych terminów nie może być dłuższy niż 480 minut.")
+        Integer publicStartIntervalMinutes
 ) {
 }

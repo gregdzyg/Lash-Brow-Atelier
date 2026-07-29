@@ -86,7 +86,7 @@ class PublicAvailabilityServiceTest {
                 START_TIME,
                 END_TIME
         );
-        workingHours.setPublicSlotDurationMinutes(90);
+        workingHours.setPublicStartIntervalMinutes(90);
 
         when(workingHoursRepository.findByIsActiveTrue())
                 .thenReturn(List.of(workingHours));
@@ -319,7 +319,7 @@ class PublicAvailabilityServiceTest {
         workingHours.setStartTime(startTime);
         workingHours.setEndTime(endTime);
         workingHours.setWorkingDay(true);
-        workingHours.setPublicSlotDurationMinutes(120);
+        workingHours.setPublicStartIntervalMinutes(120);
         return workingHours;
     }
 
@@ -329,7 +329,7 @@ class PublicAvailabilityServiceTest {
         workingHours.setStartTime(null);
         workingHours.setEndTime(null);
         workingHours.setWorkingDay(false);
-        workingHours.setPublicSlotDurationMinutes(120);
+        workingHours.setPublicStartIntervalMinutes(120);
         return workingHours;
     }
 
