@@ -11,15 +11,15 @@ import pl.atelierbypt.backend.dto.PatchAppointmentStatusResponse;
 import pl.atelierbypt.backend.dto.SuggestedOfferItemResponse;
 import pl.atelierbypt.backend.entity.*;
 import pl.atelierbypt.backend.enums.AppointmentStatus;
-import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
 import pl.atelierbypt.backend.exception.*;
 import pl.atelierbypt.backend.repository.*;
+import pl.atelierbypt.backend.service.availability.AvailabilityStatus;
+import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
+import pl.atelierbypt.backend.service.availability.TimeRange;
 
 import java.time.*;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +35,7 @@ public class AppointmentService {
     private final ClientRepository clientRepository;
     private final AppointmentRepository appointmentRepository;
     private final Clock applicationClock;
+    private final DailyAvailabilityCalculator dailyAvailabilityCalculator;
 
 
     public List<AppointmentResponse> getAppointments(LocalDate start,  LocalDate end) {
@@ -143,33 +144,12 @@ public class AppointmentService {
 
     private void validateAppointmentForCreate(Appointment  appointment) {
         validateBasicAppointmentRules(appointment);
-        validateAvailability(appointment);
-        validateCollision(appointment);
+        validateAvailability(appointment, null);
     }
 
     private void validateAppointmentForUpdate(Appointment appointment) {
         validateBasicAppointmentRules(appointment);
-        validateAvailability(appointment);
-        validateCollision(appointment, appointment.getId());
-    }
-
-    private void validateCollision(Appointment appointment) {
-        validateCollision(appointment, null);
-    }
-
-    private void validateCollision(Appointment appointment, Long ignoredAppointmentId) {
-
-        List<Appointment> appointments = appointmentRepository.findScheduledActiveByDate(appointment.getAppointmentDate());
-        TimeRange timeRange = new TimeRange(appointment.getStartTime(), appointment.getStartTime().plusMinutes(
-                appointment.getDurationMinutes()
-        ));
-        boolean collision = appointments.stream()
-                .filter(existingAppointment -> !Objects.equals(existingAppointment.getId(),
-                        ignoredAppointmentId))
-                .map(a -> new TimeRange(
-                        a.getStartTime(), a.getStartTime().plusMinutes(a.getDurationMinutes())))
-                .anyMatch(r -> r.overlaps(timeRange));
-        if (collision) throw new AppointmentTimeConflictException("Termin wizyty koliduje z istniejącymi.");
+        validateAvailability(appointment, appointment.getId());
     }
 
     private void validateBasicAppointmentRules(Appointment appointment) {
@@ -187,7 +167,10 @@ public class AppointmentService {
         }
     }
 
-    private void validateAvailability(Appointment appointment) {
+    private void validateAvailability(
+            Appointment appointment,
+            Long ignoredAppointmentId
+    ) {
 
         LocalDate date = appointment.getAppointmentDate();
         DayOfWeek dayOfWeek = date.getDayOfWeek();
@@ -200,29 +183,34 @@ public class AppointmentService {
         List<AvailabilityException> availabilityExceptions = availabilityExceptionRepository
                 .findByDateAndIsActiveTrue(date);
 
-        boolean isClosedDay = availabilityExceptions.stream()
-                .anyMatch(e -> e.getType() == AvailabilityExceptionType.CLOSED_DAY);
+        List<Appointment> appointments =
+                appointmentRepository.findScheduledActiveByDate(date);
 
-        if(isClosedDay) throw new AppointmentBadRequestException("Nie można utworzyć wizyty w dzień zamknięcia salonu.");
+        AvailabilityStatus availabilityStatus =
+                dailyAvailabilityCalculator.checkAvailability(
+                        new TimeRange(appointmentStartTime, appointmentEndTime),
+                        workingHours,
+                        availabilityExceptions,
+                        appointments,
+                        ignoredAppointmentId
+                );
 
-        List<TimeRange> availableRanges = new ArrayList<>();
-
-        if(workingHours.isWorkingDay()) availableRanges.add(new TimeRange(workingHours.getStartTime(), workingHours.getEndTime()));
-        availabilityExceptions.stream().filter(e -> e.getType() == AvailabilityExceptionType.EXTRA_OPEN)
-                .forEach(a -> availableRanges.add(new TimeRange(a.getStartTime(), a.getEndTime())));
-
-        TimeRange appointmentTimeRange = new TimeRange(appointmentStartTime, appointmentEndTime);
-        boolean isAvailable = availableRanges.stream().anyMatch(timeRange ->  timeRange.contains(appointmentTimeRange));
-
-        if(!isAvailable) throw new AppointmentBadRequestException("Wizyta nie może zostać umówiona poza czasem dostępności salonu.");
-
-        boolean isBlocked = availabilityExceptions.stream()
-                .filter(e -> e.getType() == AvailabilityExceptionType.BLOCKED)
-                .map(e -> new TimeRange(e.getStartTime(), e.getEndTime()))
-                .anyMatch(blockedRange -> blockedRange.overlaps(appointmentTimeRange));
-
-        if(isBlocked) throw new AppointmentBadRequestException("Wizyta koliduje z blokadą dostępności salonu.");
-
+        switch (availabilityStatus) {
+            case AVAILABLE -> {
+            }
+            case CLOSED_DAY -> throw new AppointmentBadRequestException(
+                    "Nie można utworzyć wizyty w dzień zamknięcia salonu."
+            );
+            case OUTSIDE_OPENING_HOURS -> throw new AppointmentBadRequestException(
+                    "Wizyta nie może zostać umówiona poza czasem dostępności salonu."
+            );
+            case BLOCKED -> throw new AppointmentBadRequestException(
+                    "Wizyta koliduje z blokadą dostępności salonu."
+            );
+            case APPOINTMENT_CONFLICT -> throw new AppointmentTimeConflictException(
+                    "Termin wizyty koliduje z istniejącymi."
+            );
+        }
     }
 
     private void mapRequestToAppointment(AppointmentRequest appointmentRequest, Appointment appointment,
@@ -252,17 +240,5 @@ public class AppointmentService {
                 appointment.getAppointmentDate(),
                 appointment.getStartTime(), appointment.getDurationMinutes(), appointment.getPrice(),
                 appointment.getStatus(), appointment.getNote(), hasEnded, appointment.isActive());
-    }
-
-    private record TimeRange(LocalTime start, LocalTime end) {
-
-        boolean contains(TimeRange other) {
-            return !other.start().isBefore(start) && !other.end().isAfter(end);
-        }
-
-        boolean overlaps(TimeRange other) {
-            return start.isBefore(other.end())
-                    && end.isAfter(other.start());
-        }
     }
 }

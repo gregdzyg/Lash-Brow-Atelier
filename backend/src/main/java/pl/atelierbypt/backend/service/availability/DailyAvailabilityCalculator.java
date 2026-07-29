@@ -30,18 +30,66 @@ public class DailyAvailabilityCalculator {
             List<Appointment> appointments,
             Long ignoredAppointmentId
     ) {
-        boolean isClosedDay = exceptions.stream()
-                .anyMatch(exception ->
-                        exception.getType() == AvailabilityExceptionType.CLOSED_DAY);
-
-        if (isClosedDay) {
+        if (isClosedDay(exceptions)) {
             return List.of();
         }
 
-        List<TimeRange> availableRanges = new ArrayList<>();
+        List<TimeRange> availableRanges = createOpeningRanges(workingHours, exceptions);
+        availableRanges = subtractRanges(availableRanges, createBlockedRanges(exceptions));
+
+        return subtractRanges(
+                availableRanges,
+                createAppointmentRanges(appointments, ignoredAppointmentId)
+        );
+    }
+
+    public AvailabilityStatus checkAvailability(
+            TimeRange requestedRange,
+            WorkingHours workingHours,
+            List<AvailabilityException> exceptions,
+            List<Appointment> appointments,
+            Long ignoredAppointmentId
+    ) {
+        if (isClosedDay(exceptions)) {
+            return AvailabilityStatus.CLOSED_DAY;
+        }
+
+        List<TimeRange> openingRanges = createOpeningRanges(workingHours, exceptions);
+        if (!isContainedInAnyRange(requestedRange, openingRanges)) {
+            return AvailabilityStatus.OUTSIDE_OPENING_HOURS;
+        }
+
+        List<TimeRange> rangesWithoutBlocks =
+                subtractRanges(openingRanges, createBlockedRanges(exceptions));
+        if (!isContainedInAnyRange(requestedRange, rangesWithoutBlocks)) {
+            return AvailabilityStatus.BLOCKED;
+        }
+
+        List<TimeRange> availableRanges = subtractRanges(
+                rangesWithoutBlocks,
+                createAppointmentRanges(appointments, ignoredAppointmentId)
+        );
+        if (!isContainedInAnyRange(requestedRange, availableRanges)) {
+            return AvailabilityStatus.APPOINTMENT_CONFLICT;
+        }
+
+        return AvailabilityStatus.AVAILABLE;
+    }
+
+    private boolean isClosedDay(List<AvailabilityException> exceptions) {
+        return exceptions.stream()
+                .anyMatch(exception ->
+                        exception.getType() == AvailabilityExceptionType.CLOSED_DAY);
+    }
+
+    private List<TimeRange> createOpeningRanges(
+            WorkingHours workingHours,
+            List<AvailabilityException> exceptions
+    ) {
+        List<TimeRange> openingRanges = new ArrayList<>();
 
         if (workingHours != null && workingHours.isWorkingDay()) {
-            availableRanges.add(new TimeRange(
+            openingRanges.add(new TimeRange(
                     workingHours.getStartTime(),
                     workingHours.getEndTime()
             ));
@@ -54,11 +102,15 @@ public class DailyAvailabilityCalculator {
                         exception.getStartTime(),
                         exception.getEndTime()
                 ))
-                .forEach(availableRanges::add);
+                .forEach(openingRanges::add);
 
-        availableRanges = mergeRanges(availableRanges);
+        return mergeRanges(openingRanges);
+    }
 
-        List<TimeRange> blockedRanges = exceptions.stream()
+    private List<TimeRange> createBlockedRanges(
+            List<AvailabilityException> exceptions
+    ) {
+        return exceptions.stream()
                 .filter(exception ->
                         exception.getType() == AvailabilityExceptionType.BLOCKED)
                 .map(exception -> new TimeRange(
@@ -66,10 +118,13 @@ public class DailyAvailabilityCalculator {
                         exception.getEndTime()
                 ))
                 .toList();
+    }
 
-        availableRanges = subtractRanges(availableRanges, blockedRanges);
-
-        List<TimeRange> appointmentRanges = appointments.stream()
+    private List<TimeRange> createAppointmentRanges(
+            List<Appointment> appointments,
+            Long ignoredAppointmentId
+    ) {
+        return appointments.stream()
                 .filter(appointment ->
                         appointment.getStatus() == AppointmentStatus.SCHEDULED)
                 .filter(appointment ->
@@ -81,8 +136,14 @@ public class DailyAvailabilityCalculator {
                                 .plusMinutes(appointment.getDurationMinutes())
                 ))
                 .toList();
+    }
 
-        return subtractRanges(availableRanges, appointmentRanges);
+    private boolean isContainedInAnyRange(
+            TimeRange requestedRange,
+            List<TimeRange> ranges
+    ) {
+        return ranges.stream()
+                .anyMatch(range -> range.contains(requestedRange));
     }
 
     private List<TimeRange> mergeRanges(List<TimeRange> ranges) {

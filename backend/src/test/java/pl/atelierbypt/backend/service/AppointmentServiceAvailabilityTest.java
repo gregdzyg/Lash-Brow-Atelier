@@ -21,6 +21,7 @@ import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
 import pl.atelierbypt.backend.repository.ClientRepository;
 import pl.atelierbypt.backend.repository.OfferItemRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
+import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -72,7 +73,8 @@ class AppointmentServiceAvailabilityTest {
                 offerItemRepository,
                 clientRepository,
                 appointmentRepository,
-                applicationClock
+                applicationClock,
+                new DailyAvailabilityCalculator()
         );
 
         client = createClient();
