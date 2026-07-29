@@ -16,7 +16,8 @@ public class PublicSlotGenerator {
     public List<LocalTime> generateStartTimes(
             WorkingHours workingHours,
             List<AvailabilityException> exceptions,
-            List<TimeRange> availableRanges
+            List<TimeRange> availableRanges,
+            int serviceDurationMinutes
     ) {
         if (workingHours == null) {
             return List.of();
@@ -33,12 +34,13 @@ public class PublicSlotGenerator {
                 .flatMap(template ->
                         generateStartTimesForTemplate(
                                 template,
-                                startIntervalMinutes
+                                startIntervalMinutes,
+                                serviceDurationMinutes
                         ).stream())
                 .filter(startTime -> {
                     TimeRange slot = new TimeRange(
                             startTime,
-                            startTime.plusMinutes(startIntervalMinutes)
+                            startTime.plusMinutes(serviceDurationMinutes)
                     );
                     return availableRanges.stream()
                             .anyMatch(range -> range.contains(slot));
@@ -83,13 +85,14 @@ public class PublicSlotGenerator {
 
     private List<LocalTime> generateStartTimesForTemplate(
             TimeRange template,
-            int startIntervalMinutes
+            int startIntervalMinutes,
+            int serviceDurationMinutes
     ) {
         List<LocalTime> startTimes = new ArrayList<>();
         LocalTime candidateStart = template.startTime();
 
         while (Duration.between(candidateStart, template.endTime())
-                .toMinutes() >= startIntervalMinutes) {
+                .toMinutes() >= serviceDurationMinutes) {
             startTimes.add(candidateStart);
             candidateStart = candidateStart.plusMinutes(startIntervalMinutes);
         }

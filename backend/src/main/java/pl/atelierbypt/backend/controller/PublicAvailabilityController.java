@@ -23,8 +23,13 @@ public class PublicAvailabilityController {
     @GetMapping
     public ResponseEntity<List<PublicAvailabilityDayResponse>> getAvailability(
             @RequestParam LocalDate start,
-            @RequestParam LocalDate end
+            @RequestParam LocalDate end,
+            @RequestParam Long offerItemId
             ) {
-        return ResponseEntity.ok(publicAvailabilityService.getAvailability(start, end));
+        return ResponseEntity.ok(publicAvailabilityService.getAvailability(
+                start,
+                end,
+                offerItemId
+        ));
     }
 }

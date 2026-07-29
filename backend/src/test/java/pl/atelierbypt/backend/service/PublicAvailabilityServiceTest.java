@@ -8,21 +8,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.atelierbypt.backend.dto.PublicAvailabilityDayResponse;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.AvailabilityException;
+import pl.atelierbypt.backend.entity.OfferItem;
 import pl.atelierbypt.backend.entity.WorkingHours;
 import pl.atelierbypt.backend.enums.AppointmentStatus;
 import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
+import pl.atelierbypt.backend.exception.OfferItemNotFoundException;
 import pl.atelierbypt.backend.exception.PublicAvailabilityBadRequestException;
 import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
+import pl.atelierbypt.backend.repository.OfferItemRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
 import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
 import pl.atelierbypt.backend.service.availability.PublicSlotGenerator;
 
 import java.time.*;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +40,8 @@ class PublicAvailabilityServiceTest {
     private static final LocalDate MONDAY = LocalDate.of(2026, 8, 3);
     private static final LocalTime START_TIME = LocalTime.of(8, 0);
     private static final LocalTime END_TIME = LocalTime.of(17, 0);
+    private static final long OFFER_ITEM_ID = 1L;
+    private static final int DEFAULT_SERVICE_DURATION_MINUTES = 120;
 
     private PublicAvailabilityService publicAvailabilityService;
     private Clock applicationClock;
@@ -44,13 +51,17 @@ class PublicAvailabilityServiceTest {
     private AvailabilityExceptionRepository availabilityExceptionRepository;
     @Mock
     private AppointmentRepository appointmentRepository;
+    @Mock
+    private OfferItemRepository offerItemRepository;
 
     @BeforeEach
     void setUp() {
         applicationClock = Clock.fixed(FIXED_INSTANT, ZONE);
         publicAvailabilityService = new PublicAvailabilityService(applicationClock, workingHoursRepository,
-                availabilityExceptionRepository, appointmentRepository,
+                availabilityExceptionRepository, appointmentRepository, offerItemRepository,
                 new DailyAvailabilityCalculator(), new PublicSlotGenerator());
+        lenient().when(offerItemRepository.findByIdAndIsActiveTrue(OFFER_ITEM_ID))
+                .thenReturn(Optional.of(createOfferItem(DEFAULT_SERVICE_DURATION_MINUTES)));
     }
 
     @Test
@@ -64,7 +75,8 @@ class PublicAvailabilityServiceTest {
         when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY)).thenReturn(List.of());
 
         //Act
-        List<PublicAvailabilityDayResponse> result = publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         //Assert
         assertThat(result).hasSize(1);
@@ -73,14 +85,18 @@ class PublicAvailabilityServiceTest {
         assertThat(dayAvailability.availableStartTimes())
                 .containsExactly(
                         LocalTime.of(8, 0),
+                        LocalTime.of(9, 0),
                         LocalTime.of(10, 0),
+                        LocalTime.of(11, 0),
                         LocalTime.of(12, 0),
-                        LocalTime.of(14, 0)
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(15, 0)
                 );
     }
 
     @Test
-    void shouldUsePublicSlotDurationConfiguredForDay() {
+    void shouldUsePublicStartIntervalConfiguredForDay() {
         WorkingHours workingHours = createWorkingDay(
                 DayOfWeek.MONDAY,
                 START_TIME,
@@ -97,7 +113,7 @@ class PublicAvailabilityServiceTest {
                 .thenReturn(List.of());
 
         List<PublicAvailabilityDayResponse> result =
-                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
@@ -105,8 +121,7 @@ class PublicAvailabilityServiceTest {
                         LocalTime.of(9, 30),
                         LocalTime.of(11, 0),
                         LocalTime.of(12, 30),
-                        LocalTime.of(14, 0),
-                        LocalTime.of(15, 30)
+                        LocalTime.of(14, 0)
                 );
     }
 
@@ -124,7 +139,8 @@ class PublicAvailabilityServiceTest {
         when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY)).thenReturn(List.of());
 
         //Act
-        List<PublicAvailabilityDayResponse> result = publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         //Assert
         assertThat(result).hasSize(1);
@@ -149,15 +165,19 @@ class PublicAvailabilityServiceTest {
         when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY)).thenReturn(List.of());
 
         //Act
-        List<PublicAvailabilityDayResponse> result = publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         //Assert
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
                         LocalTime.of(8, 0),
+                        LocalTime.of(9, 0),
                         LocalTime.of(10, 0),
-                        LocalTime.of(14, 0)
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(15, 0)
                 );
     }
 
@@ -177,7 +197,8 @@ class PublicAvailabilityServiceTest {
         when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY)).thenReturn(List.of());
 
         //Act
-        List<PublicAvailabilityDayResponse> result = publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         //Assert
         assertThat(result).hasSize(1);
@@ -186,6 +207,7 @@ class PublicAvailabilityServiceTest {
         assertThat(dayAvailability.availableStartTimes())
                 .containsExactly(
                         LocalTime.of(10, 0),
+                        LocalTime.of(11, 0),
                         LocalTime.of(12, 0)
                 );
     }
@@ -209,13 +231,16 @@ class PublicAvailabilityServiceTest {
 
         // Act
         List<PublicAvailabilityDayResponse> result =
-                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         // Assert
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
                         LocalTime.of(8, 0),
-                        LocalTime.of(14, 0)
+                        LocalTime.of(9, 0),
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(15, 0)
                 );
     }
 
@@ -238,15 +263,19 @@ class PublicAvailabilityServiceTest {
 
         // Act
         List<PublicAvailabilityDayResponse> result =
-                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         // Assert
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
                         LocalTime.of(8, 0),
+                        LocalTime.of(9, 0),
                         LocalTime.of(10, 0),
+                        LocalTime.of(11, 0),
                         LocalTime.of(12, 0),
-                        LocalTime.of(14, 0)
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(15, 0)
                 );
     }
 
@@ -267,15 +296,19 @@ class PublicAvailabilityServiceTest {
 
         // Act
         List<PublicAvailabilityDayResponse> result =
-                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
 
         // Assert
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
                         LocalTime.of(8, 0),
+                        LocalTime.of(9, 0),
                         LocalTime.of(10, 0),
+                        LocalTime.of(11, 0),
                         LocalTime.of(12, 0),
+                        LocalTime.of(13, 0),
                         LocalTime.of(14, 0),
+                        LocalTime.of(15, 0),
                         LocalTime.of(17, 0)
                 );
     }
@@ -293,22 +326,98 @@ class PublicAvailabilityServiceTest {
 
         // Act
         List<PublicAvailabilityDayResponse> result =
-                publicAvailabilityService.getAvailability(today, today);
+                publicAvailabilityService.getAvailability(today, today, OFFER_ITEM_ID);
 
         // Assert
         assertThat(result.getFirst().availableStartTimes())
                 .containsExactly(
                         LocalTime.of(10, 0),
+                        LocalTime.of(11, 0),
                         LocalTime.of(12, 0),
-                        LocalTime.of(14, 0)
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(15, 0)
                 );
+    }
+
+    @Test
+    void shouldOfferLastHourWhenSelectedServiceTakesSixtyMinutes() {
+        WorkingHours workingHours = createWorkingDay(
+                DayOfWeek.MONDAY,
+                START_TIME,
+                LocalTime.of(16, 0)
+        );
+        Appointment appointment = createAppointment(
+                MONDAY,
+                START_TIME,
+                420,
+                AppointmentStatus.SCHEDULED
+        );
+
+        when(offerItemRepository.findByIdAndIsActiveTrue(OFFER_ITEM_ID))
+                .thenReturn(Optional.of(createOfferItem(60)));
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(MONDAY, MONDAY))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY))
+                .thenReturn(List.of(appointment));
+
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
+
+        assertThat(result.getFirst().availableStartTimes())
+                .containsExactly(LocalTime.of(15, 0));
+    }
+
+    @Test
+    void shouldNotOfferLastHourWhenSelectedServiceDoesNotFit() {
+        WorkingHours workingHours = createWorkingDay(
+                DayOfWeek.MONDAY,
+                START_TIME,
+                LocalTime.of(16, 0)
+        );
+        Appointment appointment = createAppointment(
+                MONDAY,
+                START_TIME,
+                420,
+                AppointmentStatus.SCHEDULED
+        );
+
+        when(offerItemRepository.findByIdAndIsActiveTrue(OFFER_ITEM_ID))
+                .thenReturn(Optional.of(createOfferItem(90)));
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(MONDAY, MONDAY))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY))
+                .thenReturn(List.of(appointment));
+
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY, OFFER_ITEM_ID);
+
+        assertThat(result.getFirst().availableStartTimes()).isEmpty();
+    }
+
+    @Test
+    void shouldRejectAvailabilityRequestForInactiveOrMissingService() {
+        when(offerItemRepository.findByIdAndIsActiveTrue(OFFER_ITEM_ID))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                publicAvailabilityService.getAvailability(
+                        MONDAY,
+                        MONDAY,
+                        OFFER_ITEM_ID
+                ))
+                .isInstanceOf(OfferItemNotFoundException.class)
+                .hasMessage("Nie znaleziono aktywnej usługi z id 1");
     }
 
     @Test
     void shouldRejectDateRangeWhenEndIsBeforeStart() {
         LocalDate end = MONDAY.minusDays(1);
 
-        assertThatThrownBy(() -> publicAvailabilityService.getAvailability(MONDAY, end))
+        assertThatThrownBy(() ->
+                publicAvailabilityService.getAvailability(MONDAY, end, OFFER_ITEM_ID))
                 .isInstanceOf(PublicAvailabilityBadRequestException.class)
                 .hasMessage("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.");
     }
@@ -319,7 +428,7 @@ class PublicAvailabilityServiceTest {
         workingHours.setStartTime(startTime);
         workingHours.setEndTime(endTime);
         workingHours.setWorkingDay(true);
-        workingHours.setPublicStartIntervalMinutes(120);
+        workingHours.setPublicStartIntervalMinutes(60);
         return workingHours;
     }
 
@@ -329,7 +438,7 @@ class PublicAvailabilityServiceTest {
         workingHours.setStartTime(null);
         workingHours.setEndTime(null);
         workingHours.setWorkingDay(false);
-        workingHours.setPublicStartIntervalMinutes(120);
+        workingHours.setPublicStartIntervalMinutes(60);
         return workingHours;
     }
 
@@ -345,6 +454,12 @@ class PublicAvailabilityServiceTest {
         appointment.setDurationMinutes(durationMinutes);
         appointment.setStatus(status);
         return appointment;
+    }
+
+    private OfferItem createOfferItem(int durationMinutes) {
+        OfferItem offerItem = new OfferItem();
+        offerItem.setDurationMinutes(durationMinutes);
+        return offerItem;
     }
 
 }

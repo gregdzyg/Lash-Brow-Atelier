@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 import pl.atelierbypt.backend.dto.PublicAvailabilityDayResponse;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.AvailabilityException;
+import pl.atelierbypt.backend.entity.OfferItem;
 import pl.atelierbypt.backend.entity.WorkingHours;
+import pl.atelierbypt.backend.exception.OfferItemNotFoundException;
 import pl.atelierbypt.backend.exception.PublicAvailabilityBadRequestException;
 import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
+import pl.atelierbypt.backend.repository.OfferItemRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
 import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
 import pl.atelierbypt.backend.service.availability.PublicSlotGenerator;
@@ -33,14 +36,22 @@ public class PublicAvailabilityService {
     private final WorkingHoursRepository workingHoursRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
     private final AppointmentRepository appointmentRepository;
+    private final OfferItemRepository offerItemRepository;
     private final DailyAvailabilityCalculator dailyAvailabilityCalculator;
     private final PublicSlotGenerator publicSlotGenerator;
 
     public List<PublicAvailabilityDayResponse> getAvailability(
             LocalDate start,
-            LocalDate end
+            LocalDate end,
+            Long offerItemId
     ) {
         validateDateRange(start, end);
+        OfferItem offerItem = offerItemRepository
+                .findByIdAndIsActiveTrue(offerItemId)
+                .orElseThrow(() -> new OfferItemNotFoundException(
+                        "Nie znaleziono aktywnej usługi z id "
+                                + offerItemId
+                ));
 
         List<WorkingHours> workingHours =
                 workingHoursRepository.findByIsActiveTrue();
@@ -76,7 +87,8 @@ public class PublicAvailabilityService {
                         date,
                         workingHoursByDay.get(date.getDayOfWeek()),
                         exceptionsByDate.getOrDefault(date, List.of()),
-                        appointmentsByDate.getOrDefault(date, List.of())
+                        appointmentsByDate.getOrDefault(date, List.of()),
+                        offerItem.getDurationMinutes()
                 ))
                 .toList();
     }
@@ -120,7 +132,8 @@ public class PublicAvailabilityService {
             LocalDate date,
             WorkingHours workingHours,
             List<AvailabilityException> exceptions,
-            List<Appointment> appointments
+            List<Appointment> appointments,
+            int serviceDurationMinutes
     ) {
         List<TimeRange> availableRanges = dailyAvailabilityCalculator.calculate(
                 workingHours,
@@ -137,7 +150,8 @@ public class PublicAvailabilityService {
                 publicSlotGenerator.generateStartTimes(
                         workingHours,
                         exceptions,
-                        availableRanges
+                        availableRanges,
+                        serviceDurationMinutes
                 );
 
         return new PublicAvailabilityDayResponse(
