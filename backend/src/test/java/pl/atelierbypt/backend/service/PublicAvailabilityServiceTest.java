@@ -16,6 +16,7 @@ import pl.atelierbypt.backend.exception.PublicAvailabilityBadRequestException;
 import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
+import pl.atelierbypt.backend.service.availability.DailyAvailabilityCalculator;
 
 import java.time.*;
 import java.util.List;
@@ -48,7 +49,7 @@ class PublicAvailabilityServiceTest {
     void setUp() {
         applicationClock = Clock.fixed(FIXED_INSTANT, ZONE);
         publicAvailabilityService = new PublicAvailabilityService(applicationClock, workingHoursRepository,
-                availabilityExceptionRepository, appointmentRepository);
+                availabilityExceptionRepository, appointmentRepository, new DailyAvailabilityCalculator());
     }
 
     @Test
