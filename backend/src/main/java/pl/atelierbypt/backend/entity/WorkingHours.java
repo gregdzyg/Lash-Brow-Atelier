@@ -33,5 +33,5 @@ public class WorkingHours extends BaseEntity {
     @Min(15)
     @Max(480)
     @Column(nullable = false)
-    private Integer publicSlotDurationMinutes;
+    private Integer publicStartIntervalMinutes;
 }

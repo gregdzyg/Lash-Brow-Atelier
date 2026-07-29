@@ -52,12 +52,13 @@ class SecurityConfigTest {
 
     @Test
     void shouldAllowPublicEndpointWithoutAuthentication() throws Exception {
-        when(publicAvailabilityService.getAvailability(DATE, DATE))
+        when(publicAvailabilityService.getAvailability(DATE, DATE, 1L))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/api/public/availability")
                         .param("start", DATE.toString())
-                        .param("end", DATE.toString()))
+                        .param("end", DATE.toString())
+                        .param("offerItemId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
     }

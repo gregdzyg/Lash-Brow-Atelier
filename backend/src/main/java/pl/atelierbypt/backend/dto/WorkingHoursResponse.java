@@ -9,7 +9,7 @@ public record WorkingHoursResponse(
         LocalTime startTime,
         LocalTime endTime,
         boolean isWorkingDay,
-        Integer publicSlotDurationMinutes,
+        Integer publicStartIntervalMinutes,
         boolean isActive
 ) {
 }

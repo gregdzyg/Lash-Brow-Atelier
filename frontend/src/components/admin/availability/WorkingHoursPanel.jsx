@@ -94,8 +94,8 @@ const WorkingHoursPanel = () => {
             isWorkingDay: day.isWorkingDay,
             startTime: normalizeTime(day.startTime),
             endTime: normalizeTime(day.endTime),
-            publicSlotDurationMinutes:
-                String(day.publicSlotDurationMinutes || 120),
+            publicStartIntervalMinutes:
+                String(day.publicStartIntervalMinutes || 60),
         });
         setUpdateError("");
         setSuccessMessage("");
@@ -142,13 +142,13 @@ const WorkingHoursPanel = () => {
             }
         }
 
-        const publicSlotDurationMinutes =
-            Number(formValues.publicSlotDurationMinutes);
+        const publicStartIntervalMinutes =
+            Number(formValues.publicStartIntervalMinutes);
 
         if (
-            !Number.isInteger(publicSlotDurationMinutes)
-            || publicSlotDurationMinutes < 15
-            || publicSlotDurationMinutes > 480
+            !Number.isInteger(publicStartIntervalMinutes)
+            || publicStartIntervalMinutes < 15
+            || publicStartIntervalMinutes > 480
         ) {
             setUpdateError(
                 "Odstęp między proponowanymi terminami musi wynosić od 15 do 480 minut.",
@@ -160,7 +160,7 @@ const WorkingHoursPanel = () => {
             startTime: formValues.isWorkingDay ? formValues.startTime : null,
             endTime: formValues.isWorkingDay ? formValues.endTime : null,
             isWorkingDay: formValues.isWorkingDay,
-            publicSlotDurationMinutes,
+            publicStartIntervalMinutes,
         };
 
         setSavingId(day.id);
@@ -261,7 +261,7 @@ const WorkingHoursPanel = () => {
                                                 }
                                             </span>
                                             <span className="text-sm text-white/55">
-                                                Terminy co: {day.publicSlotDurationMinutes} min
+                                                Terminy co: {day.publicStartIntervalMinutes} min
                                             </span>
                                         </div>
                                         <button
@@ -329,13 +329,13 @@ const WorkingHoursPanel = () => {
                                                     </span>
                                                     <input
                                                         type="number"
-                                                        name="publicSlotDurationMinutes"
+                                                        name="publicStartIntervalMinutes"
                                                         required
                                                         min="15"
                                                         max="480"
                                                         step="15"
                                                         disabled={isSaving}
-                                                        value={formValues.publicSlotDurationMinutes}
+                                                        value={formValues.publicStartIntervalMinutes}
                                                         onChange={handleTimeChange}
                                                         className={inputClassName}
                                                     />

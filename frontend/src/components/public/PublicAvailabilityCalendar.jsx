@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getPublicAvailability } from "../../api/apiPublicAvailability";
+import { getPublicOfferItems } from "../../api/apiPublicContent";
 
 const WEEKDAY_LABELS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
@@ -116,9 +117,14 @@ const PublicAvailabilityCalendar = () => {
     startOfMonth(new Date()),
   );
   const [availability, setAvailability] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [offerItems, setOfferItems] = useState([]);
+  const [selectedOfferItemId, setSelectedOfferItemId] = useState("");
+  const [areOffersLoading, setAreOffersLoading] = useState(true);
+  const [offersError, setOffersError] = useState("");
+  const [offersReloadKey, setOffersReloadKey] = useState(0);
 
   const maximumDate = useMemo(
     () => addMonthsClamped(today, 3),
@@ -129,6 +135,45 @@ const PublicAvailabilityCalendar = () => {
   const maximumMonth = startOfMonth(maximumDate);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchOfferItems = async () => {
+      setAreOffersLoading(true);
+      setOffersError("");
+
+      try {
+        const response = await getPublicOfferItems();
+
+        if (isMounted) {
+          setOfferItems(Array.isArray(response) ? response : []);
+        }
+      } catch {
+        if (isMounted) {
+          setOfferItems([]);
+          setOffersError("Nie udało się pobrać aktualnej oferty.");
+        }
+      } finally {
+        if (isMounted) {
+          setAreOffersLoading(false);
+        }
+      }
+    };
+
+    fetchOfferItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [offersReloadKey]);
+
+  useEffect(() => {
+    if (!selectedOfferItemId) {
+      setAvailability([]);
+      setIsLoading(false);
+      setLoadError("");
+      return undefined;
+    }
+
     let isMounted = true;
 
     const fetchAvailability = async () => {
@@ -146,6 +191,7 @@ const PublicAvailabilityCalendar = () => {
         const response = await getPublicAvailability(
           formatLocalDate(requestedStart),
           formatLocalDate(requestedEnd),
+          selectedOfferItemId,
         );
 
         if (isMounted) {
@@ -171,7 +217,21 @@ const PublicAvailabilityCalendar = () => {
     return () => {
       isMounted = false;
     };
-  }, [maximumDate, reloadKey, selectedMonth, today]);
+  }, [
+    maximumDate,
+    reloadKey,
+    selectedMonth,
+    selectedOfferItemId,
+    today,
+  ]);
+
+  const selectedOfferItem = useMemo(
+    () =>
+      offerItems.find(
+        (offerItem) => String(offerItem.id) === selectedOfferItemId,
+      ),
+    [offerItems, selectedOfferItemId],
+  );
 
   const availabilityByDate = useMemo(
     () =>
@@ -231,10 +291,80 @@ const PublicAvailabilityCalendar = () => {
           Sprawdź dostępność Atelier
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
-          Kalendarz ma charakter informacyjny. Wybierz dogodny termin,
-          a następnie skontaktuj się ze stylistką — ostateczna godzina wizyty
-          zostanie potwierdzona podczas rozmowy.
+          Najpierw wybierz usługę. Pokażemy godziny, w których jest wystarczająco
+          dużo wolnego czasu na jej wykonanie. Ostateczny termin zostanie
+          potwierdzony podczas rozmowy ze stylistką.
         </p>
+      </div>
+
+      <div className="mx-auto mt-8 max-w-xl rounded-3xl border border-[var(--gold)]/25 bg-white/[0.04] p-5 sm:p-6">
+        <label
+          htmlFor="availability-offer-item"
+          className="block text-sm font-semibold text-white"
+        >
+          Wybierz usługę
+        </label>
+
+        {areOffersLoading && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-white/50">
+            <LoaderCircle
+              aria-hidden="true"
+              size={17}
+              className="animate-spin text-[var(--gold)]"
+            />
+            Pobieranie aktualnej oferty…
+          </div>
+        )}
+
+        {!areOffersLoading && offersError && (
+          <div className="mt-3">
+            <p className="text-sm text-rose-100">{offersError}</p>
+            <button
+              type="button"
+              onClick={() =>
+                setOffersReloadKey((currentKey) => currentKey + 1)
+              }
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--gold)]/30 px-4 py-2 text-sm font-medium text-[var(--gold)] transition hover:bg-[var(--gold)]/10"
+            >
+              <RefreshCw aria-hidden="true" size={15} />
+              Spróbuj ponownie
+            </button>
+          </div>
+        )}
+
+        {!areOffersLoading && !offersError && offerItems.length === 0 && (
+          <p className="mt-3 text-sm text-white/45">
+            Oferta jest obecnie aktualizowana. Zapraszamy do kontaktu.
+          </p>
+        )}
+
+        {!areOffersLoading && !offersError && offerItems.length > 0 && (
+          <>
+            <select
+              id="availability-offer-item"
+              value={selectedOfferItemId}
+              onChange={(event) =>
+                setSelectedOfferItemId(event.target.value)
+              }
+              className="mt-3 w-full rounded-2xl border border-[var(--gold)]/30 bg-[#171717] px-4 py-3 text-sm text-white outline-none transition focus:border-[var(--gold)]"
+            >
+              <option value="">Wybierz usługę z listy</option>
+              {offerItems.map((offerItem) => (
+                <option key={offerItem.id} value={offerItem.id}>
+                  {offerItem.name} — {offerItem.durationMinutes} min
+                </option>
+              ))}
+            </select>
+
+            {selectedOfferItem && (
+              <p className="mt-3 text-xs leading-5 text-white/45">
+                Wybrana usługa trwa około{" "}
+                {selectedOfferItem.durationMinutes} min. Widoczne godziny
+                uwzględniają ten czas.
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       <div className="mt-9 overflow-hidden rounded-[2rem] border border-[var(--gold)]/25 bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl sm:mt-12">
@@ -242,7 +372,9 @@ const PublicAvailabilityCalendar = () => {
           <button
             type="button"
             onClick={showPreviousMonth}
-            disabled={!canGoToPreviousMonth || isLoading}
+            disabled={
+              !canGoToPreviousMonth || isLoading || !selectedOfferItemId
+            }
             aria-label="Poprzedni miesiąc"
             className="inline-flex size-11 items-center justify-center rounded-full border border-[var(--gold)]/25 text-[var(--gold)] transition hover:border-[var(--gold)]/55 hover:bg-[var(--gold)]/10 disabled:cursor-not-allowed disabled:opacity-30"
           >
@@ -259,7 +391,9 @@ const PublicAvailabilityCalendar = () => {
           <button
             type="button"
             onClick={showNextMonth}
-            disabled={!canGoToNextMonth || isLoading}
+            disabled={
+              !canGoToNextMonth || isLoading || !selectedOfferItemId
+            }
             aria-label="Następny miesiąc"
             className="inline-flex size-11 items-center justify-center rounded-full border border-[var(--gold)]/25 text-[var(--gold)] transition hover:border-[var(--gold)]/55 hover:bg-[var(--gold)]/10 disabled:cursor-not-allowed disabled:opacity-30"
           >
@@ -267,14 +401,23 @@ const PublicAvailabilityCalendar = () => {
           </button>
         </div>
 
-        {isLoading && (
+        {!selectedOfferItemId && (
+          <div className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
+            <Clock3 aria-hidden="true" size={28} className="text-[var(--gold)]" />
+            <p className="mt-3 text-sm text-white/55">
+              Wybierz usługę, aby zobaczyć pasujące wolne godziny.
+            </p>
+          </div>
+        )}
+
+        {selectedOfferItemId && isLoading && (
           <div className="flex min-h-72 items-center justify-center gap-3 p-8 text-sm text-white/55">
             <LoaderCircle aria-hidden="true" size={20} className="animate-spin text-[var(--gold)]" />
             Pobieranie wolnych terminów…
           </div>
         )}
 
-        {!isLoading && loadError && (
+        {selectedOfferItemId && !isLoading && loadError && (
           <div className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
             <AlertCircle aria-hidden="true" size={28} className="text-rose-300" />
             <p className="mt-3 text-sm text-rose-100">{loadError}</p>
@@ -289,7 +432,7 @@ const PublicAvailabilityCalendar = () => {
           </div>
         )}
 
-        {!isLoading && !loadError && (
+        {selectedOfferItemId && !isLoading && !loadError && (
           <>
             <div className="p-4 sm:hidden">
               <p className="mb-4 text-xs leading-5 text-white/40">

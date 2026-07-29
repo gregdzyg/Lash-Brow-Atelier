@@ -67,7 +67,7 @@ Important fields:
 - day of week
 - start and end time
 - working-day flag
-- public slot interval in minutes
+- interval between proposed public start times, in minutes
 - active status
 
 Exactly one active configuration is expected for every weekday.
