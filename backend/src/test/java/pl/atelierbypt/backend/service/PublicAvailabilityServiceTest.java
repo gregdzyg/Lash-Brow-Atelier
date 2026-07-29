@@ -7,9 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.atelierbypt.backend.dto.AvailableTimeRangeResponse;
 import pl.atelierbypt.backend.dto.PublicAvailabilityDayResponse;
+import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.AvailabilityException;
 import pl.atelierbypt.backend.entity.WorkingHours;
+import pl.atelierbypt.backend.enums.AppointmentStatus;
 import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
+import pl.atelierbypt.backend.exception.PublicAvailabilityBadRequestException;
 import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.AvailabilityExceptionRepository;
 import pl.atelierbypt.backend.repository.WorkingHoursRepository;
@@ -18,6 +21,7 @@ import java.time.*;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -155,6 +159,116 @@ class PublicAvailabilityServiceTest {
         .isEqualTo(LocalTime.of(14,0));
     }
 
+    @Test
+    void shouldSubtractScheduledAppointmentFromAvailableRanges() {
+        // Arrange
+        WorkingHours workingHours = createWorkingDay(DayOfWeek.MONDAY, START_TIME, END_TIME);
+        Appointment appointment = createAppointment(
+                MONDAY,
+                LocalTime.of(11, 0),
+                120,
+                AppointmentStatus.SCHEDULED
+        );
+
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(MONDAY, MONDAY))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY))
+                .thenReturn(List.of(appointment));
+
+        // Act
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+
+        // Assert
+        List<AvailableTimeRangeResponse> availableRanges = result.getFirst().availableRanges();
+        assertThat(availableRanges).hasSize(2);
+        assertRange(availableRanges.getFirst(), LocalTime.of(8, 0), LocalTime.of(11, 0));
+        assertRange(availableRanges.getLast(), LocalTime.of(13, 0), LocalTime.of(17, 0));
+    }
+
+    @Test
+    void shouldNotSubtractCancelledAppointmentFromAvailableRanges() {
+        // Arrange
+        WorkingHours workingHours = createWorkingDay(DayOfWeek.MONDAY, START_TIME, END_TIME);
+        Appointment appointment = createAppointment(
+                MONDAY,
+                LocalTime.of(11, 0),
+                120,
+                AppointmentStatus.CANCELLED
+        );
+
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(MONDAY, MONDAY))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY))
+                .thenReturn(List.of(appointment));
+
+        // Act
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+
+        // Assert
+        List<AvailableTimeRangeResponse> availableRanges = result.getFirst().availableRanges();
+        assertThat(availableRanges).hasSize(1);
+        assertRange(availableRanges.getFirst(), START_TIME, END_TIME);
+    }
+
+    @Test
+    void shouldMergeExtraOpenRangeThatTouchesRegularWorkingHours() {
+        // Arrange
+        WorkingHours workingHours = createWorkingDay(DayOfWeek.MONDAY, START_TIME, END_TIME);
+        AvailabilityException extraOpen = new AvailabilityException();
+        extraOpen.setDate(MONDAY);
+        extraOpen.setType(AvailabilityExceptionType.EXTRA_OPEN);
+        extraOpen.setStartTime(END_TIME);
+        extraOpen.setEndTime(LocalTime.of(19, 0));
+
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(MONDAY, MONDAY))
+                .thenReturn(List.of(extraOpen));
+        when(appointmentRepository.findActiveBetweenDates(MONDAY, MONDAY)).thenReturn(List.of());
+
+        // Act
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(MONDAY, MONDAY);
+
+        // Assert
+        List<AvailableTimeRangeResponse> availableRanges = result.getFirst().availableRanges();
+        assertThat(availableRanges).hasSize(1);
+        assertRange(availableRanges.getFirst(), START_TIME, LocalTime.of(19, 0));
+    }
+
+    @Test
+    void shouldRemoveElapsedTimeFromTodayAvailability() {
+        // Arrange
+        LocalDate today = LocalDate.of(2026, 7, 29);
+        WorkingHours workingHours = createWorkingDay(DayOfWeek.WEDNESDAY, START_TIME, END_TIME);
+
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of(workingHours));
+        when(availabilityExceptionRepository.findByDateBetweenAndIsActiveTrue(today, today))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(today, today)).thenReturn(List.of());
+
+        // Act
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(today, today);
+
+        // Assert
+        List<AvailableTimeRangeResponse> availableRanges = result.getFirst().availableRanges();
+        assertThat(availableRanges).hasSize(1);
+        assertRange(availableRanges.getFirst(), LocalTime.of(10, 0), END_TIME);
+    }
+
+    @Test
+    void shouldRejectDateRangeWhenEndIsBeforeStart() {
+        LocalDate end = MONDAY.minusDays(1);
+
+        assertThatThrownBy(() -> publicAvailabilityService.getAvailability(MONDAY, end))
+                .isInstanceOf(PublicAvailabilityBadRequestException.class)
+                .hasMessage("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.");
+    }
+
     private WorkingHours createWorkingDay(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         WorkingHours workingHours = new WorkingHours();
         workingHours.setDayOfWeek(dayOfWeek);
@@ -171,5 +285,28 @@ class PublicAvailabilityServiceTest {
         workingHours.setEndTime(null);
         workingHours.setWorkingDay(false);
         return workingHours;
+    }
+
+    private Appointment createAppointment(
+            LocalDate date,
+            LocalTime startTime,
+            int durationMinutes,
+            AppointmentStatus status
+    ) {
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentDate(date);
+        appointment.setStartTime(startTime);
+        appointment.setDurationMinutes(durationMinutes);
+        appointment.setStatus(status);
+        return appointment;
+    }
+
+    private void assertRange(
+            AvailableTimeRangeResponse range,
+            LocalTime expectedStart,
+            LocalTime expectedEnd
+    ) {
+        assertThat(range.startTime()).isEqualTo(expectedStart);
+        assertThat(range.endTime()).isEqualTo(expectedEnd);
     }
 }
