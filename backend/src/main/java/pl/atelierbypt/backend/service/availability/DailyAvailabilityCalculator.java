@@ -7,6 +7,8 @@ import pl.atelierbypt.backend.entity.WorkingHours;
 import pl.atelierbypt.backend.enums.AppointmentStatus;
 import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -74,6 +76,39 @@ public class DailyAvailabilityCalculator {
         }
 
         return AvailabilityStatus.AVAILABLE;
+    }
+
+    public List<TimeRange> removeElapsedTime(
+            LocalDate date,
+            List<TimeRange> availableRanges,
+            LocalDateTime now
+    ) {
+        if (date.isBefore(now.toLocalDate())) {
+            return List.of();
+        }
+
+        if (date.isAfter(now.toLocalDate())) {
+            return availableRanges;
+        }
+
+        LocalDateTime nextAvailableMinute = now.withSecond(0).withNano(0);
+
+        if (now.isAfter(nextAvailableMinute)) {
+            nextAvailableMinute = nextAvailableMinute.plusMinutes(1);
+        }
+
+        if (!nextAvailableMinute.toLocalDate().equals(date)) {
+            return List.of();
+        }
+
+        LocalTime currentTime = nextAvailableMinute.toLocalTime();
+
+        return availableRanges.stream()
+                .filter(range -> range.endTime().isAfter(currentTime))
+                .map(range -> range.startTime().isBefore(currentTime)
+                        ? new TimeRange(currentTime, range.endTime())
+                        : range)
+                .toList();
     }
 
     private boolean isClosedDay(List<AvailabilityException> exceptions) {
