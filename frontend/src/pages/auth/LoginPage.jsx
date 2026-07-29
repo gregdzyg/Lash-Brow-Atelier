@@ -1,4 +1,9 @@
-import { ArrowRight, LockKeyhole, UserRound } from "lucide-react";
+import {
+    ArrowRight,
+    LoaderCircle,
+    LockKeyhole,
+    UserRound,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
@@ -15,6 +20,11 @@ const LoginPage = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (isSubmitting) {
+            return;
+        }
+
         setError('');
 
         if(!username.trim() || !password) {
@@ -78,6 +88,7 @@ const LoginPage = () => {
                             type="text"
                             autoComplete="username"
                             placeholder="Wpisz swój login"
+                            disabled={isSubmitting}
                             value={username}
                             onChange={(event) => setUsername(event.target.value)}
                             className="
@@ -86,6 +97,7 @@ const LoginPage = () => {
                                 outline-none transition placeholder:text-white/30
                                 hover:border-[var(--gold)]/70
                                 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20
+                                disabled:cursor-not-allowed disabled:opacity-60
                             "
                         />
                     </div>
@@ -113,6 +125,7 @@ const LoginPage = () => {
                             type="password"
                             autoComplete="current-password"
                             placeholder="Wpisz swoje hasło"
+                            disabled={isSubmitting}
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
                             className="
@@ -121,6 +134,7 @@ const LoginPage = () => {
                                 outline-none transition placeholder:text-white/30
                                 hover:border-[var(--gold)]/70
                                 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20
+                                disabled:cursor-not-allowed disabled:opacity-60
                             "
                         />
                     </div>
@@ -134,6 +148,8 @@ const LoginPage = () => {
 
                 <button
                     type="submit"
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
                     className="
                         group flex w-full cursor-pointer items-center justify-center gap-2
 
@@ -156,15 +172,43 @@ const LoginPage = () => {
 
                         active:bg-[var(--gold)]
                         active:text-black
+
+                        disabled:cursor-wait
+                        disabled:opacity-70
+                        disabled:hover:bg-[var(--gold)]
+                        disabled:hover:text-black
                     "
                 >
-                    Zaloguj się
-                    <ArrowRight
-                        aria-hidden="true"
-                        size={18}
-                        className="transition-transform group-hover:translate-x-1"
-                    />
+                    {isSubmitting ? (
+                        <>
+                            <LoaderCircle
+                                aria-hidden="true"
+                                size={18}
+                                className="animate-spin"
+                            />
+                            Logowanie…
+                        </>
+                    ) : (
+                        <>
+                            Zaloguj się
+                            <ArrowRight
+                                aria-hidden="true"
+                                size={18}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
+                        </>
+                    )}
                 </button>
+
+                {isSubmitting && (
+                    <p
+                        role="status"
+                        aria-live="polite"
+                        className="text-center text-xs leading-5 text-white/45"
+                    >
+                        Łączenie z serwerem. Pierwsze uruchomienie może chwilę potrwać.
+                    </p>
+                )}
             </form>
 
             <div className="mt-8 border-t border-[var(--gold)]/20 pt-6 text-center">
