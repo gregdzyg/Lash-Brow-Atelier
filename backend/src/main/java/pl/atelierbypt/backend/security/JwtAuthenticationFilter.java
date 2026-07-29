@@ -26,6 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RestSecurityErrorHandler restSecurityErrorHandler;
 
     @Override
     protected void doFilterInternal(
@@ -57,7 +58,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
            SecurityContextHolder.getContext().setAuthentication(authentication);
        } catch (JwtException | IllegalArgumentException | AuthenticationException e) {
            SecurityContextHolder.clearContext();
-           response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token wygasł lub jest nieprawidłowy.");
+           restSecurityErrorHandler.writeUnauthorizedTokenError(
+                   request,
+                   response
+           );
            return;
        }
        filterChain.doFilter(request, response);
