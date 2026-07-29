@@ -1,9 +1,7 @@
 package pl.atelierbypt.backend.service.availability;
 
 import org.springframework.stereotype.Component;
-import pl.atelierbypt.backend.entity.AvailabilityException;
 import pl.atelierbypt.backend.entity.WorkingHours;
-import pl.atelierbypt.backend.enums.AvailabilityExceptionType;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -15,7 +13,7 @@ public class PublicSlotGenerator {
 
     public List<LocalTime> generateStartTimes(
             WorkingHours workingHours,
-            List<AvailabilityException> exceptions,
+            List<TimeRange> candidateRanges,
             List<TimeRange> availableRanges,
             int serviceDurationMinutes
     ) {
@@ -25,15 +23,11 @@ public class PublicSlotGenerator {
 
         int startIntervalMinutes =
                 workingHours.getPublicStartIntervalMinutes();
-        List<TimeRange> slotTemplates = createSlotTemplates(
-                workingHours,
-                exceptions
-        );
 
-        return slotTemplates.stream()
-                .flatMap(template ->
-                        generateStartTimesForTemplate(
-                                template,
+        return candidateRanges.stream()
+                .flatMap(candidateRange ->
+                        generateStartTimesForRange(
+                                candidateRange,
                                 startIntervalMinutes,
                                 serviceDurationMinutes
                         ).stream())
@@ -50,48 +44,15 @@ public class PublicSlotGenerator {
                 .toList();
     }
 
-    private List<TimeRange> createSlotTemplates(
-            WorkingHours workingHours,
-            List<AvailabilityException> exceptions
-    ) {
-        boolean isClosedDay = exceptions.stream()
-                .anyMatch(exception ->
-                        exception.getType() == AvailabilityExceptionType.CLOSED_DAY);
-
-        if (isClosedDay) {
-            return List.of();
-        }
-
-        List<TimeRange> templates = new ArrayList<>();
-
-        if (workingHours.isWorkingDay()) {
-            templates.add(new TimeRange(
-                    workingHours.getStartTime(),
-                    workingHours.getEndTime()
-            ));
-        }
-
-        exceptions.stream()
-                .filter(exception ->
-                        exception.getType() == AvailabilityExceptionType.EXTRA_OPEN)
-                .map(exception -> new TimeRange(
-                        exception.getStartTime(),
-                        exception.getEndTime()
-                ))
-                .forEach(templates::add);
-
-        return templates;
-    }
-
-    private List<LocalTime> generateStartTimesForTemplate(
-            TimeRange template,
+    private List<LocalTime> generateStartTimesForRange(
+            TimeRange range,
             int startIntervalMinutes,
             int serviceDurationMinutes
     ) {
         List<LocalTime> startTimes = new ArrayList<>();
-        LocalTime candidateStart = template.startTime();
+        LocalTime candidateStart = range.startTime();
 
-        while (Duration.between(candidateStart, template.endTime())
+        while (Duration.between(candidateStart, range.endTime())
                 .toMinutes() >= serviceDurationMinutes) {
             startTimes.add(candidateStart);
             candidateStart = candidateStart.plusMinutes(startIntervalMinutes);

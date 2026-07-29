@@ -135,21 +135,22 @@ public class PublicAvailabilityService {
             List<Appointment> appointments,
             int serviceDurationMinutes
     ) {
-        List<TimeRange> availableRanges = dailyAvailabilityCalculator.calculate(
+        List<TimeRange> candidateRanges = dailyAvailabilityCalculator.calculate(
                 workingHours,
                 exceptions,
                 appointments
         );
-        availableRanges = dailyAvailabilityCalculator.removeElapsedTime(
-                date,
-                availableRanges,
-                LocalDateTime.now(applicationClock)
-        );
+        List<TimeRange> availableRanges =
+                dailyAvailabilityCalculator.removeElapsedTime(
+                        date,
+                        candidateRanges,
+                        LocalDateTime.now(applicationClock)
+                );
 
         List<LocalTime> availableStartTimes =
                 publicSlotGenerator.generateStartTimes(
                         workingHours,
-                        exceptions,
+                        candidateRanges,
                         availableRanges,
                         serviceDurationMinutes
                 );
