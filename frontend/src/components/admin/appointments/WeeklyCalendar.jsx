@@ -9,24 +9,10 @@ import {
 } from "../../../utils/dateTime";
 import AppointmentCard from "./AppointmentCard";
 
-const dayKeys = [
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-    "SUNDAY",
-];
-
 const dayShortLabels = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"];
 const SLOT_HEIGHT = 34;
 const DEFAULT_START = 8 * 60;
 const DEFAULT_END = 20 * 60;
-
-const rangesOverlap = (firstStart, firstEnd, secondStart, secondEnd) => (
-    firstStart < secondEnd && firstEnd > secondStart
-);
 
 const getCalendarBounds = (workingHours, exceptions, appointments) => {
     const starts = [DEFAULT_START];
@@ -56,68 +42,11 @@ const getCalendarBounds = (workingHours, exceptions, appointments) => {
     };
 };
 
-const getDayAvailability = (date, workingHours, exceptions) => {
-    const dateValue = formatDateForApi(date);
-    const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-    const regularHours = workingHours.find((item) => item.dayOfWeek === dayKeys[dayIndex]);
-    const dayExceptions = exceptions.filter((item) => item.date === dateValue);
-    const isClosed = dayExceptions.some((item) => item.type === "CLOSED_DAY");
-    const openRanges = [];
-
-    if (!isClosed && regularHours?.isWorkingDay) {
-        openRanges.push({
-            start: timeToMinutes(regularHours.startTime),
-            end: timeToMinutes(regularHours.endTime),
-            type: "REGULAR",
-        });
-    }
-
-    if (!isClosed) {
-        dayExceptions
-            .filter((item) => item.type === "EXTRA_OPEN")
-            .forEach((item) => openRanges.push({
-                start: timeToMinutes(item.startTime),
-                end: timeToMinutes(item.endTime),
-                type: "EXTRA_OPEN",
-                note: item.note,
-            }));
-    }
-
-    const blockedRanges = dayExceptions
-        .filter((item) => item.type === "BLOCKED")
-        .map((item) => ({
-            start: timeToMinutes(item.startTime),
-            end: timeToMinutes(item.endTime),
-            note: item.note,
-        }));
-
-    return {
-        isClosed,
-        openRanges,
-        blockedRanges,
-        dayExceptions,
-    };
-};
-
-const isSlotAvailable = (slotStart, availability, dayAppointments) => {
+const isSlotAvailable = (slotStart, availableRanges) => {
     const slotEnd = slotStart + 30;
-    const isOpen = availability.openRanges.some((range) => (
+    return availableRanges.some((range) => (
         slotStart >= range.start && slotEnd <= range.end
     ));
-    const isBlocked = availability.blockedRanges.some((range) => (
-        rangesOverlap(slotStart, slotEnd, range.start, range.end)
-    ));
-    const hasAppointment = dayAppointments.some((appointment) => {
-        if (appointment.status !== "SCHEDULED") {
-            return false;
-        }
-
-        const appointmentStart = timeToMinutes(appointment.startTime);
-        const appointmentEnd = appointmentStart + Number(appointment.durationMinutes || 0);
-        return rangesOverlap(slotStart, slotEnd, appointmentStart, appointmentEnd);
-    });
-
-    return !availability.isClosed && isOpen && !isBlocked && !hasAppointment;
 };
 
 const AvailabilityOverlay = ({ range, calendarStart, type }) => {
@@ -141,6 +70,7 @@ const WeeklyCalendar = ({
     appointments,
     workingHours,
     exceptions,
+    availability,
 }) => {
     const navigate = useNavigate();
     const days = getWeekDays(weekStart);
@@ -200,7 +130,27 @@ const WeeklyCalendar = ({
                             const dayAppointments = appointments.filter(
                                 (appointment) => appointment.appointmentDate === dateValue,
                             );
-                            const availability = getDayAvailability(day, workingHours, exceptions);
+                            const dayExceptions = exceptions.filter(
+                                (item) => item.date === dateValue,
+                            );
+                            const dayAvailability = availability.find(
+                                (item) => item.date === dateValue,
+                            );
+                            const availableRanges = (
+                                dayAvailability?.availableRanges || []
+                            ).map((range) => ({
+                                start: timeToMinutes(range.startTime),
+                                end: timeToMinutes(range.endTime),
+                            }));
+                            const blockedRanges = dayExceptions
+                                .filter((item) => item.type === "BLOCKED")
+                                .map((item) => ({
+                                    start: timeToMinutes(item.startTime),
+                                    end: timeToMinutes(item.endTime),
+                                }));
+                            const isClosed = dayExceptions.some(
+                                (item) => item.type === "CLOSED_DAY",
+                            );
 
                             return (
                                 <div
@@ -208,15 +158,15 @@ const WeeklyCalendar = ({
                                     className="relative border-l border-white/10 bg-white/[0.012]"
                                     style={{ height: slots.length * SLOT_HEIGHT }}
                                 >
-                                    {availability.openRanges.map((range, index) => (
+                                    {availableRanges.map((range, index) => (
                                         <AvailabilityOverlay
                                             key={`open-${range.start}-${index}`}
                                             range={range}
                                             calendarStart={bounds.start}
-                                            type={range.type}
+                                            type="AVAILABLE"
                                         />
                                     ))}
-                                    {availability.blockedRanges.map((range, index) => (
+                                    {blockedRanges.map((range, index) => (
                                         <AvailabilityOverlay
                                             key={`blocked-${range.start}-${index}`}
                                             range={range}
@@ -224,7 +174,7 @@ const WeeklyCalendar = ({
                                             type="BLOCKED"
                                         />
                                     ))}
-                                    {availability.isClosed && (
+                                    {isClosed && (
                                         <div className="pointer-events-none absolute inset-0 z-10 flex justify-center bg-red-950/20 pt-4">
                                             <span className="h-fit rounded-full border border-red-300/20 bg-red-950/70 px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-red-200/70">
                                                 Zamknięte
@@ -235,8 +185,7 @@ const WeeklyCalendar = ({
                                     {slots.map((slot) => {
                                         const available = isSlotAvailable(
                                             slot,
-                                            availability,
-                                            dayAppointments,
+                                            availableRanges,
                                         );
 
                                         return (

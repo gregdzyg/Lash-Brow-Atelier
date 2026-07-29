@@ -13,15 +13,6 @@ import AppointmentCard from "./AppointmentCard";
 const SLOT_HEIGHT = 54;
 const DEFAULT_START = 8 * 60;
 const DEFAULT_END = 20 * 60;
-const dayKeys = [
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-    "SUNDAY",
-];
 
 const getCalendarBounds = (workingHours, exceptions, appointments) => {
     const starts = [DEFAULT_START];
@@ -51,64 +42,11 @@ const getCalendarBounds = (workingHours, exceptions, appointments) => {
     };
 };
 
-const getDayAvailability = (date, workingHours, exceptions) => {
-    const dateValue = formatDateForApi(date);
-    const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-    const regularHours = workingHours.find((item) => item.dayOfWeek === dayKeys[dayIndex]);
-    const dayExceptions = exceptions.filter((item) => item.date === dateValue);
-    const isClosed = dayExceptions.some((item) => item.type === "CLOSED_DAY");
-    const openRanges = [];
-
-    if (!isClosed && regularHours?.isWorkingDay) {
-        openRanges.push({
-            start: timeToMinutes(regularHours.startTime),
-            end: timeToMinutes(regularHours.endTime),
-        });
-    }
-
-    if (!isClosed) {
-        dayExceptions
-            .filter((item) => item.type === "EXTRA_OPEN")
-            .forEach((item) => openRanges.push({
-                start: timeToMinutes(item.startTime),
-                end: timeToMinutes(item.endTime),
-            }));
-    }
-
-    return {
-        isClosed,
-        openRanges,
-        blockedRanges: dayExceptions
-            .filter((item) => item.type === "BLOCKED")
-            .map((item) => ({
-                start: timeToMinutes(item.startTime),
-                end: timeToMinutes(item.endTime),
-            })),
-    };
-};
-
-const isSlotAvailable = (slotStart, availability, dayAppointments) => {
+const isSlotAvailable = (slotStart, availableRanges) => {
     const slotEnd = slotStart + 30;
-    const overlaps = (start, end) => slotStart < end && slotEnd > start;
-    const isOpen = availability.openRanges.some(
+    return availableRanges.some(
         (range) => slotStart >= range.start && slotEnd <= range.end,
     );
-    const isBlocked = availability.blockedRanges.some(
-        (range) => overlaps(range.start, range.end),
-    );
-    const hasAppointment = dayAppointments.some((appointment) => {
-        if (appointment.status !== "SCHEDULED") {
-            return false;
-        }
-
-        const appointmentStart = timeToMinutes(appointment.startTime);
-        return overlaps(
-            appointmentStart,
-            appointmentStart + Number(appointment.durationMinutes || 0),
-        );
-    });
-
-    return !availability.isClosed && isOpen && !isBlocked && !hasAppointment;
 };
 
 const DailyCalendar = ({
@@ -119,6 +57,7 @@ const DailyCalendar = ({
     appointments,
     workingHours,
     exceptions,
+    availability,
 }) => {
     const navigate = useNavigate();
     const dateValue = formatDateForApi(selectedDay);
@@ -126,7 +65,18 @@ const DailyCalendar = ({
         (appointment) => appointment.appointmentDate === dateValue,
     );
     const dayExceptions = exceptions.filter((item) => item.date === dateValue);
-    const availability = getDayAvailability(selectedDay, workingHours, exceptions);
+    const dayAvailability = availability.find((item) => item.date === dateValue);
+    const availableRanges = (dayAvailability?.availableRanges || []).map((range) => ({
+        start: timeToMinutes(range.startTime),
+        end: timeToMinutes(range.endTime),
+    }));
+    const isClosed = dayExceptions.some((item) => item.type === "CLOSED_DAY");
+    const blockedRanges = dayExceptions
+        .filter((item) => item.type === "BLOCKED")
+        .map((item) => ({
+            start: timeToMinutes(item.startTime),
+            end: timeToMinutes(item.endTime),
+        }));
     const bounds = getCalendarBounds(workingHours, exceptions, appointments);
     const slots = Array.from(
         { length: (bounds.end - bounds.start) / 30 },
@@ -206,13 +156,12 @@ const DailyCalendar = ({
                         {slots.map((slot) => {
                             const available = isSlotAvailable(
                                 slot,
-                                availability,
-                                dayAppointments,
+                                availableRanges,
                             );
-                            const isOpen = availability.openRanges.some(
+                            const isOpen = availableRanges.some(
                                 (range) => slot >= range.start && slot + 30 <= range.end,
                             );
-                            const isBlocked = availability.blockedRanges.some(
+                            const isBlocked = blockedRanges.some(
                                 (range) => slot < range.end && slot + 30 > range.start,
                             );
 
@@ -232,7 +181,7 @@ const DailyCalendar = ({
                                         absolute inset-x-0 z-10 border-b border-white/[0.07] text-left
                                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset
                                         focus-visible:ring-[var(--gold)]
-                                        ${isBlocked || availability.isClosed
+                                        ${isBlocked || isClosed
                                             ? "bg-red-500/10"
                                             : isOpen
                                                 ? "bg-emerald-400/[0.06]"

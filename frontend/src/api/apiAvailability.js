@@ -37,6 +37,23 @@ export const getAvailabilityExceptions = async (
   return response.data;
 };
 
+export const getAdminAvailability = async (
+  start,
+  end,
+) => {
+  const response = await apiClient.get(
+    "/api/admin/availability",
+    {
+      params: {
+        start,
+        end,
+      },
+    },
+  );
+
+  return response.data;
+};
+
 export const getAvailabilityException = async (
   exceptionId,
 ) => {

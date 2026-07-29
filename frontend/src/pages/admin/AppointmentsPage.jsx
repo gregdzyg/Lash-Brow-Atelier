@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAppointments } from "../../api/apiAppointments";
 import {
+    getAdminAvailability,
     getAvailabilityExceptions,
     getWorkingHours,
 } from "../../api/apiAvailability";
@@ -47,6 +48,7 @@ const AppointmentsPage = () => {
     const [appointments, setAppointments] = useState([]);
     const [workingHours, setWorkingHours] = useState([]);
     const [exceptions, setExceptions] = useState([]);
+    const [availability, setAvailability] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [reloadKey, setReloadKey] = useState(0);
@@ -65,16 +67,23 @@ const AppointmentsPage = () => {
             setError("");
 
             try {
-                const [appointmentsResponse, workingHoursResponse, exceptionsResponse] = await Promise.all([
+                const [
+                    appointmentsResponse,
+                    workingHoursResponse,
+                    exceptionsResponse,
+                    availabilityResponse,
+                ] = await Promise.all([
                     getAppointments(start, end),
                     getWorkingHours(),
                     getAvailabilityExceptions(start, end),
+                    getAdminAvailability(start, end),
                 ]);
 
                 if (isCurrent) {
                     setAppointments(Array.isArray(appointmentsResponse) ? appointmentsResponse : []);
                     setWorkingHours(Array.isArray(workingHoursResponse) ? workingHoursResponse : []);
                     setExceptions(Array.isArray(exceptionsResponse) ? exceptionsResponse : []);
+                    setAvailability(Array.isArray(availabilityResponse) ? availabilityResponse : []);
                 }
             } catch {
                 if (isCurrent) {
@@ -211,6 +220,7 @@ const AppointmentsPage = () => {
                         appointments={appointments}
                         workingHours={workingHours}
                         exceptions={exceptions}
+                        availability={availability}
                     />
                     <DailyCalendar
                         selectedDay={selectedDay}
@@ -220,6 +230,7 @@ const AppointmentsPage = () => {
                         appointments={appointments}
                         workingHours={workingHours}
                         exceptions={exceptions}
+                        availability={availability}
                     />
                     <p className="mt-5 text-xs leading-5 text-white/35">
                         Widok kalendarza ma charakter pomocniczy. Dostępność i kolizje są ponownie sprawdzane podczas zapisu wizyty.

@@ -94,6 +94,8 @@ const WorkingHoursPanel = () => {
             isWorkingDay: day.isWorkingDay,
             startTime: normalizeTime(day.startTime),
             endTime: normalizeTime(day.endTime),
+            publicSlotDurationMinutes:
+                String(day.publicSlotDurationMinutes || 120),
         });
         setUpdateError("");
         setSuccessMessage("");
@@ -140,10 +142,25 @@ const WorkingHoursPanel = () => {
             }
         }
 
+        const publicSlotDurationMinutes =
+            Number(formValues.publicSlotDurationMinutes);
+
+        if (
+            !Number.isInteger(publicSlotDurationMinutes)
+            || publicSlotDurationMinutes < 15
+            || publicSlotDurationMinutes > 480
+        ) {
+            setUpdateError(
+                "Odstęp między proponowanymi terminami musi wynosić od 15 do 480 minut.",
+            );
+            return;
+        }
+
         const request = {
             startTime: formValues.isWorkingDay ? formValues.startTime : null,
             endTime: formValues.isWorkingDay ? formValues.endTime : null,
             isWorkingDay: formValues.isWorkingDay,
+            publicSlotDurationMinutes,
         };
 
         setSavingId(day.id);
@@ -157,7 +174,7 @@ const WorkingHoursPanel = () => {
             ));
             setEditingId(null);
             setFormValues(null);
-            setSuccessMessage(`Zapisano godziny pracy: ${dayLabels[day.dayOfWeek]}.`);
+            setSuccessMessage(`Zapisano ustawienia: ${dayLabels[day.dayOfWeek]}.`);
         } catch {
             setUpdateError("Nie udało się zapisać zmian. Sprawdź dane i spróbuj ponownie.");
         } finally {
@@ -202,7 +219,9 @@ const WorkingHoursPanel = () => {
             <div className="mb-5">
                 <h2 className="text-xl font-semibold text-white">Tygodniowy plan pracy</h2>
                 <p className="mt-1 text-sm leading-6 text-white/50">
-                    Zmiany obowiązują cyklicznie w każdym tygodniu.
+                    Zmiany obowiązują cyklicznie w każdym tygodniu. Pole
+                    „Terminy co” określa odstęp między godzinami pokazywanymi
+                    klientkom na stronie.
                 </p>
             </div>
 
@@ -227,7 +246,7 @@ const WorkingHoursPanel = () => {
                             <div key={day.id} className="px-5 py-5 sm:px-7">
                                 {!isEditing ? (
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(8.5rem,1fr)_minmax(9rem,1fr)_minmax(8rem,1fr)] sm:items-center">
+                                        <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(8.5rem,1fr)_minmax(8rem,1fr)_minmax(8rem,1fr)_minmax(9rem,1fr)] sm:items-center">
                                             <h3 className="font-semibold text-white">
                                                 {dayLabels[day.dayOfWeek] || day.dayOfWeek}
                                             </h3>
@@ -240,6 +259,9 @@ const WorkingHoursPanel = () => {
                                                     ? `${normalizeTime(day.startTime)}–${normalizeTime(day.endTime)}`
                                                     : "—"
                                                 }
+                                            </span>
+                                            <span className="text-sm text-white/55">
+                                                Terminy co: {day.publicSlotDurationMinutes} min
                                             </span>
                                         </div>
                                         <button
@@ -272,7 +294,7 @@ const WorkingHoursPanel = () => {
                                                 <span className="text-sm font-medium text-white/80">Dzień pracujący</span>
                                             </label>
 
-                                            <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
                                                 <label>
                                                     <span className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/45">
                                                         Od
@@ -297,6 +319,23 @@ const WorkingHoursPanel = () => {
                                                         required={formValues.isWorkingDay}
                                                         disabled={!formValues.isWorkingDay || isSaving}
                                                         value={formValues.endTime}
+                                                        onChange={handleTimeChange}
+                                                        className={inputClassName}
+                                                    />
+                                                </label>
+                                                <label>
+                                                    <span className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/45">
+                                                        Terminy co (min)
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        name="publicSlotDurationMinutes"
+                                                        required
+                                                        min="15"
+                                                        max="480"
+                                                        step="15"
+                                                        disabled={isSaving}
+                                                        value={formValues.publicSlotDurationMinutes}
                                                         onChange={handleTimeChange}
                                                         className={inputClassName}
                                                     />

@@ -86,8 +86,8 @@ const getCalendarDays = (month) => {
   return [...Array(leadingEmptyDays).fill(null), ...days];
 };
 
-const AvailabilityRanges = ({ ranges, compact = false }) => {
-  if (ranges.length === 0) {
+const AvailableStartTimes = ({ startTimes, compact = false }) => {
+  if (startTimes.length === 0) {
     return (
       <span className="text-xs text-white/35">
         Brak wolnych godzin
@@ -97,13 +97,13 @@ const AvailabilityRanges = ({ ranges, compact = false }) => {
 
   return (
     <div className={compact ? "flex flex-wrap gap-2" : "mt-3 space-y-1.5"}>
-      {ranges.map((range) => (
+      {startTimes.map((startTime) => (
         <span
-          key={`${range.startTime}-${range.endTime}`}
+          key={startTime}
           className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-xs font-medium text-emerald-100"
         >
           <Clock3 aria-hidden="true" size={12} />
-          {formatTime(range.startTime)}–{formatTime(range.endTime)}
+          {formatTime(startTime)}
         </span>
       ))}
     </div>
@@ -176,7 +176,10 @@ const PublicAvailabilityCalendar = () => {
   const availabilityByDate = useMemo(
     () =>
       new Map(
-        availability.map((day) => [day.date, day.availableRanges || []]),
+        availability.map((day) => [
+          day.date,
+          day.availableStartTimes || [],
+        ]),
       ),
     [availability],
   );
@@ -189,7 +192,7 @@ const PublicAvailabilityCalendar = () => {
   const availableDays = useMemo(
     () =>
       availability
-        .filter((day) => day.availableRanges?.length > 0)
+        .filter((day) => day.availableStartTimes?.length > 0)
         .sort((firstDay, secondDay) =>
           firstDay.date.localeCompare(secondDay.date),
         ),
@@ -300,7 +303,10 @@ const PublicAvailabilityCalendar = () => {
                         {formatDay(parseLocalDate(day.date))}
                       </h4>
                       <div className="mt-3">
-                        <AvailabilityRanges ranges={day.availableRanges} compact />
+                        <AvailableStartTimes
+                          startTimes={day.availableStartTimes}
+                          compact
+                        />
                       </div>
                     </article>
                   ))}
@@ -329,7 +335,8 @@ const PublicAvailabilityCalendar = () => {
                   }
 
                   const isOutsideRange = date < today || date > maximumDate;
-                  const ranges = availabilityByDate.get(formatLocalDate(date)) || [];
+                  const startTimes =
+                    availabilityByDate.get(formatLocalDate(date)) || [];
 
                   return (
                     <article
@@ -346,7 +353,7 @@ const PublicAvailabilityCalendar = () => {
                         {date.getDate()}
                       </p>
                       {!isOutsideRange && (
-                        <AvailabilityRanges ranges={ranges} />
+                        <AvailableStartTimes startTimes={startTimes} />
                       )}
                     </article>
                   );
