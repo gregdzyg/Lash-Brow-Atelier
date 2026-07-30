@@ -39,8 +39,13 @@ const LoginPage = () => {
             navigate("/admin");
         } catch (error) {
             
-              if (error.response?.status === 401) {
+            if (error.response?.status === 401) {
                 setError("Nieprawidłowa nazwa użytkownika lub hasło.");
+            } else if (error.response?.status === 429) {
+                setError(
+                    error.response?.data?.message
+                    || "Zbyt wiele prób logowania. Spróbuj ponownie później."
+                );
             } else if (error.request) {
                 setError("Nie udało się połączyć z serwerem.");
             } else {

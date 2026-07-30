@@ -1,6 +1,7 @@
 package pl.atelierbypt.backend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -13,6 +14,27 @@ import pl.atelierbypt.backend.dto.error.ValidationErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LoginRateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleLoginRateLimitExceededException(
+            LoginRateLimitExceededException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+        ErrorResponse errorResponse = new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(status)
+                .header(
+                        HttpHeaders.RETRY_AFTER,
+                        String.valueOf(exception.getRetryAfterSeconds())
+                )
+                .body(errorResponse);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e,
