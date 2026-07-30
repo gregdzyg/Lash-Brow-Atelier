@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 
-const images = import.meta.glob('../assets/images/*.{jpg,jpeg,png,JPG}', {
+const images = import.meta.glob("../assets/images/gallery/*.{jpg,jpeg,png,JPG}", {
   eager: true,
 });
 
-const galleryImages = Object.values(images)
-  .map((mod) => mod.default)
-  .slice(0, 16);
+const galleryImages = Object.entries(images)
+  .sort(([firstPath], [secondPath]) => firstPath.localeCompare(secondPath))
+  .map(([, module]) => module.default);
 
 const Gallery = () => {
   return (
@@ -32,7 +32,9 @@ const Gallery = () => {
           >
             <img
               src={src}
-              alt={`Galeria ${index + 1}`}
+              alt={`Stylizacja rzęs i brwi – realizacja ${index + 1}`}
+              loading="lazy"
+              decoding="async"
               className="
                 h-full w-full object-cover transition duration-500 ease-out
                 group-hover:scale-105 group-hover:brightness-110

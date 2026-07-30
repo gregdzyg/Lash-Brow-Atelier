@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import galeria9 from "../assets/images/galeria9.JPG";
+import heroImage from "../assets/images/hero.jpg";
 import eyeTop from "../assets/images/eyeTop.jpg";
 import eyeBottom from "../assets/images/eyeBottom.jpg";
 import ReviewsSection from "../components/public/ReviewsSection";
@@ -11,9 +11,10 @@ const Home = () => {
       {/* Hero Image */}
       <div className="relative min-h-[34rem] overflow-hidden rounded-[2rem] sm:min-h-[38rem] lg:min-h-[42rem]">
         <img
-          src={galeria9}
+          src={heroImage}
           alt=""
           className="absolute inset-0 h-full w-full object-cover object-center"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-transparent to-transparent" />
