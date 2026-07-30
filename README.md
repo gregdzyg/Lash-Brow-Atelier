@@ -9,15 +9,17 @@ The project replaces paper-based appointment planning with a calendar governed
 by explicit business rules. Public visitors can check proposed appointment
 times, while the stylist retains flexible control over the actual schedule.
 
-> Project status: release candidate undergoing final user acceptance testing.
+> Project status: AtelierByPT 2.0 release candidate accepted by the stakeholder
+> and undergoing production rollout.
 
 ## Demo
 
-- [Public beta](https://atelierbypt-frontend-beta.onrender.com)
-- [Backend beta](https://atelierbypt-backend-beta.onrender.com)
+- [Live demo](https://atelierbypt-frontend-beta.onrender.com)
+- [Public API example](https://atelierbypt-backend-beta.onrender.com/api/public/working-hours)
 
 The administration panel is protected and demo credentials are not published.
-The free Render instance can require a short warm-up on the first request.
+The demo contains fictional data only. Its free Render backend can require a
+short warm-up on the first request.
 
 ## Main features
 
@@ -29,6 +31,7 @@ The free Render instance can require a short warm-up on the first request.
 - Service selection followed by a monthly availability calendar
 - Appointment starts matched to the selected service duration
 - Contact information, social links, privacy policy and terms
+- Google Maps loaded only after an explicit privacy choice
 
 ### Administration panel
 
@@ -37,6 +40,7 @@ The free Render instance can require a short warm-up on the first request.
 - Service and pricing management
 - Daily and weekly appointment calendar
 - Appointment creation, editing, cancellation and archival
+- Terminal appointment statuses that prevent accidental restoration
 - Recurring working hours for each weekday
 - Closed days, blocked periods and additional opening hours
 - Configurable interval between public appointment suggestions
@@ -68,14 +72,15 @@ flowchart LR
     Public["Public React application"]
     Admin["Administration panel"]
     API["Spring Boot REST API"]
+    Services["Application services"]
     Calculator["Availability calculator"]
     Database[("PostgreSQL")]
 
     Public --> API
     Admin --> API
-    API --> Calculator
-    API --> Database
-    Calculator --> Database
+    API --> Services
+    Services --> Calculator
+    Services --> Database
 ```
 
 The backend follows a controller → service → repository structure. Database
@@ -168,11 +173,6 @@ Create `frontend/.env.local`:
 
 ```dotenv
 VITE_API_URL=http://localhost:8080
-
-# Optional: required only by the contact form
-VITE_EMAILJS_SERVICE_ID=
-VITE_EMAILJS_TEMPLATE_ID=
-VITE_EMAILJS_PUBLIC_KEY=
 ```
 
 Then run:
@@ -243,21 +243,38 @@ rollback procedure are documented in the
   are explicitly public.
 - The backend uses stateless JWT authentication.
 - Passwords are stored as BCrypt hashes.
+- Repeated failed login attempts cause a temporary login lock.
 - Production CORS accepts only the configured frontend origin.
 - Swagger and API documentation should be disabled in production.
+- Google Maps is not requested until the visitor explicitly accepts external
+  content and the choice can be changed later.
 - Real client data requires controlled access, database backups and an agreed
   deletion or anonymisation procedure.
 
+## Environments and branches
+
+The public demo and production deployment use the same application code but
+separate infrastructure, secrets and databases:
+
+| Branch | Environment | Data |
+| --- | --- | --- |
+| `demo` | developer-owned Render demo | fictional only |
+| `main` | Atelier-owned production Render services | real client data |
+| `feature/*` | temporary development work | local or test data |
+
+Changes are validated on a feature branch, promoted to `demo` for acceptance,
+and merged into `main` only when ready for production.
+
 ## Development approach
 
-The first version was developed incrementally around a real business workflow.
+The application was developed incrementally around a real business workflow.
 AI-assisted development was used during later auditing, availability
 refactoring and test generation. Generated changes were reviewed, divided into
 small commits and verified with automated and manual tests.
 
 ## Planned development
 
-Features considered after the first stable release:
+Features considered after the AtelierByPT 2.0 release:
 
 - database-managed public gallery;
 - editable qualifications;

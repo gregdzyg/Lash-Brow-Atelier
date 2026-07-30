@@ -58,6 +58,10 @@ Appointment duration and price can override the current offer defaults. This
 preserves the values agreed for a specific visit even when the offer later
 changes.
 
+`SCHEDULED` appointments can become `CANCELLED` or `NO_SHOW`. These terminal
+statuses cannot be restored to `SCHEDULED`; a new appointment must be created
+instead. An appointment that has already ended cannot be cancelled.
+
 ## WorkingHours
 
 Represents the recurring schedule for one day of the week.
@@ -70,7 +74,9 @@ Important fields:
 - interval between proposed public start times, in minutes
 - active status
 
-Exactly one active configuration is expected for every weekday.
+Exactly one active configuration is allowed for every weekday by a partial
+unique database index. Working days must have a valid start and end time;
+non-working days must not have either value.
 
 ## AvailabilityException
 

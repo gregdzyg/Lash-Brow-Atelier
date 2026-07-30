@@ -7,6 +7,7 @@
 - View recurring working hours
 - Check proposed appointment start times
 - Read contact, privacy and terms information
+- Decide whether to load the external Google Maps embed
 
 The public calendar is informational. A visitor contacts the stylist to confirm
 the final service and appointment duration.
@@ -18,6 +19,7 @@ the final service and appointment duration.
 - Log in to the protected administration panel
 - Continue an authenticated session with a valid JWT
 - Be redirected to login after authentication expires
+- Be temporarily rate-limited after repeated failed login attempts
 
 ### Clients
 
@@ -42,6 +44,9 @@ the final service and appointment duration.
 
 An appointment must be in the future, remain within one calendar day, fit
 opening hours, avoid blocks and not overlap another scheduled appointment.
+A scheduled appointment can be cancelled or marked as a no-show. These
+terminal statuses cannot be restored, and an appointment that has already
+ended cannot be cancelled.
 
 ### Availability
 

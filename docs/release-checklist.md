@@ -41,7 +41,7 @@ This checklist covers the first stable AtelierByPT release.
 - [ ] Record every issue with steps to reproduce, expected result and actual result.
 - [ ] Classify issues as blocking, important or cosmetic.
 - [ ] Resolve all blocking and important issues before production.
-- [ ] Obtain explicit approval for the first stable release.
+- [ ] Obtain explicit approval for the AtelierByPT 2.0 release.
 
 ## 5. Data and privacy
 
@@ -52,6 +52,7 @@ This checklist covers the first stable AtelierByPT release.
 - [ ] Document the restore procedure and perform a test restore if possible.
 - [ ] Agree on deletion or anonymisation of former client data.
 - [ ] Confirm the privacy policy matches the data actually stored.
+- [ ] Confirm that internal notes do not contain undeclared health data.
 
 ## 6. Production configuration
 
@@ -68,7 +69,6 @@ This checklist covers the first stable AtelierByPT release.
 ### Frontend
 
 - [ ] Set `VITE_API_URL` to the production backend URL.
-- [ ] Configure EmailJS values if the contact form is enabled.
 - [ ] Configure the SPA rewrite `/*` → `/index.html`.
 - [ ] Confirm custom-domain HTTPS and canonical URLs.
 
@@ -78,9 +78,13 @@ This checklist covers the first stable AtelierByPT release.
 - [ ] Confirm GitHub Actions is green.
 - [ ] Review the pull request and its changed files.
 - [ ] Merge the accepted 2.0 version into `main`.
+- [ ] Create the permanent `demo` branch from the accepted release.
+- [ ] Point both developer-owned beta services to the `demo` branch.
+- [ ] Confirm that demo and production use separate databases and secrets.
+- [ ] Add `X-Robots-Tag: noindex, nofollow` to the demo Static Site.
 - [ ] Confirm `main` is the repository default branch.
 - [ ] Update the repository description and demo link.
-- [ ] Create the `v1.0.0` tag after successful production deployment.
+- [ ] Create the `v2.0.0` tag after successful production deployment.
 
 ## 8. Production smoke test
 

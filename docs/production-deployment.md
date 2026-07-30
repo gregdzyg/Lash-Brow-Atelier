@@ -5,15 +5,18 @@ Production accounts, billing and customer data should belong to the Atelier.
 
 ## Before the meeting
 
-- Confirm whether any beta data needs to be migrated. Prefer a clean production
-  database when the beta contains only fictional data.
+- Start production with a clean database. The beta contains fictional data and
+  is not migrated.
 - Keep the existing canonical public address:
   `https://www.atelierbypaula.pl`. The root domain should continue to redirect
   to `www`.
 - Save screenshots or an export of the current DNS zone. In particular, preserve
   all mail-related `MX`, SPF, DKIM and DMARC records.
-- Confirm that CI passes on the release commit and that the commit is available
-  on the `main` branch.
+- Confirm that CI passes on the release commit.
+- Finalise the privacy policy, merge the accepted release into `main`, create
+  the permanent `demo` branch and point the developer-owned beta services to it.
+- Add an `X-Robots-Tag: noindex, nofollow` response header for `/*` on the demo
+  Static Site so search engines do not index it as a duplicate of production.
 - Keep the existing beta frontend, backend and database unchanged.
 
 ## Required access
@@ -33,8 +36,10 @@ repository or this document.
 
 1. Create the project in the Atelier owner's Neon account.
 2. Select a European region close to the Render backend.
-3. Keep the production branch empty when beta data is only fictional.
-4. Copy the pooled PostgreSQL connection details directly into Render later.
+3. Keep the production branch empty; do not copy beta data.
+4. Record the database host, database name, role and password separately. The
+   Spring JDBC URL must use the form
+   `jdbc:postgresql://<host>/<database>?sslmode=require`.
 5. Open **Backup & Restore** and record the configured restore window.
 6. Enable two-factor authentication and store recovery information securely.
 
@@ -82,9 +87,17 @@ After the first successful deployment:
 2. Confirm that the administrator can log in.
 3. Set `ADMIN_BOOTSTRAP_ENABLED=false`.
 4. Remove `ADMIN_PASSWORD` from Render.
-5. Keep `ADMIN_USERNAME` only if it is useful operationally; bootstrap no longer
-   reads it while disabled.
+5. Remove `ADMIN_USERNAME` from Render; the account remains in the database.
 6. Redeploy and verify that login still works.
+
+Generate `JWT_SECRET` locally during the meeting with:
+
+```bash
+openssl rand -base64 32
+```
+
+Copy it directly into Render and do not save it in the repository or deployment
+notes.
 
 ## 3. Create the production frontend on Render
 
@@ -162,3 +175,15 @@ leaving the production database intact.
 If a database migration or data operation causes a problem, do not repeatedly
 restart or modify production. First inspect the failure, then restore into a
 separate Neon branch and verify the recovered data before changing production.
+
+## Branch ownership after release
+
+| Branch | Render environment | Owner | Data |
+| --- | --- | --- | --- |
+| `demo` | existing demo frontend and backend | developer | fictional |
+| `main` | production frontend and backend | Atelier | real |
+
+Future work should be developed on `feature/*`, tested on `demo`, and promoted
+to `main` only after acceptance. Merging does not delete a branch; remove the
+temporary release branch only after both permanent branches and Render
+connections have been verified.

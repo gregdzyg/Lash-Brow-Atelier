@@ -22,6 +22,11 @@ that can contain the full duration of the service selected by the visitor.
 The start-time grid is anchored independently at the beginning of each real
 free range, so an appointment or block can begin a new sequence of suggestions.
 
-The first stable release intentionally excludes database-managed gallery
+The AtelierByPT 2.0 release intentionally excludes database-managed gallery
 content, editable qualifications and news. These features remain candidates
 for post-release development.
+
+The application is delivered in two isolated environments. The developer-owned
+demo contains fictional data and follows the `demo` branch. The Atelier-owned
+production deployment follows `main` and uses independent Render services,
+credentials and a separate Neon database.
