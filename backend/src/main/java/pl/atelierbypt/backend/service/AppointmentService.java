@@ -109,12 +109,61 @@ public class AppointmentService {
         return mapAppointmentToResponse(updatedAppointment);
     }
 
-    public PatchAppointmentStatusResponse changeAppointmentStatus(Long id, PatchAppointmentStatusRequest request) {
+    @Transactional
+    public PatchAppointmentStatusResponse changeAppointmentStatus(
+            Long id,
+            PatchAppointmentStatusRequest request
+    ) {
         Appointment appointment = findAppointmentById(id);
-        appointment.setStatus(request.appointmentStatus());
-        appointmentRepository.save(appointment);
-        log.info("Changed appointment status={}, id={}", appointment.getStatus(), appointment.getId());
-        return new  PatchAppointmentStatusResponse(appointment.getId(), appointment.getStatus());
+        AppointmentStatus requestedStatus = request.appointmentStatus();
+
+        if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
+            throw new AppointmentBadRequestException(
+                    "Nie można zmienić statusu anulowanej wizyty "
+                            + "ani wizyty oznaczonej jako nieobecność."
+            );
+        }
+
+        if (requestedStatus != AppointmentStatus.CANCELLED
+                && requestedStatus != AppointmentStatus.NO_SHOW) {
+            throw new AppointmentBadRequestException(
+                    "Wizytę można jedynie anulować "
+                            + "albo oznaczyć jako nieobecność."
+            );
+        }
+
+        if (hasAppointmentEnded(appointment)
+                && requestedStatus == AppointmentStatus.CANCELLED) {
+            throw new AppointmentBadRequestException(
+                    "Nie można anulować zakończonej wizyty."
+            );
+        }
+
+        appointment.setStatus(requestedStatus);
+        Appointment savedAppointment =
+                appointmentRepository.save(appointment);
+
+        log.info(
+                "Changed appointment status={}, id={}",
+                savedAppointment.getStatus(),
+                savedAppointment.getId()
+        );
+
+        return new PatchAppointmentStatusResponse(
+                savedAppointment.getId(),
+                savedAppointment.getStatus()
+        );
+    }
+
+    private boolean hasAppointmentEnded(Appointment appointment) {
+        LocalDateTime appointmentEnd = LocalDateTime.of(
+                appointment.getAppointmentDate(),
+                appointment.getStartTime()
+        ).plusMinutes(appointment.getDurationMinutes());
+
+        return !appointmentEnd.isAfter(
+                LocalDateTime.now(applicationClock)
+        );
     }
 
     public void archiveAppointment(Long id) {
@@ -228,11 +277,8 @@ public class AppointmentService {
     }
 
     private AppointmentResponse mapAppointmentToResponse(Appointment appointment) {
-        LocalDateTime appointmentEnd = LocalDateTime.of(
-                appointment.getAppointmentDate(),
-                appointment.getStartTime()
-        ).plusMinutes(appointment.getDurationMinutes());
-        boolean hasEnded = !appointmentEnd.isAfter(LocalDateTime.now(applicationClock));
+
+        boolean hasEnded = hasAppointmentEnded(appointment);
 
         return new AppointmentResponse(appointment.getId(), appointment.getClient().getId(),
                 appointment.getClient().getFirstName(), appointment.getClient().getLastName(),

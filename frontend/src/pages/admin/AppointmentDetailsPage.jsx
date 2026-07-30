@@ -50,12 +50,6 @@ const statusActions = {
         { status: "CANCELLED", label: "Anuluj wizytę", description: "Wizyta pozostanie w kalendarzu jako anulowana." },
         { status: "NO_SHOW", label: "Oznacz nieobecność", description: "Wizyta zostanie oznaczona jako nieobecność klientki." },
     ],
-    CANCELLED: [
-        { status: "SCHEDULED", label: "Przywróć jako zaplanowaną", description: "Termin ponownie stanie się aktywną, zaplanowaną wizytą." },
-    ],
-    NO_SHOW: [
-        { status: "SCHEDULED", label: "Przywróć jako zaplanowaną", description: "Termin ponownie stanie się aktywną, zaplanowaną wizytą." },
-    ],
 };
 
 const endedAppointmentActions = [

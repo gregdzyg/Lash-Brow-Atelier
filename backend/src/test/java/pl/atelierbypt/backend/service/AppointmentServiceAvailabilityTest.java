@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.atelierbypt.backend.dto.AppointmentRequest;
 import pl.atelierbypt.backend.dto.AppointmentResponse;
+import pl.atelierbypt.backend.dto.PatchAppointmentStatusRequest;
+import pl.atelierbypt.backend.dto.PatchAppointmentStatusResponse;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.AvailabilityException;
 import pl.atelierbypt.backend.entity.Client;
@@ -36,6 +38,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -192,6 +196,134 @@ class AppointmentServiceAvailabilityTest {
 
         assertThat(result.id()).isEqualTo(20L);
         assertThat(result.startTime()).isEqualTo(LocalTime.of(10, 0));
+    }
+
+    @Test
+    void shouldCancelScheduledAppointment() {
+        Appointment appointment = createAppointment(
+                20L,
+                LocalTime.of(10, 0),
+                120
+        );
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L))
+                .thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(appointment)).thenReturn(appointment);
+
+        PatchAppointmentStatusResponse result =
+                appointmentService.changeAppointmentStatus(
+                        20L,
+                        new PatchAppointmentStatusRequest(
+                                AppointmentStatus.CANCELLED
+                        )
+                );
+
+        assertThat(result.appointmentStatus())
+                .isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(appointment.getStatus())
+                .isEqualTo(AppointmentStatus.CANCELLED);
+    }
+
+    @Test
+    void shouldMarkScheduledAppointmentAsNoShow() {
+        Appointment appointment = createAppointment(
+                20L,
+                LocalTime.of(10, 0),
+                120
+        );
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L))
+                .thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(appointment)).thenReturn(appointment);
+
+        PatchAppointmentStatusResponse result =
+                appointmentService.changeAppointmentStatus(
+                        20L,
+                        new PatchAppointmentStatusRequest(
+                                AppointmentStatus.NO_SHOW
+                        )
+                );
+
+        assertThat(result.appointmentStatus())
+                .isEqualTo(AppointmentStatus.NO_SHOW);
+        assertThat(appointment.getStatus())
+                .isEqualTo(AppointmentStatus.NO_SHOW);
+    }
+
+    @Test
+    void shouldRejectRestoringCancelledAppointment() {
+        Appointment appointment = createAppointment(
+                20L,
+                LocalTime.of(10, 0),
+                120
+        );
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L))
+                .thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() ->
+                appointmentService.changeAppointmentStatus(
+                        20L,
+                        new PatchAppointmentStatusRequest(
+                                AppointmentStatus.SCHEDULED
+                        )
+                ))
+                .isInstanceOf(AppointmentBadRequestException.class)
+                .hasMessage(
+                        "Nie można zmienić statusu anulowanej wizyty "
+                                + "ani wizyty oznaczonej jako nieobecność."
+                );
+
+        verify(appointmentRepository, never()).save(appointment);
+    }
+
+    @Test
+    void shouldRejectRestoringNoShowAppointment() {
+        Appointment appointment = createAppointment(
+                20L,
+                LocalTime.of(10, 0),
+                120
+        );
+        appointment.setStatus(AppointmentStatus.NO_SHOW);
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L))
+                .thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() ->
+                appointmentService.changeAppointmentStatus(
+                        20L,
+                        new PatchAppointmentStatusRequest(
+                                AppointmentStatus.SCHEDULED
+                        )
+                ))
+                .isInstanceOf(AppointmentBadRequestException.class)
+                .hasMessage(
+                        "Nie można zmienić statusu anulowanej wizyty "
+                                + "ani wizyty oznaczonej jako nieobecność."
+                );
+
+        verify(appointmentRepository, never()).save(appointment);
+    }
+
+    @Test
+    void shouldRejectCancellingEndedAppointment() {
+        Appointment appointment = createAppointment(
+                20L,
+                LocalTime.of(8, 0),
+                60
+        );
+        appointment.setAppointmentDate(LocalDate.of(2026, 7, 29));
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L))
+                .thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() ->
+                appointmentService.changeAppointmentStatus(
+                        20L,
+                        new PatchAppointmentStatusRequest(
+                                AppointmentStatus.CANCELLED
+                        )
+                ))
+                .isInstanceOf(AppointmentBadRequestException.class)
+                .hasMessage("Nie można anulować zakończonej wizyty.");
+
+        verify(appointmentRepository, never()).save(appointment);
     }
 
     private void prepareCreateDependencies() {
