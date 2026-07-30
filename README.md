@@ -201,6 +201,9 @@ The application is available at `http://localhost:5173`.
 | `ADMIN_USERNAME` | Initial administrator username | Empty |
 | `ADMIN_PASSWORD` | Initial administrator password | Empty |
 | `JPA_SHOW_SQL` | SQL logging | `false` |
+| `LOGIN_MAX_FAILED_ATTEMPTS` | Failed attempts before temporary login lock | `5` |
+| `LOGIN_ATTEMPT_WINDOW_MINUTES` | Window for counting failed login attempts | `15` |
+| `LOGIN_LOCK_DURATION_MINUTES` | Login lock duration after reaching the limit | `15` |
 | `SPRINGDOC_API_DOCS_ENABLED` | OpenAPI endpoint | `true` |
 | `SPRINGDOC_SWAGGER_UI_ENABLED` | Swagger UI | `true` |
 
@@ -229,7 +232,9 @@ GitHub Actions performs these checks automatically for pushes and pull
 requests.
 
 The manual beta, data-safety and deployment steps are listed in the
-[release checklist](docs/release-checklist.md).
+[release checklist](docs/release-checklist.md). The production setup and
+rollback procedure are documented in the
+[production deployment runbook](docs/production-deployment.md).
 
 ## Security and privacy
 
