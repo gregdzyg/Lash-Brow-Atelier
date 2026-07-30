@@ -23,24 +23,26 @@ const Privacy = () => {
           udzielenia odpowiedzi i obsługi zapytania.
         </p>
 
-        <p>
-          Strona wykorzystuje usługę zewnętrznego dostawcy:
+        <div>
+          <p>Strona wykorzystuje usługę zewnętrznego dostawcy:</p>
           <ul className="mt-3 list-inside list-disc space-y-2 border-l border-[var(--gold)]/20 pl-4 text-white/60">
             <li>
               Google LLC – prezentacja lokalizacji salonu za pomocą Google Maps.
             </li>
           </ul>
+        </div>
+
+        <p>
+          Interaktywna mapa Google nie jest ładowana przed wyrażeniem zgody.
+          Po jej zaakceptowaniu przeglądarka nawiązuje połączenie z Google,
+          które może przetwarzać dane techniczne i korzystać z własnych
+          mechanizmów przechowywania informacji.
         </p>
 
         <p>
-          Strona korzysta z plików cookies w celu zapewnienia prawidłowego
-          funkcjonowania oraz prezentacji treści zewnętrznych, takich jak mapa Google.
-        </p>
-
-        <p>
-          Pliki cookies mogą być zapisywane na urządzeniu użytkownika zgodnie z
-          ustawieniami przeglądarki internetowej. Użytkownik może w każdej chwili
-          zmienić ustawienia dotyczące cookies.
+          Decyzja dotycząca załadowania mapy jest zapisywana lokalnie w
+          przeglądarce. Można ją w każdej chwili zmienić za pomocą odnośnika
+          „Ustawienia prywatności” w stopce strony.
         </p>
 
         <p>

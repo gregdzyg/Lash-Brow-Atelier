@@ -1,9 +1,11 @@
 import { FaInstagram, FaFacebookF, FaTiktok } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { usePrivacyPreferences } from "../../privacy/usePrivacyPreferences";
 import PublicWorkingHoursSummary from "./PublicWorkingHoursSummary";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { openPrivacySettings } = usePrivacyPreferences();
 
   return (
     <footer className="relative z-10 mt-10 border-t border-[var(--gold)]/15 px-5 py-12 text-sm text-white sm:px-8 lg:mt-16 lg:px-12 lg:py-16">
@@ -30,6 +32,20 @@ const Footer = () => {
               <Link to="/regulamin" className="text-sm transition-colors hover:text-[var(--gold)]">
                 Regulamin
               </Link>
+            </li>
+            <li>
+              <Link to="/polityka-prywatnosci" className="text-sm transition-colors hover:text-[var(--gold)]">
+                Polityka prywatności
+              </Link>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={openPrivacySettings}
+                className="cursor-pointer text-sm transition-colors hover:text-[var(--gold)]"
+              >
+                Ustawienia prywatności
+              </button>
             </li>
           </ul>
         </div>

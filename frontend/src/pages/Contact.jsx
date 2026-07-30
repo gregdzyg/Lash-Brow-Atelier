@@ -1,6 +1,12 @@
-import { Mail, MapPin, Phone } from "lucide-react";
+import { ExternalLink, Mail, MapPin, Phone } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 import PublicAvailabilityCalendar from "../components/public/PublicAvailabilityCalendar";
+import { usePrivacyPreferences } from "../privacy/usePrivacyPreferences";
+
+const GOOGLE_MAPS_EMBED_URL =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2461.2928733624517!2d22.90202597675496!3d51.63579887184077!2m3!1f0!2f0!3f0!2m3!1i1024!2i768!4f13.1!3m3!1m2!1s0x4721bc15ce7fdd8d%3A0x1a9d3eec4b4634c!2sKo%C5%9Bcielna%2026%2C%2021-200%20Parczew!5e0!3m2!1spl!2spl!4v1726500000000!5m2!1spl!2spl";
+const GOOGLE_MAPS_LINK =
+  "https://www.google.com/maps/search/?api=1&query=Ko%C5%9Bcielna%2026%2C%2021-200%20Parczew";
 
 const socialLinks = [
   {
@@ -28,6 +34,11 @@ const contactLinkClassName = `
 `;
 
 const Contact = () => {
+  const {
+    isExternalContentAllowed,
+    acceptExternalContent,
+  } = usePrivacyPreferences();
+
   return (
     <section className="mx-auto w-full max-w-7xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
       <div className="mb-12 flex items-center justify-center gap-3 sm:mb-16">
@@ -85,15 +96,49 @@ const Contact = () => {
         </div>
 
         <div className="min-h-80 overflow-hidden border-t border-[var(--gold)]/20 md:border-l md:border-t-0">
-          <iframe
-            title="Lokalizacja Lash&Brow Atelier"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2461.2928733624517!2d22.90202597675496!3d51.63579887184077!2m3!1f0!2f0!3f0!3m2!1i1024!1i768!4f13.1!3m3!1m2!1s0x4721bc15ce7fdd8d%3A0x1a9d3eec4b4634c!2sKo%C5%9Bcielna%2026%2C%2021-200%20Parczew!5e0!3m2!1spl!2spl!4v1726500000000!5m2!1spl!2spl"
-            width="100%"
-            height="100%"
-            style={{ minHeight: "420px", border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-          />
+          {isExternalContentAllowed ? (
+            <iframe
+              title="Lokalizacja Lash&Brow Atelier"
+              src={GOOGLE_MAPS_EMBED_URL}
+              width="100%"
+              height="100%"
+              style={{ minHeight: "420px", border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          ) : (
+            <div className="flex min-h-[420px] flex-col items-center justify-center bg-gradient-to-br from-white/[0.055] to-black/20 p-8 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--gold)]/30 bg-black/20 text-[var(--gold)]">
+                <MapPin aria-hidden="true" size={27} />
+              </span>
+              <h2 className="mt-5 text-xl font-semibold text-white">
+                Mapa Google jest wyłączona
+              </h2>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-white/50">
+                Możesz wczytać interaktywną mapę po zaakceptowaniu treści
+                zewnętrznych albo otworzyć lokalizację bezpośrednio w Google Maps.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={acceptExternalContent}
+                  className="cursor-pointer rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                >
+                  Wczytaj mapę Google
+                </button>
+                <a
+                  href={GOOGLE_MAPS_LINK}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white/65 transition hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                >
+                  Otwórz w Google Maps
+                  <ExternalLink aria-hidden="true" size={15} />
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
