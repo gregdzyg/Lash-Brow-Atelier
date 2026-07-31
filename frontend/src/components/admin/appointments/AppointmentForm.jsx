@@ -53,6 +53,7 @@ const AppointmentForm = ({
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
+     const [clientSearch, setClientSearch] = useState("");
     const submissionInProgress = useRef(false);
 
     useEffect(() => {
@@ -148,6 +149,31 @@ const AppointmentForm = ({
         ),
         [offerItems, suggestedOfferItemIds],
     );
+
+    const filteredClients = useMemo(() => {
+        const searchTerms = clientSearch
+            .trim()
+            .toLocaleLowerCase("pl")
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (searchTerms.length === 0) {
+            return clients;
+        }
+
+        return clients.filter((client) => {
+            const searchableClient = [
+                client.firstName,
+                client.lastName,
+                client.phoneNumber,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLocaleLowerCase("pl");
+
+            return searchTerms.every((term) => searchableClient.includes(term));
+        });
+    }, [clients, clientSearch]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -249,22 +275,41 @@ const AppointmentForm = ({
                             <label htmlFor="clientId" className="mb-2 block text-sm font-medium text-white/85">
                                 Klientka <span className="text-[var(--gold)]">*</span>
                             </label>
-                            <select
-                                id="clientId"
-                                name="clientId"
-                                required
-                                disabled={isSubmitting}
-                                value={formValues.clientId}
-                                onChange={handleChange}
-                                className={inputClassName}
-                            >
-                                <option value="" disabled>Wybierz klientkę</option>
-                                {clients.map((client) => (
-                                    <option key={client.id} value={client.id}>
-                                        {client.firstName} {client.lastName}
+                                <input
+                                    type="search"
+                                    value={clientSearch}
+                                    onChange={(event) => setClientSearch(event.target.value)}
+                                    placeholder="Szukaj po imieniu, nazwisku lub telefonie"
+                                    aria-label="Wyszukaj klientkę"
+                                    disabled={isSubmitting}
+                                    className={`${inputClassName} mb-3`}
+                                />
+
+                                <select
+                                    id="clientId"
+                                    name="clientId"
+                                    required
+                                    disabled={isSubmitting}
+                                    value={formValues.clientId}
+                                    onChange={handleChange}
+                                    className={inputClassName}
+                                >
+                                    <option value="" disabled>
+                                        Wybierz klientkę
                                     </option>
-                                ))}
-                            </select>
+
+                                    {filteredClients.length === 0 ? (
+                                        <option value="" disabled>
+                                            Brak pasujących klientek
+                                        </option>
+                                    ) : (
+                                        filteredClients.map((client) => (
+                                            <option key={client.id} value={client.id}>
+                                                {client.firstName} {client.lastName}
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
                         </div>
 
                         <div>
