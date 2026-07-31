@@ -90,7 +90,7 @@ const PublicOfferCards = ({ limit }) => {
           key={offerItem.id}
           className="group flex flex-col rounded-3xl border border-[var(--gold)]/25 bg-gradient-to-br
              from-white/[0.075] to-white/[0.02] backdrop-blur-xl transition duration-300 hover:-translate-y-1
-              hover:border-[var(--gold)]/50 hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20 min-h-56 px-6 
+              hover:border-[var(--gold)]/50 hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20 h-80 px-6 
               py-7 text-center sm:px-7"
         >
           <h3 className="text-lg font-semibold leading-snug text-[var(--gold)] transition-colors group-hover:text-[#c8ad55] sm:text-xl">
@@ -98,12 +98,12 @@ const PublicOfferCards = ({ limit }) => {
           </h3>
 
           {offerItem.description && (
-            <p className="mt-4 flex-1 text-sm leading-6 text-white/60">
+            <p className="mt-4 line-clamp-5 text-sm leading-6 text-white/60">
               {offerItem.description}
             </p>
           )}
 
-          <div className="mt-6 border-t border-[var(--gold)]/15 pt-5 flex items-center justify-center gap-4" 
+          <div className="mt-auto border-t border-[var(--gold)]/15 pt-5 flex items-center justify-center gap-4" 
           >
             <span className="inline-flex items-center gap-1.5 text-xs text-white/45">
               <Clock3 aria-hidden="true" size={14} className="text-[var(--gold)]/75" />
