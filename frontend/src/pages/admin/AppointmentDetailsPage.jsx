@@ -11,6 +11,7 @@ import {
     StickyNote,
     Trash2,
     UserRound,
+    CalendarPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -284,15 +285,25 @@ const AppointmentDetailsPage = () => {
                                 <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/55">Zarządzaj wizytą</h2>
                                 <p className="mt-2 text-sm text-white/40">Edytuj dane lub zmień bieżący status.</p>
                             </div>
-                            {!appointment.hasEnded && (
+                            <div className="flex flex-wrap gap-3">
                                 <Link
-                                    to={`/admin/appointments/${appointment.id}/edit`}
-                                    className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)]/45 px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                                    to={`/admin/appointments/new?clientId=${appointment.clientId}&offerItemId=${appointment.offerItemId}`}
+                                    className="flex w-fit items-center gap-2 rounded-full bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-[#c8ad55] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
                                 >
-                                    <Pencil aria-hidden="true" size={16} />
-                                    Edytuj wizytę
+                                    <CalendarPlus aria-hidden="true" size={16} />
+                                    Umów ponownie
                                 </Link>
-                            )}
+
+                                {!appointment.hasEnded && (
+                                    <Link
+                                        to={`/admin/appointments/${appointment.id}/edit`}
+                                        className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)]/45 px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                                    >
+                                        <Pencil aria-hidden="true" size={16} />
+                                        Edytuj wizytę
+                                    </Link>
+                                )}
+                            </div>
                         </div>
 
                         {!pendingStatusAction ? (

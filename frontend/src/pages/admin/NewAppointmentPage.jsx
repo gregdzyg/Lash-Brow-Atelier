@@ -12,11 +12,13 @@ const NewAppointmentPage = () => {
     const [searchParams] = useSearchParams();
     const initialValues = useMemo(() => {
         const clientId = searchParams.get("clientId");
+        const offerItemId = searchParams.get("offerItemId");
         const appointmentDate = searchParams.get("date");
         const startTime = searchParams.get("startTime");
 
         return {
             clientId: isValidId(clientId) ? clientId : "",
+            offerItemId: isValidId(offerItemId) ? offerItemId : "",
             appointmentDate: isValidDate(appointmentDate) ? appointmentDate : "",
             startTime: isValidTime(startTime) ? startTime : "",
         };
