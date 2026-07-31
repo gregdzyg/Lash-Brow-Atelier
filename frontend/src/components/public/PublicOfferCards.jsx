@@ -1,4 +1,4 @@
-import { AlertCircle, Clock3, LoaderCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, Clock3, LoaderCircle, LucideSquareParkingOff, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPublicOfferItems } from "../../api/apiPublicContent";
 
@@ -12,6 +12,7 @@ const PublicOfferCards = ({ limit }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [selectedOfferItem, setSelectedOfferItem] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -84,6 +85,7 @@ const PublicOfferCards = ({ limit }) => {
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       {displayedOfferItems.map((offerItem) => (
         <article
@@ -98,9 +100,50 @@ const PublicOfferCards = ({ limit }) => {
           </h3>
 
           {offerItem.description && (
+            <div className="mt-4">
             <p className="mt-4 line-clamp-5 text-sm leading-6 text-white/60">
               {offerItem.description}
             </p>
+            <button type="button" onClick={() => setSelectedOfferItem(OfferItem)}
+            className="mt-3 text-sm font-medium text-[var(--gold)] transition hover:text-[#c8ad55] hover:underline">
+              Szczegóły
+            </button>
+            </div>
+          )}
+
+          {selectedOfferItem && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+              onClick={() => setSelectedOfferItem(null)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="offer-details-title"
+                onClick={(event) => event.stopPropagation()}
+                className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[var(--gold)]/30 bg-[#1c1c1c] p-7 text-left shadow-2xl"
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedOfferItem(null)}
+                  aria-label="Zamknij szczegóły oferty"
+                  className="absolute right-5 top-4 text-2xl text-white/50 transition hover:text-white"
+                >
+                  ×
+                </button>
+
+                <h2
+                  id="offer-details-title"
+                  className="pr-8 text-xl font-semibold text-[var(--gold)]"
+                >
+                  {selectedOfferItem.name}
+                </h2>
+
+                <p className="mt-5 whitespace-pre-line text-sm leading-7 text-white/70">
+                  {selectedOfferItem.description}
+                </p>
+              </div>
+            </div>
           )}
 
           <div className="mt-auto border-t border-[var(--gold)]/15 pt-5 flex items-center justify-center gap-4" 
@@ -116,6 +159,7 @@ const PublicOfferCards = ({ limit }) => {
         </article>
       ))}
     </div>
+    </>
   );
 };
 
