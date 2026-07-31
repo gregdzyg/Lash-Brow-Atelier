@@ -101,10 +101,10 @@ const PublicOfferCards = ({ limit }) => {
 
           {offerItem.description && (
             <div className="mt-4">
-            <p className="mt-4 line-clamp-5 text-sm leading-6 text-white/60">
+            <p className="line-clamp-5 text-sm leading-6 text-white/60">
               {offerItem.description}
             </p>
-            <button type="button" onClick={() => setSelectedOfferItem(OfferItem)}
+            <button type="button" onClick={() => setSelectedOfferItem(offerItem)}
             className="mt-3 text-sm font-medium text-[var(--gold)] transition hover:text-[#c8ad55] hover:underline">
               Szczegóły
             </button>
