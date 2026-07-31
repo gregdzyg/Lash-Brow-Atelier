@@ -7,7 +7,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", {
   currency: "PLN",
 });
 
-const PublicOfferCards = ({ limit, compact = false }) => {
+const PublicOfferCards = ({ limit }) => {
   const [offerItems, setOfferItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -88,10 +88,11 @@ const PublicOfferCards = ({ limit, compact = false }) => {
       {displayedOfferItems.map((offerItem) => (
         <article
           key={offerItem.id}
-          className={`group flex flex-col rounded-3xl border border-[var(--gold)]/25 bg-gradient-to-br from-white/[0.075] to-white/[0.02] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[var(--gold)]/50 hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20 ${
-            compact
-              ? "min-h-56 px-6 py-7 text-center sm:px-7"
-              : "min-h-72 p-7"
+          className={`group flex flex-col rounded-3xl border border-[var(--gold)]/25 bg-gradient-to-br
+             from-white/[0.075] to-white/[0.02] backdrop-blur-xl transition duration-300 hover:-translate-y-1
+              hover:border-[var(--gold)]/50 hover:bg-white/[0.08] hover:shadow-xl hover:shadow-black/20 min-h-56 px-6 
+              py-7 text-center sm:px-7"
+              
           }`}
         >
           <h3 className="text-lg font-semibold leading-snug text-[var(--gold)] transition-colors group-hover:text-[#c8ad55] sm:text-xl">
@@ -104,8 +105,7 @@ const PublicOfferCards = ({ limit, compact = false }) => {
             </p>
           )}
 
-          <div className={`mt-6 border-t border-[var(--gold)]/15 pt-5 ${
-            compact ? "flex items-center justify-center gap-4" : "flex items-end justify-between gap-4"
+          <div className={`mt-6 border-t border-[var(--gold)]/15 pt-5 flex items-center justify-center gap-4" 
           }`}>
             <span className="inline-flex items-center gap-1.5 text-xs text-white/45">
               <Clock3 aria-hidden="true" size={14} className="text-[var(--gold)]/75" />

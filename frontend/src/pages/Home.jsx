@@ -50,7 +50,7 @@ const Home = () => {
         </h2>
 
         <div className="mx-auto mt-10 max-w-6xl">
-          <PublicOfferCards limit={6} compact />
+          <PublicOfferCards limit={6} />
         </div>
 
         <div className="mt-10 text-center">
