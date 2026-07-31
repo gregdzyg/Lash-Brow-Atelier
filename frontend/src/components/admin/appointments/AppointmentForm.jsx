@@ -53,7 +53,7 @@ const AppointmentForm = ({
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
-     const [clientSearch, setClientSearch] = useState("");
+    const [clientSearch, setClientSearch] = useState("");
     const submissionInProgress = useRef(false);
 
     useEffect(() => {
@@ -103,41 +103,41 @@ const AppointmentForm = ({
     }, []);
 
     useEffect(() => {
-    if (!formValues.offerItemId || offerItems.length === 0) {
-        return;
-    }
-
-    const selectedOfferItem = offerItems.find(
-        (offerItem) => String(offerItem.id) === String(formValues.offerItemId),
-    );
-
-    if (!selectedOfferItem) {
-        return;
-    }
-
-    setFormValues((current) => {
-        const durationMinutes = current.durationMinutes === ""
-            ? selectedOfferItem.durationMinutes
-            : current.durationMinutes;
-
-        const price = current.price === ""
-            ? selectedOfferItem.basePrice
-            : current.price;
-
-        if (
-            durationMinutes === current.durationMinutes
-            && price === current.price
-        ) {
-            return current;
+        if (!formValues.offerItemId || offerItems.length === 0) {
+            return;
         }
 
-        return {
-            ...current,
-            durationMinutes,
-            price,
-        };
-    });
-}, [offerItems, formValues.offerItemId]);
+        const selectedOfferItem = offerItems.find(
+            (offerItem) => String(offerItem.id) === String(formValues.offerItemId),
+        );
+
+        if (!selectedOfferItem) {
+            return;
+        }
+
+        setFormValues((current) => {
+            const durationMinutes = current.durationMinutes === ""
+                ? selectedOfferItem.durationMinutes
+                : current.durationMinutes;
+
+            const price = current.price === ""
+                ? selectedOfferItem.basePrice
+                : current.price;
+
+            if (
+                durationMinutes === current.durationMinutes
+                && price === current.price
+            ) {
+                return current;
+            }
+
+            return {
+                ...current,
+                durationMinutes,
+                price,
+            };
+        });
+    }, [offerItems, formValues.offerItemId]);
 
     useEffect(() => {
         let isMounted = true;
@@ -211,6 +211,15 @@ const AppointmentForm = ({
             return searchTerms.every((term) => searchableClient.includes(term));
         });
     }, [clients, clientSearch]);
+
+    const handleClientSearchChange = (event) => {
+        setClientSearch(event.target.value);
+        setError("");
+        setFormValues((current) => ({
+            ...current,
+            clientId: "",
+        }));
+    };
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -312,41 +321,41 @@ const AppointmentForm = ({
                             <label htmlFor="clientId" className="mb-2 block text-sm font-medium text-white/85">
                                 Klientka <span className="text-[var(--gold)]">*</span>
                             </label>
-                                <input
-                                    type="search"
-                                    value={clientSearch}
-                                    onChange={(event) => setClientSearch(event.target.value)}
-                                    placeholder="Szukaj po imieniu, nazwisku lub telefonie"
-                                    aria-label="Wyszukaj klientkę"
-                                    disabled={isSubmitting}
-                                    className={`${inputClassName} mb-3`}
-                                />
+                            <input
+                                type="search"
+                                value={clientSearch}
+                                onChange={handleClientSearchChange}
+                                placeholder="Szukaj po imieniu, nazwisku lub telefonie"
+                                aria-label="Wyszukaj klientkę"
+                                disabled={isSubmitting}
+                                className={`${inputClassName} mb-3`}
+                            />
 
-                                <select
-                                    id="clientId"
-                                    name="clientId"
-                                    required
-                                    disabled={isSubmitting}
-                                    value={formValues.clientId}
-                                    onChange={handleChange}
-                                    className={inputClassName}
-                                >
+                            <select
+                                id="clientId"
+                                name="clientId"
+                                required
+                                disabled={isSubmitting}
+                                value={formValues.clientId}
+                                onChange={handleChange}
+                                className={inputClassName}
+                            >
+                                <option value="" disabled>
+                                    Wybierz klientkę
+                                </option>
+
+                                {filteredClients.length === 0 ? (
                                     <option value="" disabled>
-                                        Wybierz klientkę
+                                        Brak pasujących klientek
                                     </option>
-
-                                    {filteredClients.length === 0 ? (
-                                        <option value="" disabled>
-                                            Brak pasujących klientek
+                                ) : (
+                                    filteredClients.map((client) => (
+                                        <option key={client.id} value={client.id}>
+                                            {client.firstName} {client.lastName}
                                         </option>
-                                    ) : (
-                                        filteredClients.map((client) => (
-                                            <option key={client.id} value={client.id}>
-                                                {client.firstName} {client.lastName}
-                                            </option>
-                                        ))
-                                    )}
-                                </select>
+                                    ))
+                                )}
+                            </select>
                         </div>
 
                         <div>
