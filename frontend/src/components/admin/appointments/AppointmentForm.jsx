@@ -103,6 +103,43 @@ const AppointmentForm = ({
     }, []);
 
     useEffect(() => {
+    if (!formValues.offerItemId || offerItems.length === 0) {
+        return;
+    }
+
+    const selectedOfferItem = offerItems.find(
+        (offerItem) => String(offerItem.id) === String(formValues.offerItemId),
+    );
+
+    if (!selectedOfferItem) {
+        return;
+    }
+
+    setFormValues((current) => {
+        const durationMinutes = current.durationMinutes === ""
+            ? selectedOfferItem.durationMinutes
+            : current.durationMinutes;
+
+        const price = current.price === ""
+            ? selectedOfferItem.basePrice
+            : current.price;
+
+        if (
+            durationMinutes === current.durationMinutes
+            && price === current.price
+        ) {
+            return current;
+        }
+
+        return {
+            ...current,
+            durationMinutes,
+            price,
+        };
+    });
+}, [offerItems, formValues.offerItemId]);
+
+    useEffect(() => {
         let isMounted = true;
 
         const fetchSuggestedOfferItems = async () => {
