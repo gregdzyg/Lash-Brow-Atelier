@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.atelierbypt.backend.dto.ClientDetailsResponse;
 import pl.atelierbypt.backend.dto.ClientRequest;
 import pl.atelierbypt.backend.dto.ClientResponse;
 import pl.atelierbypt.backend.service.ClientService;
@@ -24,7 +25,7 @@ public class ClientController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClientResponse> getClientById(@PathVariable Long id) {
+    public ResponseEntity<ClientDetailsResponse> getClientById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getClientById(id));
     }
 

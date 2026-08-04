@@ -3,12 +3,20 @@ package pl.atelierbypt.backend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.atelierbypt.backend.dto.ClientAppointmentSummaryResponse;
+import pl.atelierbypt.backend.dto.ClientDetailsResponse;
 import pl.atelierbypt.backend.dto.ClientRequest;
 import pl.atelierbypt.backend.dto.ClientResponse;
+import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.Client;
 import pl.atelierbypt.backend.exception.ClientNotFoundException;
 import pl.atelierbypt.backend.exception.PhoneNumberConflictException;
+import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.ClientRepository;
+
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -17,10 +25,32 @@ import java.util.List;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final Clock applicationClock;
 
-    public ClientResponse getClientById(Long id){
-       Client client = findClientById(id);
-       return mapToClientResponse(client);
+    @Transactional(readOnly = true)
+    public ClientDetailsResponse getClientById(Long id){
+        Client client = findClientById(id);
+        LocalDate start = LocalDate.now(applicationClock);
+        LocalDate end = start.plusMonths(3);
+
+        List<ClientAppointmentSummaryResponse> upcomingAppointments = appointmentRepository
+                .findScheduledActiveByClientIdBetweenDates(id, start, end)
+                .stream()
+                .map(this::mapToClientAppointmentSummaryResponse)
+                .toList();
+
+        return new ClientDetailsResponse(
+                client.getId(),
+                client.getFirstName(),
+                client.getLastName(),
+                client.getPhoneNumber(),
+                client.getEmail(),
+                client.getInstagramUsername(),
+                client.getNotes(),
+                client.isActive(),
+                upcomingAppointments
+        );
     }
 
     public List<ClientResponse> getAllClients(){
@@ -64,6 +94,18 @@ public class ClientService {
         return new ClientResponse(client.getId(), client.getFirstName(),
                 client.getLastName(), client.getPhoneNumber(), client.getEmail(),
                 client.getInstagramUsername(), client.getNotes(), client.isActive());
+    }
+
+    private ClientAppointmentSummaryResponse mapToClientAppointmentSummaryResponse(
+            Appointment appointment
+    ) {
+        return new ClientAppointmentSummaryResponse(
+                appointment.getId(),
+                appointment.getOfferItem().getName(),
+                appointment.getAppointmentDate(),
+                appointment.getStartTime(),
+                appointment.getDurationMinutes()
+        );
     }
 
     private Client findClientById(Long id) {

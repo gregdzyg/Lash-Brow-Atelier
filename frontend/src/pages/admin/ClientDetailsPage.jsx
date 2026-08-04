@@ -1,6 +1,9 @@
 import {
     AlertCircle,
     ArrowLeft,
+    CalendarDays,
+    ChevronRight,
+    Clock3,
     Instagram,
     LoaderCircle,
     Mail,
@@ -13,6 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { deleteClient, getClient } from "../../api/apiClients";
+import { addMinutesToTime, formatLocalDate, formatLocalTime } from "../../utils/dateTime";
 
 const ClientDetailsPage = () => {
     const [client, setClient] = useState(null);
@@ -101,6 +105,7 @@ const ClientDetailsPage = () => {
             .filter(Boolean)
             .join(" ") || "Brak danych"
         : "Szczegóły klientki";
+    const upcomingAppointments = client?.upcomingAppointments ?? [];
 
     return (
         <section className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16">
@@ -236,6 +241,78 @@ const ClientDetailsPage = () => {
                             </div>
                         </div>
                     </dl>
+
+                    <section className="border-t border-[var(--gold)]/20 px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--gold)]/25 bg-black/15 text-[var(--gold)]">
+                                    <CalendarDays aria-hidden="true" size={18} />
+                                </span>
+                                <div>
+                                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/55">
+                                        Nadchodzące wizyty
+                                    </h2>
+                                    <p className="mt-1 text-xs text-white/35">
+                                        Zaplanowane na najbliższe trzy miesiące
+                                    </p>
+                                </div>
+                            </div>
+
+                            <span className="w-fit rounded-full border border-[var(--gold)]/25 bg-[var(--gold)]/[0.08] px-3 py-1 text-xs font-semibold text-[var(--gold)]/80">
+                                Zaplanowane: {upcomingAppointments.length}
+                            </span>
+                        </div>
+
+                        {upcomingAppointments.length === 0 ? (
+                            <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/10 px-5 py-8 text-center">
+                                <CalendarDays aria-hidden="true" size={24} className="mx-auto text-white/25" />
+                                <p className="mt-3 text-sm font-medium text-white/55">
+                                    Brak nadchodzących wizyt
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-white/35">
+                                    Klientka nie ma umówionych wizyt w najbliższych trzech miesiącach.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {upcomingAppointments.map((appointment) => (
+                                    <Link
+                                        key={appointment.id}
+                                        to={`/admin/appointments/${appointment.id}`}
+                                        className="group rounded-2xl border border-[var(--gold)]/20 bg-black/10 p-5 transition-colors duration-300 hover:border-[var(--gold)]/50 hover:bg-[var(--gold)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--gold)]/75">
+                                                {formatLocalDate(appointment.appointmentDate)}
+                                            </p>
+                                            <ChevronRight
+                                                aria-hidden="true"
+                                                size={17}
+                                                className="shrink-0 text-white/30 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[var(--gold)]"
+                                            />
+                                        </div>
+
+                                        <h3 className="mt-3 break-words text-base font-semibold text-white">
+                                            {appointment.offerItemName}
+                                        </h3>
+
+                                        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/55">
+                                            <span className="flex items-center gap-2">
+                                                <Clock3 aria-hidden="true" size={15} className="text-[var(--gold)]/70" />
+                                                {formatLocalTime(appointment.startTime)}–{addMinutesToTime(
+                                                    appointment.startTime,
+                                                    appointment.durationMinutes,
+                                                )}
+                                            </span>
+                                            <span className="text-xs text-white/35">
+                                                {appointment.durationMinutes} min
+                                            </span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </section>
 
                     <div className="border-t border-[var(--gold)]/20 bg-black/10 px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
                         <div className="flex items-center gap-3">

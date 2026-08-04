@@ -40,9 +40,15 @@ public interface AppointmentRepository extends Repository<Appointment, Long> {
     FROM Appointment a
     WHERE a.client.id = :clientId
       AND a.isActive = true
-    ORDER BY a.appointmentDate DESC, a.startTime DESC
+      AND a.status = 'SCHEDULED'
+      AND a.appointmentDate BETWEEN :start AND :end
+    ORDER BY a.appointmentDate ASC, a.startTime ASC
     """)
-    List<Appointment> findActiveByClientId(@Param("clientId") Long clientId);
+    List<Appointment> findScheduledActiveByClientIdBetweenDates(
+            @Param("clientId") Long clientId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
 
     @Query("""
     SELECT o
