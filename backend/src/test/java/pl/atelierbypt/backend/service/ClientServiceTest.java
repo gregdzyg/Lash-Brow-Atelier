@@ -54,9 +54,18 @@ class ClientServiceTest {
     }
 
     @Test
-    void shouldReturnClientDetailsWithAppointmentsFromNextThreeMonths() {
+    void shouldReturnUpcomingAppointmentsAndExcludeEarlierAppointmentsFromToday() {
         Client client = createClient();
-        Appointment appointment = createAppointment();
+        Appointment earlierToday = createAppointment(
+                9L,
+                TODAY,
+                LocalTime.of(9, 0)
+        );
+        Appointment upcomingAppointment = createAppointment(
+                10L,
+                LocalDate.of(2026, 8, 10),
+                LocalTime.of(12, 30)
+        );
 
         when(clientRepository.findByIdAndIsActiveTrue(CLIENT_ID))
                 .thenReturn(Optional.of(client));
@@ -64,7 +73,7 @@ class ClientServiceTest {
                 CLIENT_ID,
                 TODAY,
                 THREE_MONTHS_FROM_TODAY
-        )).thenReturn(List.of(appointment));
+        )).thenReturn(List.of(earlierToday, upcomingAppointment));
 
         ClientDetailsResponse result = clientService.getClientById(CLIENT_ID);
 
@@ -99,15 +108,19 @@ class ClientServiceTest {
         return client;
     }
 
-    private Appointment createAppointment() {
+    private Appointment createAppointment(
+            Long id,
+            LocalDate appointmentDate,
+            LocalTime startTime
+    ) {
         OfferItem offerItem = new OfferItem();
         offerItem.setName("Stylizacja rzęs");
 
         Appointment appointment = new Appointment();
-        appointment.setId(10L);
+        appointment.setId(id);
         appointment.setOfferItem(offerItem);
-        appointment.setAppointmentDate(LocalDate.of(2026, 8, 10));
-        appointment.setStartTime(LocalTime.of(12, 30));
+        appointment.setAppointmentDate(appointmentDate);
+        appointment.setStartTime(startTime);
         appointment.setDurationMinutes(120);
         return appointment;
     }

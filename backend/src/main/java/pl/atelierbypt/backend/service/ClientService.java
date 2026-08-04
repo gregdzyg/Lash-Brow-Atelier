@@ -17,6 +17,7 @@ import pl.atelierbypt.backend.repository.ClientRepository;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -31,12 +32,17 @@ public class ClientService {
     @Transactional(readOnly = true)
     public ClientDetailsResponse getClientById(Long id){
         Client client = findClientById(id);
-        LocalDate start = LocalDate.now(applicationClock);
+        LocalDateTime now = LocalDateTime.now(applicationClock);
+        LocalDate start = now.toLocalDate();
         LocalDate end = start.plusMonths(3);
 
         List<ClientAppointmentSummaryResponse> upcomingAppointments = appointmentRepository
                 .findScheduledActiveByClientIdBetweenDates(id, start, end)
                 .stream()
+                .filter(appointment -> !LocalDateTime.of(
+                        appointment.getAppointmentDate(),
+                        appointment.getStartTime()
+                ).isBefore(now))
                 .map(this::mapToClientAppointmentSummaryResponse)
                 .toList();
 
