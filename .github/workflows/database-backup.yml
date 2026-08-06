@@ -1,0 +1,143 @@
+name: Production database backup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Create encrypted backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    env:
+      PGHOST: ${{ secrets.NEON_BACKUP_HOST }}
+      PGPORT: "5432"
+      PGDATABASE: neondb
+      PGUSER: atelier_backup
+      PGPASSWORD: ${{ secrets.NEON_BACKUP_PASSWORD }}
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: system
+      PGCHANNELBINDING: require
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_BUCKET: atelier-production-backups
+      AGE_RECIPIENT: ${{ vars.AGE_RECIPIENT }}
+
+    steps:
+      - name: Install encryption tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes age
+
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          required_variables=(
+            PGHOST
+            PGPASSWORD
+            AWS_ACCESS_KEY_ID
+            AWS_SECRET_ACCESS_KEY
+            R2_ENDPOINT
+            AGE_RECIPIENT
+          )
+
+          for variable_name in "${required_variables[@]}"; do
+            if [[ -z "${!variable_name:-}" ]]; then
+              echo "Missing required configuration: ${variable_name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Create, encrypt and upload backup
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          backup_directory="$(mktemp -d)"
+          timestamp="$(date -u +'%Y-%m-%dT%H-%M-%SZ')"
+          backup_name="atelier-production-${timestamp}.dump"
+          encrypted_name="${backup_name}.age"
+          checksum_name="${encrypted_name}.sha256"
+          plain_backup="${backup_directory}/${backup_name}"
+          encrypted_backup="${backup_directory}/${encrypted_name}"
+          checksum_file="${backup_directory}/${checksum_name}"
+
+          cleanup() {
+            rm -f \
+              "${plain_backup}" \
+              "${encrypted_backup}" \
+              "${checksum_file}"
+            rmdir "${backup_directory}"
+          }
+          trap cleanup EXIT
+
+          docker run --rm \
+            -e PGHOST \
+            -e PGPORT \
+            -e PGDATABASE \
+            -e PGUSER \
+            -e PGPASSWORD \
+            -e PGSSLMODE \
+            -e PGSSLROOTCERT \
+            -e PGCHANNELBINDING \
+            postgres:18.4-alpine \
+            pg_dump \
+              --format=custom \
+              --no-owner \
+              --no-privileges \
+              > "${plain_backup}"
+
+          docker run --rm -i \
+            postgres:18.4-alpine \
+            pg_restore --list \
+            < "${plain_backup}" \
+            > /dev/null
+
+          age \
+            --recipient "${AGE_RECIPIENT}" \
+            --output "${encrypted_backup}" \
+            "${plain_backup}"
+
+          (
+            cd "${backup_directory}"
+            sha256sum "${encrypted_name}" > "${checksum_name}"
+          )
+
+          object_prefix="daily/${timestamp}"
+
+          aws s3 cp \
+            "${encrypted_backup}" \
+            "s3://${R2_BUCKET}/${object_prefix}/${encrypted_name}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            --only-show-errors
+
+          aws s3 cp \
+            "${checksum_file}" \
+            "s3://${R2_BUCKET}/${object_prefix}/${checksum_name}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            --only-show-errors
+
+          aws s3api head-object \
+            --bucket "${R2_BUCKET}" \
+            --key "${object_prefix}/${encrypted_name}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            > /dev/null
+
+          aws s3api head-object \
+            --bucket "${R2_BUCKET}" \
+            --key "${object_prefix}/${checksum_name}" \
+            --endpoint-url "${R2_ENDPOINT}" \
+            > /dev/null
+
+          echo "Encrypted backup uploaded to ${object_prefix}"
