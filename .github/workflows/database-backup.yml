@@ -1,9 +1,8 @@
 name: Production database backup
 
 on:
-  push:
-    branches:
-      - demo
+  schedule:
+    - cron: "17 2 * * *"
   workflow_dispatch:
 
 permissions:
