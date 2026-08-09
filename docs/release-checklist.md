@@ -48,8 +48,10 @@ This checklist covers the first stable AtelierByPT release.
 - [ ] Confirm which environment contains fictional data and which can contain real data.
 - [ ] Remove accidental demo records and unrealistic service durations.
 - [ ] Confirm who has access to Render and the PostgreSQL provider.
-- [ ] Create or verify a recent database backup.
-- [ ] Document the restore procedure and perform a test restore if possible.
+- [x] Create or verify a recent database backup.
+- [x] Document the [restore procedure](database-backup-restore.md) and perform a
+  test restore (completed successfully in an isolated Neon database on
+  2026-08-09).
 - [ ] Agree on deletion or anonymisation of former client data.
 - [ ] Confirm the privacy policy matches the data actually stored.
 - [ ] Confirm that internal notes do not contain undeclared health data.
@@ -74,16 +76,17 @@ This checklist covers the first stable AtelierByPT release.
 
 ## 7. Repository release
 
-- [ ] Push the release-readiness branch.
-- [ ] Confirm GitHub Actions is green.
+- [ ] Push the release-finalization branch.
+- [x] Confirm GitHub Actions is green.
 - [ ] Review the pull request and its changed files.
-- [ ] Merge the accepted 2.0 version into `main`.
-- [ ] Create the permanent `demo` branch from the accepted release.
+- [x] Merge the accepted 2.0 version into `main`.
+- [x] Create the permanent `demo` branch from the accepted release.
 - [ ] Point both developer-owned beta services to the `demo` branch.
-- [ ] Confirm that demo and production use separate databases and secrets.
+- [x] Confirm that demo and production use separate databases and secrets.
 - [ ] Add `X-Robots-Tag: noindex, nofollow` to the demo Static Site.
-- [ ] Confirm `main` is the repository default branch.
-- [ ] Update the repository description and demo link.
+- [x] Confirm `main` is the repository default branch.
+- [ ] Protect `main` and require the CI status check before merging.
+- [x] Update the repository description, topics and demo link.
 - [ ] Create the `v2.0.0` tag after successful production deployment.
 
 ## 8. Production smoke test
@@ -98,7 +101,7 @@ This checklist covers the first stable AtelierByPT release.
 ## 9. First days after release
 
 - [ ] Review backend errors and failed login attempts daily.
-- [ ] Confirm backups continue to run.
+- [x] Confirm backups continue to run and complete a recovery test.
 - [ ] Ask the stylist for problems observed during real work.
 - [ ] Fix release regressions before starting new features.
 - [ ] Move non-critical improvements to a post-release backlog.

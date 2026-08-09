@@ -9,8 +9,9 @@ The project replaces paper-based appointment planning with a calendar governed
 by explicit business rules. Public visitors can check proposed appointment
 times, while the stylist retains flexible control over the actual schedule.
 
-> Project status: AtelierByPT 2.0 release candidate accepted by the stakeholder
-> and undergoing production rollout.
+> Project status: AtelierByPT 2.0 is deployed in production and undergoing
+> final stakeholder acceptance. The feature scope is frozen; only release
+> regressions are addressed before the stable release is tagged.
 
 ## Demo
 
@@ -113,7 +114,10 @@ contract from persistence entities.
 
 - Docker
 - Render
+- Neon PostgreSQL
+- Cloudflare R2
 - GitHub Actions
+- Daily encrypted database backups with a tested restore procedure
 
 ## Repository structure
 
@@ -234,7 +238,9 @@ requests.
 The manual beta, data-safety and deployment steps are listed in the
 [release checklist](docs/release-checklist.md). The production setup and
 rollback procedure are documented in the
-[production deployment runbook](docs/production-deployment.md).
+[production deployment runbook](docs/production-deployment.md). Encrypted
+database backups and recovery testing are covered by the
+[backup and restore runbook](docs/database-backup-restore.md).
 
 ## Security and privacy
 
@@ -246,6 +252,8 @@ rollback procedure are documented in the
 - Repeated failed login attempts cause a temporary login lock.
 - Production CORS accepts only the configured frontend origin.
 - Swagger and API documentation should be disabled in production.
+- Production data is backed up daily, encrypted with AGE and stored privately
+  in Cloudflare R2; recovery is tested in an isolated Neon database.
 - Google Maps is not requested until the visitor explicitly accepts external
   content and the choice can be changed later.
 - Real client data requires controlled access, database backups and an agreed

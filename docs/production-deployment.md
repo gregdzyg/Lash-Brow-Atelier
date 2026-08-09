@@ -25,7 +25,6 @@ The Atelier owner should have access to:
 
 - the business email account;
 - the HitMe domain and DNS panel;
-- the current Vercel project, if available;
 - a phone for two-factor authentication;
 - the payment card used for production services.
 
@@ -175,6 +174,8 @@ leaving the production database intact.
 If a database migration or data operation causes a problem, do not repeatedly
 restart or modify production. First inspect the failure, then restore into a
 separate Neon branch and verify the recovered data before changing production.
+Follow the [backup and restore runbook](database-backup-restore.md); never test
+recovery against the production database.
 
 ## Branch ownership after release
 
