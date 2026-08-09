@@ -1,16 +1,19 @@
 import {
     AlertCircle,
     LoaderCircle,
+    Search,
     UsersRound,
-    UserPlus
+    UserPlus,
+    X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getClients } from "../../api/apiClients";
 import { Link, useLocation } from "react-router-dom";
 
 
 const ClientsPage = () => {
     const [clients, setClients] = useState([]);
+    const [clientSearch, setClientSearch] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const location = useLocation();
@@ -45,6 +48,35 @@ const ClientsPage = () => {
     }, []);
 
     const renderContactValue = (value) => value?.trim() || "Brak danych";
+
+    const filteredClients = useMemo(() => {
+        const searchTerms = clientSearch
+            .trim()
+            .toLocaleLowerCase("pl")
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (searchTerms.length === 0) {
+            return clients;
+        }
+
+        return clients.filter((client) => {
+            const searchableClient = [
+                client.firstName,
+                client.lastName,
+                client.phoneNumber,
+                client.email,
+                client.instagramUsername,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLocaleLowerCase("pl");
+
+            return searchTerms.every((term) =>
+                searchableClient.includes(term)
+            );
+        });
+    }, [clients, clientSearch]);
 
     return (
         <section className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16">
@@ -127,6 +159,66 @@ const ClientsPage = () => {
             )}
 
             {!isLoading && !error && clients.length > 0 && (
+                <div className="mb-5 flex flex-col gap-3 rounded-3xl border border-[var(--gold)]/25 bg-gradient-to-br from-white/[0.07] to-white/[0.025] p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                    <div className="relative w-full sm:max-w-md">
+                        <label htmlFor="client-search" className="sr-only">
+                            Wyszukaj klientkę
+                        </label>
+                        <Search
+                            aria-hidden="true"
+                            size={18}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--gold)]/70"
+                        />
+                        <input
+                            id="client-search"
+                            type="search"
+                            value={clientSearch}
+                            onChange={(event) => setClientSearch(event.target.value)}
+                            placeholder="Szukaj po danych klientki"
+                            className="w-full rounded-2xl border border-[var(--gold)]/35 bg-white/[0.05] py-3 pl-11 pr-11 text-sm text-white outline-none transition duration-300 placeholder:text-white/30 hover:border-[var(--gold)]/60 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 [&::-webkit-search-cancel-button]:appearance-none"
+                        />
+                        {clientSearch && (
+                            <button
+                                type="button"
+                                onClick={() => setClientSearch("")}
+                                aria-label="Wyczyść wyszukiwanie"
+                                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg p-1 text-white/45 transition hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                            >
+                                <X aria-hidden="true" size={17} />
+                            </button>
+                        )}
+                    </div>
+
+                    <p aria-live="polite" className="shrink-0 text-xs text-white/45 sm:text-sm">
+                        {filteredClients.length === clients.length
+                            ? `Liczba klientek: ${clients.length}`
+                            : `Znaleziono: ${filteredClients.length}`}
+                    </p>
+                </div>
+            )}
+
+            {!isLoading && !error && clients.length > 0 && filteredClients.length === 0 && (
+                <div className="flex min-h-52 flex-col items-center justify-center rounded-4xl border border-[var(--gold)]/25 bg-gradient-to-br from-white/[0.08] to-white/[0.025] px-6 py-12 text-center backdrop-blur-xl">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--gold)]/25 bg-black/15 text-[var(--gold)]">
+                        <Search aria-hidden="true" size={28} />
+                    </span>
+                    <h2 className="mt-5 text-xl font-semibold text-white">
+                        Brak wyników
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-white/50">
+                        Nie znaleziono klientek pasujących do wyszukiwania.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setClientSearch("")}
+                        className="mt-5 cursor-pointer rounded-full border border-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                    >
+                        Wyczyść wyszukiwanie
+                    </button>
+                </div>
+            )}
+
+            {!isLoading && !error && filteredClients.length > 0 && (
                 <div className="overflow-hidden rounded-4xl border border-[var(--gold)]/30 bg-gradient-to-br from-white/[0.08] to-white/[0.025] backdrop-blur-xl">
                     <div
                         className="hidden grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)_minmax(0,1.3fr)_minmax(0,0.9fr)] gap-6 border-b border-[var(--gold)]/25 bg-black/10 px-7 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]/75 md:grid"
@@ -138,7 +230,7 @@ const ClientsPage = () => {
                     </div>
 
                     <div className="divide-y divide-[var(--gold)]/15">
-                        {clients.map((client) => (
+                        {filteredClients.map((client) => (
                             <Link
                                 key={client.id}
                                 to={`/admin/clients/${client.id}`}
