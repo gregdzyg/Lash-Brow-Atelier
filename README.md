@@ -9,9 +9,9 @@ The project replaces paper-based appointment planning with a calendar governed
 by explicit business rules. Public visitors can check proposed appointment
 times, while the stylist retains flexible control over the actual schedule.
 
-> Project status: AtelierByPT 2.0 is deployed in production and undergoing
-> final stakeholder acceptance. The feature scope is frozen; only release
-> regressions are addressed before the stable release is tagged.
+> Project status: AtelierByPT 2.0 is a stable production release accepted by
+> the stakeholder. The feature scope is frozen; future additions are tracked
+> separately from release regressions.
 
 ## Demo
 

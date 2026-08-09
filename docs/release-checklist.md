@@ -41,7 +41,7 @@ This checklist covers the first stable AtelierByPT release.
 - [ ] Record every issue with steps to reproduce, expected result and actual result.
 - [ ] Classify issues as blocking, important or cosmetic.
 - [ ] Resolve all blocking and important issues before production.
-- [ ] Obtain explicit approval for the AtelierByPT 2.0 release.
+- [x] Obtain explicit approval for the AtelierByPT 2.0 release.
 
 ## 5. Data and privacy
 
@@ -76,7 +76,7 @@ This checklist covers the first stable AtelierByPT release.
 
 ## 7. Repository release
 
-- [ ] Push the release-finalization branch.
+- [x] Push the release-finalization branch.
 - [x] Confirm GitHub Actions is green.
 - [ ] Review the pull request and its changed files.
 - [x] Merge the accepted 2.0 version into `main`.
