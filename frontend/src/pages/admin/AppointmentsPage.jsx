@@ -141,6 +141,13 @@ const AppointmentsPage = () => {
                     <Plus aria-hidden="true" size={17} />
                     Dodaj wizytę
                 </Link>
+                 <Link
+                    to="/admin/clients/new"
+                    className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                >
+                    <Plus aria-hidden="true" size={17} />
+                    Nowa Klientka
+                </Link>
             </div>
 
             {successMessage && (
