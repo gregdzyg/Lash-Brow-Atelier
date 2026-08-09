@@ -134,20 +134,23 @@ const AppointmentsPage = () => {
                         Zarządzaj terminami i sprawdzaj dostępność Atelier.
                     </p>
                 </div>
-                <Link
-                    to="/admin/appointments/new"
-                    className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
-                >
-                    <Plus aria-hidden="true" size={17} />
-                    Dodaj wizytę
-                </Link>
-                 <Link
-                    to="/admin/clients/new"
-                    className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
-                >
-                    <Plus aria-hidden="true" size={17} />
-                    Nowa Klientka
-                </Link>
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center xl:justify-end">
+                    <Link
+                        to="/admin/clients/new"
+                        className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)] bg-transparent px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                    >
+                        <Plus aria-hidden="true" size={17} />
+                        Nowa klientka
+                    </Link>
+
+                    <Link
+                        to="/admin/appointments/new"
+                        className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                    >
+                        <Plus aria-hidden="true" size={17} />
+                        Dodaj wizytę
+                    </Link>
+                </div>
             </div>
 
             {successMessage && (
