@@ -10,6 +10,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.atelierbypt.backend.config.SecurityConfig;
 import pl.atelierbypt.backend.controller.AdminAvailabilityController;
+import pl.atelierbypt.backend.controller.HealthController;
 import pl.atelierbypt.backend.controller.PublicAvailabilityController;
 import pl.atelierbypt.backend.service.AdminAvailabilityService;
 import pl.atelierbypt.backend.service.CustomUserDetailsService;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = {
+        HealthController.class,
         PublicAvailabilityController.class,
         AdminAvailabilityController.class
 })
@@ -49,6 +51,13 @@ class SecurityConfigTest {
     private JwtService jwtService;
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @Test
+    void shouldAllowHealthCheckWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/public/health"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
 
     @Test
     void shouldAllowPublicEndpointWithoutAuthentication() throws Exception {
