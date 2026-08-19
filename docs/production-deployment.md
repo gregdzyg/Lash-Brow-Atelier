@@ -58,7 +58,7 @@ Create a **Web Service** with these settings:
 | Runtime | Docker |
 | Dockerfile | `./Dockerfile` |
 | Instance | Starter paid instance |
-| Health check path | `/api/public/working-hours` |
+| Health check path | `/api/public/health` |
 
 Configure the following environment variables:
 
