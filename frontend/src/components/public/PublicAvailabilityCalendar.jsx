@@ -127,7 +127,7 @@ const PublicAvailabilityCalendar = () => {
   const [offersReloadKey, setOffersReloadKey] = useState(0);
 
   const maximumDate = useMemo(
-    () => addMonthsClamped(today, 3),
+    () => addMonthsClamped(today, 6),
     [today],
   );
 

@@ -402,6 +402,43 @@ class PublicAvailabilityServiceTest {
                 .hasMessage("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.");
     }
 
+    @Test
+    void shouldAllowAvailabilityRequestSixMonthsAhead() {
+        LocalDate maximumDate = LocalDate.of(2027, 1, 29);
+
+        when(workingHoursRepository.findByIsActiveTrue()).thenReturn(List.of());
+        when(availabilityExceptionRepository
+                .findByDateBetweenAndIsActiveTrue(maximumDate, maximumDate))
+                .thenReturn(List.of());
+        when(appointmentRepository.findActiveBetweenDates(maximumDate, maximumDate))
+                .thenReturn(List.of());
+
+        List<PublicAvailabilityDayResponse> result =
+                publicAvailabilityService.getAvailability(
+                        maximumDate,
+                        maximumDate,
+                        OFFER_ITEM_ID
+                );
+
+        assertThat(result).containsExactly(
+                new PublicAvailabilityDayResponse(maximumDate, List.of())
+        );
+    }
+
+    @Test
+    void shouldRejectAvailabilityRequestBeyondSixMonths() {
+        LocalDate dateBeyondMaximum = LocalDate.of(2027, 1, 30);
+
+        assertThatThrownBy(() ->
+                publicAvailabilityService.getAvailability(
+                        dateBeyondMaximum,
+                        dateBeyondMaximum,
+                        OFFER_ITEM_ID
+                ))
+                .isInstanceOf(PublicAvailabilityBadRequestException.class)
+                .hasMessage("Dostępność można sprawdzić maksymalnie na sześć miesięcy do przodu.");
+    }
+
     private WorkingHours createWorkingDay(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         WorkingHours workingHours = new WorkingHours();
         workingHours.setDayOfWeek(dayOfWeek);

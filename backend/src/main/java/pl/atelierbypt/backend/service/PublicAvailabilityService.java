@@ -101,7 +101,7 @@ public class PublicAvailabilityService {
         }
 
         LocalDate today = LocalDate.now(applicationClock);
-        LocalDate maximumDate = today.plusMonths(3);
+        LocalDate maximumDate = today.plusMonths(6);
 
         if (end.isBefore(start)) {
             throw new PublicAvailabilityBadRequestException(
@@ -117,7 +117,7 @@ public class PublicAvailabilityService {
 
         if (end.isAfter(maximumDate)) {
             throw new PublicAvailabilityBadRequestException(
-                    "Dostępność można sprawdzić maksymalnie na trzy miesiące do przodu."
+                    "Dostępność można sprawdzić maksymalnie na sześć miesięcy do przodu."
             );
         }
 
