@@ -253,7 +253,7 @@ const ClientDetailsPage = () => {
                                         Nadchodzące wizyty
                                     </h2>
                                     <p className="mt-1 text-xs text-white/35">
-                                        Zaplanowane na najbliższe trzy miesiące
+                                        Zaplanowane na najbliższe sześć miesięcy
                                     </p>
                                 </div>
                             </div>
@@ -270,7 +270,7 @@ const ClientDetailsPage = () => {
                                     Brak nadchodzących wizyt
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-white/35">
-                                    Klientka nie ma umówionych wizyt w najbliższych trzech miesiącach.
+                                    Klientka nie ma umówionych wizyt w najbliższych sześciu miesiącach.
                                 </p>
                             </div>
                         ) : (

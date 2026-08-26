@@ -34,7 +34,7 @@ public class ClientService {
         Client client = findClientById(id);
         LocalDateTime now = LocalDateTime.now(applicationClock);
         LocalDate start = now.toLocalDate();
-        LocalDate end = start.plusMonths(3);
+        LocalDate end = start.plusMonths(6);
 
         List<ClientAppointmentSummaryResponse> upcomingAppointments = appointmentRepository
                 .findScheduledActiveByClientIdBetweenDates(id, start, end)

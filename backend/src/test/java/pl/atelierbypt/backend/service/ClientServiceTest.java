@@ -34,7 +34,7 @@ class ClientServiceTest {
             2026, 8, 4, 10, 0, 0, 0, ZONE
     ).toInstant();
     private static final LocalDate TODAY = LocalDate.of(2026, 8, 4);
-    private static final LocalDate THREE_MONTHS_FROM_TODAY = LocalDate.of(2026, 11, 4);
+    private static final LocalDate SIX_MONTHS_FROM_TODAY = LocalDate.of(2027, 2, 4);
     private static final Long CLIENT_ID = 1L;
 
     @Mock
@@ -72,7 +72,7 @@ class ClientServiceTest {
         when(appointmentRepository.findScheduledActiveByClientIdBetweenDates(
                 CLIENT_ID,
                 TODAY,
-                THREE_MONTHS_FROM_TODAY
+                SIX_MONTHS_FROM_TODAY
         )).thenReturn(List.of(earlierToday, upcomingAppointment));
 
         ClientDetailsResponse result = clientService.getClientById(CLIENT_ID);
@@ -91,7 +91,7 @@ class ClientServiceTest {
         verify(appointmentRepository).findScheduledActiveByClientIdBetweenDates(
                 CLIENT_ID,
                 TODAY,
-                THREE_MONTHS_FROM_TODAY
+                SIX_MONTHS_FROM_TODAY
         );
     }
 
