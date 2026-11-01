@@ -9,3 +9,8 @@ export const getPublicWorkingHours = async () => {
   const response = await apiClient.get("/api/public/working-hours");
   return response.data;
 };
+
+export const getPublicGalleryImages = async () => {
+  const response = await apiClient.get("/api/public/gallery-images");
+  return response.data;
+};
