@@ -26,6 +26,12 @@ const adminSections = [
         icon: "⏰",
         to: "/admin/availability",
     },
+    {
+        title: "Galeria",
+        description: "Dodawaj i zarządzaj zdjęciami",
+        icon: "🖼️",
+        to: "/admin/gallery",
+    },
 ];
 
 const AdminDashboard = () => {
