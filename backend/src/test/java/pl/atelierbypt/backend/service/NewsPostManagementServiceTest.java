@@ -136,6 +136,53 @@ class NewsPostManagementServiceTest {
     }
 
     @Test
+    void shouldReplaceNewsPostImageAndDeletePreviousObject() {
+        NewsPost newsPost = newsPost(1L, true, "news/previous.jpg");
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+        when(r2StorageService.upload(image, ImageStorageFolder.NEWS))
+                .thenReturn("news/new.jpg");
+        when(newsPostRepository.saveAndFlush(newsPost)).thenReturn(newsPost);
+
+        NewsPostResponse response = newsPostManagementService
+                .replaceNewsPostImage(1L, image);
+
+        assertThat(response.imageUrl())
+                .isEqualTo("https://atelier.example.com/news/new.jpg");
+        verify(r2StorageService).delete("news/previous.jpg");
+    }
+
+    @Test
+    void shouldDeleteNewUploadWhenImageReplacementSaveFails() {
+        NewsPost newsPost = newsPost(1L, true, "news/previous.jpg");
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+        when(r2StorageService.upload(image, ImageStorageFolder.NEWS))
+                .thenReturn("news/new.jpg");
+        when(newsPostRepository.saveAndFlush(newsPost))
+                .thenThrow(new DataIntegrityViolationException("DB error"));
+
+        assertThatThrownBy(() -> newsPostManagementService
+                .replaceNewsPostImage(1L, image))
+                .isInstanceOf(DataIntegrityViolationException.class);
+
+        verify(r2StorageService).delete("news/new.jpg");
+        verify(r2StorageService, never()).delete("news/previous.jpg");
+    }
+
+    @Test
+    void shouldRemoveNewsPostImageFromR2AndMetadata() {
+        NewsPost newsPost = newsPost(1L, true, IMAGE_OBJECT_KEY);
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+        when(newsPostRepository.saveAndFlush(newsPost)).thenReturn(newsPost);
+
+        NewsPostResponse response = newsPostManagementService
+                .removeNewsPostImage(1L);
+
+        assertThat(response.imageUrl()).isNull();
+        assertThat(newsPost.getImageObjectKey()).isNull();
+        verify(r2StorageService).delete(IMAGE_OBJECT_KEY);
+    }
+
+    @Test
     void shouldCreateNewsPostWithoutImage() {
         when(newsPostRepository.saveAndFlush(any(NewsPost.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));

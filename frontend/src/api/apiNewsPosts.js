@@ -21,6 +21,23 @@ export const updateNewsPostDetails = async (newsPostId, details) => {
     return response.data;
 };
 
+export const replaceNewsPostImage = async (newsPostId, image) => {
+    const formData = new FormData();
+    formData.append("image", image);
+    const response = await apiClient.put(
+        `/api/admin/news-posts/${newsPostId}/image`,
+        formData,
+    );
+    return response.data;
+};
+
+export const removeNewsPostImage = async (newsPostId) => {
+    const response = await apiClient.delete(
+        `/api/admin/news-posts/${newsPostId}/image`,
+    );
+    return response.data;
+};
+
 export const createNewsPost = async ({
     title,
     content,

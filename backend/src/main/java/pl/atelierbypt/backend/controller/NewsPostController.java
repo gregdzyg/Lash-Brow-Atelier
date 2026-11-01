@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.NewsPostDetailsRequest;
 import pl.atelierbypt.backend.dto.NewsPostRequest;
@@ -60,6 +62,31 @@ public class NewsPostController {
                         newsPostId,
                         request
                 )
+        );
+    }
+
+    @PutMapping(
+            value = "/{newsPostId}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<NewsPostResponse> replaceNewsPostImage(
+            @PathVariable Long newsPostId,
+            @RequestParam MultipartFile image
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.replaceNewsPostImage(
+                        newsPostId,
+                        image
+                )
+        );
+    }
+
+    @DeleteMapping("/{newsPostId}/image")
+    public ResponseEntity<NewsPostResponse> removeNewsPostImage(
+            @PathVariable Long newsPostId
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.removeNewsPostImage(newsPostId)
         );
     }
 

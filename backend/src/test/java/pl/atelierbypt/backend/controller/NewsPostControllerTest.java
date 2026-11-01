@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -144,6 +145,43 @@ class NewsPostControllerTest {
                 .andExpect(jsonPath("$.title").value("Nowy tytuł"))
                 .andExpect(jsonPath("$.content").value("Nowa treść"))
                 .andExpect(jsonPath("$.category").value("EVENT"));
+    }
+
+    @Test
+    void shouldReplaceNewsPostImage() throws Exception {
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "new.jpg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+        NewsPostResponse response = newsPostResponse(1L, true);
+        when(newsPostManagementService.replaceNewsPostImage(1L, image))
+                .thenReturn(response);
+
+        mockMvc.perform(multipart("/api/admin/news-posts/1/image")
+                        .file(image)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(newsPostManagementService).replaceNewsPostImage(1L, image);
+    }
+
+    @Test
+    void shouldRemoveNewsPostImage() throws Exception {
+        NewsPostResponse response = newsPostResponse(1L, true);
+        when(newsPostManagementService.removeNewsPostImage(1L))
+                .thenReturn(response);
+
+        mockMvc.perform(delete("/api/admin/news-posts/1/image"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(newsPostManagementService).removeNewsPostImage(1L);
     }
 
     private NewsPostResponse newsPostResponse(Long id, boolean isActive) {

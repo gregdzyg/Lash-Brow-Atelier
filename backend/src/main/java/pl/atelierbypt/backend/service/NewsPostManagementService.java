@@ -65,6 +65,49 @@ public class NewsPostManagementService {
     }
 
     @Transactional
+    public NewsPostResponse replaceNewsPostImage(
+            Long newsPostId,
+            MultipartFile image
+    ) {
+        NewsPost newsPost = findNewsPost(newsPostId);
+        String previousObjectKey = newsPost.getImageObjectKey();
+        String newObjectKey = r2StorageService.upload(
+                image,
+                ImageStorageFolder.NEWS
+        );
+
+        try {
+            newsPost.setImageObjectKey(newObjectKey);
+            newsPost.setImageAltText(null);
+            NewsPost savedNewsPost = newsPostRepository.saveAndFlush(newsPost);
+
+            if (previousObjectKey != null) {
+                r2StorageService.delete(previousObjectKey);
+            }
+            return mapToNewsPostResponse(savedNewsPost);
+        } catch (RuntimeException exception) {
+            deleteUploadedObject(newObjectKey, exception);
+            throw exception;
+        }
+    }
+
+    @Transactional
+    public NewsPostResponse removeNewsPostImage(Long newsPostId) {
+        NewsPost newsPost = findNewsPost(newsPostId);
+        String objectKey = newsPost.getImageObjectKey();
+
+        if (objectKey == null) {
+            return mapToNewsPostResponse(newsPost);
+        }
+
+        newsPost.setImageObjectKey(null);
+        newsPost.setImageAltText(null);
+        NewsPost savedNewsPost = newsPostRepository.saveAndFlush(newsPost);
+        r2StorageService.delete(objectKey);
+        return mapToNewsPostResponse(savedNewsPost);
+    }
+
+    @Transactional
     public NewsPostResponse createNewsPost(
             NewsPostRequest request,
             MultipartFile image

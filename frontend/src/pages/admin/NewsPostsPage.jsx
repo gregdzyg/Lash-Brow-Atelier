@@ -5,6 +5,8 @@ import {
     Eye,
     EyeOff,
     ImagePlus,
+    ImageOff,
+    ImageUp,
     LoaderCircle,
     Newspaper,
     Pencil,
@@ -18,6 +20,8 @@ import {
     getAdminNewsPosts,
     setNewsPostVisibility,
     updateNewsPostDetails,
+    removeNewsPostImage,
+    replaceNewsPostImage,
 } from "../../api/apiNewsPosts";
 
 const CATEGORY_OPTIONS = [
@@ -71,6 +75,9 @@ const NewsPostsPage = () => {
     const [editCategory, setEditCategory] = useState("NEWS");
     const [editError, setEditError] = useState("");
     const [isSavingDetails, setIsSavingDetails] = useState(false);
+    const [updatingImageNewsPostId, setUpdatingImageNewsPostId] = useState(null);
+    const [imageRemovalConfirmationId, setImageRemovalConfirmationId] = useState(null);
+    const [imageError, setImageError] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -228,6 +235,55 @@ const NewsPostsPage = () => {
             setEditError("Nie udało się zapisać zmian we wpisie.");
         } finally {
             setIsSavingDetails(false);
+        }
+    };
+
+    const handleImageReplace = async (newsPostId, selectedImage) => {
+        if (!selectedImage) {
+            return;
+        }
+
+        setUpdatingImageNewsPostId(newsPostId);
+        setImageRemovalConfirmationId(null);
+        setImageError("");
+
+        try {
+            const updatedNewsPost = await replaceNewsPostImage(
+                newsPostId,
+                selectedImage,
+            );
+            setNewsPosts((currentNewsPosts) =>
+                currentNewsPosts.map((currentNewsPost) =>
+                    currentNewsPost.id === updatedNewsPost.id
+                        ? updatedNewsPost
+                        : currentNewsPost
+                )
+            );
+        } catch {
+            setImageError("Nie udało się zmienić zdjęcia wpisu.");
+        } finally {
+            setUpdatingImageNewsPostId(null);
+        }
+    };
+
+    const handleImageRemove = async (newsPostId) => {
+        setUpdatingImageNewsPostId(newsPostId);
+        setImageError("");
+
+        try {
+            const updatedNewsPost = await removeNewsPostImage(newsPostId);
+            setNewsPosts((currentNewsPosts) =>
+                currentNewsPosts.map((currentNewsPost) =>
+                    currentNewsPost.id === updatedNewsPost.id
+                        ? updatedNewsPost
+                        : currentNewsPost
+                )
+            );
+            setImageRemovalConfirmationId(null);
+        } catch {
+            setImageError("Nie udało się usunąć zdjęcia wpisu.");
+        } finally {
+            setUpdatingImageNewsPostId(null);
         }
     };
 
@@ -487,6 +543,16 @@ const NewsPostsPage = () => {
                     </div>
                 )}
 
+                {imageError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {imageError}
+                    </div>
+                )}
+
                 {!isLoading && !listError && newsPosts.length === 0 && (
                     <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
                         <Newspaper
@@ -646,6 +712,81 @@ const NewsPostsPage = () => {
                                                 ? "Ukryj wpis"
                                                 : "Opublikuj ponownie"}
                                     </button>
+
+                                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <label
+                                            className={`flex items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white ${updatingImageNewsPostId !== null || editingNewsPostId !== null ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                                        >
+                                            {updatingImageNewsPostId === newsPost.id ? (
+                                                <LoaderCircle
+                                                    aria-hidden="true"
+                                                    size={16}
+                                                    className="animate-spin"
+                                                />
+                                            ) : (
+                                                <ImageUp aria-hidden="true" size={16} />
+                                            )}
+                                            {newsPost.imageUrl ? "Zmień zdjęcie" : "Dodaj zdjęcie"}
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png"
+                                                disabled={updatingImageNewsPostId !== null || editingNewsPostId !== null}
+                                                onChange={(event) => {
+                                                    handleImageReplace(
+                                                        newsPost.id,
+                                                        event.target.files?.[0],
+                                                    );
+                                                    event.target.value = "";
+                                                }}
+                                                className="sr-only"
+                                            />
+                                        </label>
+
+                                        {newsPost.imageUrl && (
+                                            <button
+                                                type="button"
+                                                disabled={updatingImageNewsPostId !== null || editingNewsPostId !== null}
+                                                onClick={() => setImageRemovalConfirmationId(newsPost.id)}
+                                                className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/30 px-4 py-2.5 text-sm font-semibold text-red-200/75 transition-colors hover:border-red-300/60 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <ImageOff aria-hidden="true" size={16} />
+                                                Usuń zdjęcie
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {imageRemovalConfirmationId === newsPost.id && (
+                                        <div className="mt-3 rounded-2xl border border-red-400/25 bg-red-500/[0.07] p-4">
+                                            <p className="text-xs leading-5 text-red-100/75">
+                                                Zdjęcie zostanie trwale usunięte z R2. Sam wpis pozostanie bez zmian.
+                                            </p>
+                                            <div className="mt-3 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={updatingImageNewsPostId !== null}
+                                                    onClick={() => setImageRemovalConfirmationId(null)}
+                                                    className="flex-1 cursor-pointer rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-white/65 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={updatingImageNewsPostId !== null}
+                                                    onClick={() => handleImageRemove(newsPost.id)}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/50 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {updatingImageNewsPostId === newsPost.id && (
+                                                        <LoaderCircle
+                                                            aria-hidden="true"
+                                                            size={14}
+                                                            className="animate-spin"
+                                                        />
+                                                    )}
+                                                    Usuń trwale
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </article>
                         ))}
