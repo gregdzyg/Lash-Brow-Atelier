@@ -65,7 +65,7 @@ const Gallery = () => {
       )}
 
       {!isLoading && !hasError && galleryImages.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:gap-6">
+        <div className="grid items-start grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:gap-6">
           {galleryImages.map((image, index) => (
             <figure
               key={image.id}
