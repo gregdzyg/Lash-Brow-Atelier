@@ -52,7 +52,7 @@ public class R2StorageService {
         try {
             s3Client.putObject(
                     request,
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+                    RequestBody.fromBytes(file.getBytes())
             );
             return objectKey;
         } catch (IOException | SdkException exception) {

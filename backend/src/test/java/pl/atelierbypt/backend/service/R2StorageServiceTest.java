@@ -41,7 +41,7 @@ class R2StorageServiceTest {
     }
 
     @Test
-    void shouldUploadJpegAndReturnGeneratedObjectKey() {
+    void shouldUploadJpegAndReturnGeneratedObjectKey() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "photo.jpeg",
@@ -57,15 +57,23 @@ class R2StorageServiceTest {
 
         ArgumentCaptor<PutObjectRequest> requestCaptor =
                 ArgumentCaptor.forClass(PutObjectRequest.class);
+        ArgumentCaptor<RequestBody> bodyCaptor =
+                ArgumentCaptor.forClass(RequestBody.class);
         verify(s3Client).putObject(
                 requestCaptor.capture(),
-                any(RequestBody.class)
+                bodyCaptor.capture()
         );
 
         PutObjectRequest request = requestCaptor.getValue();
         assertThat(request.bucket()).isEqualTo(BUCKET_NAME);
         assertThat(request.key()).isEqualTo(objectKey);
         assertThat(request.contentType()).isEqualTo("image/jpeg");
+
+        RequestBody requestBody = bodyCaptor.getValue();
+        assertThat(requestBody.contentStreamProvider().newStream().readAllBytes())
+                .containsExactly(1, 2, 3);
+        assertThat(requestBody.contentStreamProvider().newStream().readAllBytes())
+                .containsExactly(1, 2, 3);
     }
 
     @Test
