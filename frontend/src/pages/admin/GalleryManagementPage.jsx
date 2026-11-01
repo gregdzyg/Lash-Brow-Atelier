@@ -271,7 +271,7 @@ const GalleryManagementPage = () => {
                             Nowe zdjęcie
                         </h2>
                         <p className="mt-1 text-sm leading-6 text-white/45">
-                            Obsługiwane formaty: JPG, PNG i WebP, maksymalnie 10 MB.
+                            Obsługiwane formaty: JPG, JPEG i PNG, maksymalnie 10 MB.
                         </p>
 
                         <label
@@ -302,7 +302,7 @@ const GalleryManagementPage = () => {
                             ref={fileInputRef}
                             id="gallery-file"
                             type="file"
-                            accept="image/jpeg,image/png,image/webp"
+                            accept="image/jpeg,image/png"
                             required
                             disabled={isSubmitting}
                             onChange={handleFileChange}

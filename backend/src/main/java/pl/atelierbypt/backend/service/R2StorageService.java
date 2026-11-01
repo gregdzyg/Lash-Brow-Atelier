@@ -24,8 +24,7 @@ public class R2StorageService {
     private static final String OBJECT_KEY_PREFIX = "gallery/";
     private static final Map<String, String> EXTENSIONS_BY_CONTENT_TYPE = Map.of(
             "image/jpeg", "jpg",
-            "image/png", "png",
-            "image/webp", "webp"
+            "image/png", "png"
     );
 
     private final S3Client s3Client;
@@ -88,7 +87,7 @@ public class R2StorageService {
 
         String fileExtension = EXTENSIONS_BY_CONTENT_TYPE.get(file.getContentType());
         if (fileExtension == null) {
-            throw new BadRequestException("Dozwolone formaty zdjęć to JPEG, PNG i WebP.");
+            throw new BadRequestException("Dozwolone formaty zdjęć to JPEG i PNG.");
         }
 
         return fileExtension;

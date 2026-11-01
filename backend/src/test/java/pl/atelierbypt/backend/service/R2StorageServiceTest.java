@@ -106,7 +106,7 @@ class R2StorageServiceTest {
 
         assertThatThrownBy(() -> r2StorageService.upload(file))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("Dozwolone formaty zdjęć to JPEG, PNG i WebP.");
+                .hasMessage("Dozwolone formaty zdjęć to JPEG i PNG.");
 
         verify(s3Client, never()).putObject(
                 any(PutObjectRequest.class),
