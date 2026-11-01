@@ -27,6 +27,7 @@ import NewAppointmentPage from './pages/admin/NewAppointmentPage';
 import AppointmentDetailsPage from './pages/admin/AppointmentDetailsPage';
 import EditAppointmentPage from './pages/admin/EditAppointmentPage';
 import GalleryManagementPage from './pages/admin/GalleryManagementPage';
+import NewsPostsPage from './pages/admin/NewsPostsPage';
 
 const App = () => {
   return (
@@ -62,6 +63,7 @@ const App = () => {
           <Route path="appointments/:appointmentId" element={<AppointmentDetailsPage />} />
           <Route path="appointments/:appointmentId/edit" element={<EditAppointmentPage />} />
           <Route path="gallery" element={<GalleryManagementPage />} />
+          <Route path="news" element={<NewsPostsPage />} />
         </Route>
         </Route>
       </Routes>

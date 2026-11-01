@@ -32,6 +32,12 @@ const adminSections = [
         icon: "🖼️",
         to: "/admin/gallery",
     },
+    {
+        title: "Aktualności",
+        description: "Publikuj informacje, wydarzenia i promocje",
+        icon: "📰",
+        to: "/admin/news",
+    },
 ];
 
 const AdminDashboard = () => {
