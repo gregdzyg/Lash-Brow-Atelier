@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.OptimizedImage;
+import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.exception.R2StorageException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -21,7 +22,6 @@ import java.util.UUID;
 public class R2StorageService {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-    private static final String OBJECT_KEY_PREFIX = "gallery/";
     private static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
             "image/jpeg",
             "image/png"
@@ -41,10 +41,10 @@ public class R2StorageService {
         this.bucketName = bucketName;
     }
 
-    public String upload(MultipartFile file) {
+    public String upload(MultipartFile file, ImageStorageFolder folder) {
         validateFile(file);
         OptimizedImage optimizedImage = imageOptimizationService.optimize(file);
-        String objectKey = OBJECT_KEY_PREFIX
+        String objectKey = folder.objectKeyPrefix()
                 + UUID.randomUUID()
                 + "."
                 + optimizedImage.fileExtension();

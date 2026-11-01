@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
+import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
@@ -50,7 +51,8 @@ class GalleryImageManagementServiceTest {
 
     @Test
     void shouldUploadFileAndSaveGalleryImageMetadata() {
-        when(r2StorageService.upload(file)).thenReturn(OBJECT_KEY);
+        when(r2StorageService.upload(file, ImageStorageFolder.GALLERY))
+                .thenReturn(OBJECT_KEY);
         when(galleryImageRepository.saveAndFlush(any(GalleryImage.class)))
                 .thenAnswer(invocation -> {
                     GalleryImage galleryImage = invocation.getArgument(0);
@@ -235,7 +237,8 @@ class GalleryImageManagementServiceTest {
 
     @Test
     void shouldDeleteUploadedObjectWhenSavingMetadataFails() {
-        when(r2StorageService.upload(file)).thenReturn(OBJECT_KEY);
+        when(r2StorageService.upload(file, ImageStorageFolder.GALLERY))
+                .thenReturn(OBJECT_KEY);
         when(galleryImageRepository.saveAndFlush(any(GalleryImage.class)))
                 .thenThrow(new DataIntegrityViolationException("Database unavailable"));
 

@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.OptimizedImage;
+import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.exception.R2StorageException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -63,7 +64,10 @@ class R2StorageServiceTest {
                 )
         );
 
-        String objectKey = r2StorageService.upload(file);
+        String objectKey = r2StorageService.upload(
+                file,
+                ImageStorageFolder.GALLERY
+        );
 
         assertThat(objectKey)
                 .startsWith("gallery/")
@@ -91,6 +95,32 @@ class R2StorageServiceTest {
     }
 
     @Test
+    void shouldUploadNewsImageWithNewsObjectKeyPrefix() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "news.jpeg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+        when(imageOptimizationService.optimize(file)).thenReturn(
+                new OptimizedImage(
+                        new byte[]{4, 5},
+                        "image/jpeg",
+                        "jpg"
+                )
+        );
+
+        String objectKey = r2StorageService.upload(
+                file,
+                ImageStorageFolder.NEWS
+        );
+
+        assertThat(objectKey)
+                .startsWith("news/")
+                .endsWith(".jpg");
+    }
+
+    @Test
     void shouldRejectEmptyFile() {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -99,7 +129,10 @@ class R2StorageServiceTest {
                 new byte[0]
         );
 
-        assertThatThrownBy(() -> r2StorageService.upload(file))
+        assertThatThrownBy(() -> r2StorageService.upload(
+                file,
+                ImageStorageFolder.GALLERY
+        ))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Plik zdjęcia nie może być pusty.");
 
@@ -119,7 +152,10 @@ class R2StorageServiceTest {
                 new byte[]{1, 2, 3}
         );
 
-        assertThatThrownBy(() -> r2StorageService.upload(file))
+        assertThatThrownBy(() -> r2StorageService.upload(
+                file,
+                ImageStorageFolder.GALLERY
+        ))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Dozwolone formaty zdjęć to JPEG i PNG.");
 
@@ -135,7 +171,10 @@ class R2StorageServiceTest {
         when(oversizedFile.isEmpty()).thenReturn(false);
         when(oversizedFile.getSize()).thenReturn(10 * 1024 * 1024 + 1L);
 
-        assertThatThrownBy(() -> r2StorageService.upload(oversizedFile))
+        assertThatThrownBy(() -> r2StorageService.upload(
+                oversizedFile,
+                ImageStorageFolder.GALLERY
+        ))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Plik zdjęcia nie może być większy niż 10 MB.");
 
@@ -181,7 +220,10 @@ class R2StorageServiceTest {
                 any(RequestBody.class)
         )).thenThrow(S3Exception.builder().message("R2 unavailable").build());
 
-        assertThatThrownBy(() -> r2StorageService.upload(file))
+        assertThatThrownBy(() -> r2StorageService.upload(
+                file,
+                ImageStorageFolder.GALLERY
+        ))
                 .isInstanceOf(R2StorageException.class)
                 .hasMessage("Nie udało się wysłać zdjęcia.")
                 .hasCauseInstanceOf(S3Exception.class);

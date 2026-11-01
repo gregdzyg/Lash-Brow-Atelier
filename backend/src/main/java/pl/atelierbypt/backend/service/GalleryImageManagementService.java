@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
+import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
 import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
@@ -118,7 +119,10 @@ public class GalleryImageManagementService {
             String title,
             String altText
     ) {
-        String objectKey = r2StorageService.upload(file);
+        String objectKey = r2StorageService.upload(
+                file,
+                ImageStorageFolder.GALLERY
+        );
 
         try {
             GalleryImage galleryImage = new GalleryImage();
