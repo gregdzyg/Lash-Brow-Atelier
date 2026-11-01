@@ -1,5 +1,10 @@
 import apiClient from "./apiClient";
 
+export const getAdminGalleryImages = async () => {
+    const response = await apiClient.get("/api/admin/gallery-images");
+    return response.data;
+};
+
 export const uploadGalleryImage = async ({ file, title, altText }) => {
     const formData = new FormData();
     formData.append("file", file);

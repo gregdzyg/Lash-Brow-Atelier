@@ -10,10 +10,13 @@ import pl.atelierbypt.backend.exception.GlobalExceptionHandler;
 import pl.atelierbypt.backend.exception.R2StorageException;
 import pl.atelierbypt.backend.service.GalleryImageManagementService;
 
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,6 +76,35 @@ class GalleryImageControllerTest {
                 "Atelier",
                 "Wnętrze atelier"
         );
+    }
+
+    @Test
+    void shouldReturnGalleryImages() throws Exception {
+        GalleryImageResponse activeImage = new GalleryImageResponse(
+                1L,
+                "https://example.r2.dev/gallery/active.jpg",
+                "Aktywne zdjęcie",
+                null,
+                0,
+                true
+        );
+        GalleryImageResponse inactiveImage = new GalleryImageResponse(
+                2L,
+                "https://example.r2.dev/gallery/inactive.jpg",
+                "Ukryte zdjęcie",
+                null,
+                1,
+                false
+        );
+        when(galleryImageManagementService.getGalleryImages())
+                .thenReturn(List.of(activeImage, inactiveImage));
+
+        mockMvc.perform(get("/api/admin/gallery-images"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].isActive").value(true))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].isActive").value(false));
     }
 
     @Test

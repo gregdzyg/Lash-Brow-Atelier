@@ -14,5 +14,7 @@ public interface GalleryImageRepository extends Repository<GalleryImage, Long> {
 
     Optional<GalleryImage> findById(Long id);
 
+    List<GalleryImage> findAllByOrderBySortOrderAscCreatedAtDesc();
+
     List<GalleryImage> findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc();
 }

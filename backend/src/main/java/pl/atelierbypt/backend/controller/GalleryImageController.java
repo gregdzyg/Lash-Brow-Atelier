@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.service.GalleryImageManagementService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/admin/gallery-images")
 @RequiredArgsConstructor
@@ -19,6 +22,13 @@ import pl.atelierbypt.backend.service.GalleryImageManagementService;
 public class GalleryImageController {
 
     private final GalleryImageManagementService galleryImageManagementService;
+
+    @GetMapping
+    public ResponseEntity<List<GalleryImageResponse>> getGalleryImages() {
+        return ResponseEntity.ok(
+                galleryImageManagementService.getGalleryImages()
+        );
+    }
 
     @PostMapping
     public ResponseEntity<GalleryImageResponse> createGalleryImage(

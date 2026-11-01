@@ -9,6 +9,8 @@ import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
+import java.util.List;
+
 @Service
 @ConditionalOnProperty(prefix = "app.r2", name = "enabled", havingValue = "true")
 public class GalleryImageManagementService {
@@ -25,6 +27,15 @@ public class GalleryImageManagementService {
         this.galleryImageRepository = galleryImageRepository;
         this.r2StorageService = r2StorageService;
         this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+    }
+
+    @Transactional(readOnly = true)
+    public List<GalleryImageResponse> getGalleryImages() {
+        return galleryImageRepository
+                .findAllByOrderBySortOrderAscCreatedAtDesc()
+                .stream()
+                .map(this::mapToGalleryImageResponse)
+                .toList();
     }
 
     @Transactional

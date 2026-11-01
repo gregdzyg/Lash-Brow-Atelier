@@ -12,6 +12,8 @@ import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,6 +78,35 @@ class GalleryImageManagementServiceTest {
     }
 
     @Test
+    void shouldReturnAllGalleryImagesIncludingInactiveOnes() {
+        GalleryImage activeImage = galleryImage(
+                1L,
+                "gallery/active.jpg",
+                "Aktywne zdjęcie",
+                true
+        );
+        GalleryImage inactiveImage = galleryImage(
+                2L,
+                "gallery/inactive.jpg",
+                "Ukryte zdjęcie",
+                false
+        );
+        when(galleryImageRepository.findAllByOrderBySortOrderAscCreatedAtDesc())
+                .thenReturn(List.of(activeImage, inactiveImage));
+
+        List<GalleryImageResponse> response =
+                galleryImageManagementService.getGalleryImages();
+
+        assertThat(response).hasSize(2);
+        assertThat(response.get(0).imageUrl())
+                .isEqualTo("https://gallery.example.com/gallery/active.jpg");
+        assertThat(response.get(0).isActive()).isTrue();
+        assertThat(response.get(1).imageUrl())
+                .isEqualTo("https://gallery.example.com/gallery/inactive.jpg");
+        assertThat(response.get(1).isActive()).isFalse();
+    }
+
+    @Test
     void shouldDeleteUploadedObjectWhenSavingMetadataFails() {
         when(r2StorageService.upload(file)).thenReturn(OBJECT_KEY);
         when(galleryImageRepository.saveAndFlush(any(GalleryImage.class)))
@@ -90,5 +121,19 @@ class GalleryImageManagementServiceTest {
                 .isInstanceOf(DataIntegrityViolationException.class);
 
         verify(r2StorageService).delete(OBJECT_KEY);
+    }
+
+    private GalleryImage galleryImage(
+            Long id,
+            String objectKey,
+            String title,
+            boolean isActive
+    ) {
+        GalleryImage galleryImage = new GalleryImage();
+        galleryImage.setId(id);
+        galleryImage.setObjectKey(objectKey);
+        galleryImage.setTitle(title);
+        galleryImage.setActive(isActive);
+        return galleryImage;
     }
 }

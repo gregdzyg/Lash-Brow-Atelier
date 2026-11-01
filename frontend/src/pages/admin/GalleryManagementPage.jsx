@@ -1,6 +1,6 @@
-import { CheckCircle2, ImagePlus, LoaderCircle, Upload } from "lucide-react";
+import { AlertCircle, CheckCircle2, ImagePlus, LoaderCircle, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { uploadGalleryImage } from "../../api/apiGallery";
+import { getAdminGalleryImages, uploadGalleryImage } from "../../api/apiGallery";
 
 const inputClassName = `
     w-full rounded-2xl border border-[var(--gold)]/35 bg-white/[0.05]
@@ -10,6 +10,18 @@ const inputClassName = `
     disabled:cursor-not-allowed disabled:opacity-60
 `;
 
+const getImagesCountLabel = (count) => {
+    if (count === 1) {
+        return "1 zdjęcie";
+    }
+
+    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) {
+        return `${count} zdjęcia`;
+    }
+
+    return `${count} zdjęć`;
+};
+
 const GalleryManagementPage = () => {
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState("");
@@ -17,6 +29,9 @@ const GalleryManagementPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [uploadedImage, setUploadedImage] = useState(null);
+    const [galleryImages, setGalleryImages] = useState([]);
+    const [isGalleryLoading, setIsGalleryLoading] = useState(true);
+    const [galleryError, setGalleryError] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -32,6 +47,34 @@ const GalleryManagementPage = () => {
             }
         };
     }, [previewUrl]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchGalleryImages = async () => {
+            try {
+                const images = await getAdminGalleryImages();
+
+                if (isMounted) {
+                    setGalleryImages(Array.isArray(images) ? images : []);
+                }
+            } catch {
+                if (isMounted) {
+                    setGalleryError("Nie udało się pobrać zdjęć galerii.");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsGalleryLoading(false);
+                }
+            }
+        };
+
+        fetchGalleryImages();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleFileChange = (event) => {
         setFile(event.target.files?.[0] ?? null);
@@ -64,6 +107,10 @@ const GalleryManagementPage = () => {
             });
 
             setUploadedImage(createdImage);
+            setGalleryImages((currentImages) => [
+                createdImage,
+                ...currentImages,
+            ]);
             setFile(null);
             setTitle("");
             setAltText("");
@@ -233,6 +280,83 @@ const GalleryManagementPage = () => {
                     </button>
                 </div>
             </form>
+
+            <div className="mt-12">
+                <div className="mb-6 flex items-end justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-semibold text-white">
+                            Zdjęcia w galerii
+                        </h2>
+                        <p className="mt-2 text-sm text-white/50">
+                            Wszystkie zdjęcia zapisane w panelu administracyjnym.
+                        </p>
+                    </div>
+                    {!isGalleryLoading && !galleryError && (
+                        <span className="shrink-0 text-sm text-white/45">
+                            {getImagesCountLabel(galleryImages.length)}
+                        </span>
+                    )}
+                </div>
+
+                {isGalleryLoading && (
+                    <div
+                        role="status"
+                        className="flex items-center justify-center gap-3 rounded-3xl border border-[var(--gold)]/20 bg-white/[0.035] px-6 py-12 text-sm text-white/55"
+                    >
+                        <LoaderCircle aria-hidden="true" size={20} className="animate-spin text-[var(--gold)]" />
+                        Pobieranie zdjęć…
+                    </div>
+                )}
+
+                {galleryError && (
+                    <div
+                        role="alert"
+                        className="flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {galleryError}
+                    </div>
+                )}
+
+                {!isGalleryLoading && !galleryError && galleryImages.length === 0 && (
+                    <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
+                        <ImagePlus aria-hidden="true" size={30} className="mx-auto text-[var(--gold)]/70" />
+                        <p className="mt-4 text-sm font-medium text-white/70">
+                            Galeria jest jeszcze pusta.
+                        </p>
+                    </div>
+                )}
+
+                {!isGalleryLoading && !galleryError && galleryImages.length > 0 && (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {galleryImages.map((image) => (
+                            <article
+                                key={image.id}
+                                className="overflow-hidden rounded-3xl border border-[var(--gold)]/25 bg-white/[0.045]"
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={image.imageUrl}
+                                        alt={image.altText || image.title || "Zdjęcie galerii"}
+                                        className={`h-64 w-full object-cover ${image.isActive ? "" : "opacity-45 grayscale"}`}
+                                    />
+                                    <span className={`absolute right-3 top-3 rounded-full border px-3 py-1 text-xs font-semibold backdrop-blur-md ${image.isActive ? "border-emerald-300/40 bg-emerald-950/70 text-emerald-200" : "border-white/25 bg-black/70 text-white/70"}`}>
+                                        {image.isActive ? "Widoczne" : "Ukryte"}
+                                    </span>
+                                </div>
+                                <div className="space-y-2 p-5">
+                                    <h3 className="font-semibold text-white">
+                                        {image.title || "Bez tytułu"}
+                                    </h3>
+                                    <p className="min-h-10 text-sm leading-5 text-white/50">
+                                        {image.altText || "Brak tekstu alternatywnego"}
+                                    </p>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </div>
         </section>
     );
 };
