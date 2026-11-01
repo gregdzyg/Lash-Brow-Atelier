@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.OptimizedImage;
 import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.exception.R2StorageException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -31,22 +32,35 @@ class R2StorageServiceTest {
     @Mock
     private S3Client s3Client;
     @Mock
+    private ImageOptimizationService imageOptimizationService;
+    @Mock
     private MultipartFile oversizedFile;
 
     private R2StorageService r2StorageService;
 
     @BeforeEach
     void setUp() {
-        r2StorageService = new R2StorageService(s3Client, BUCKET_NAME);
+        r2StorageService = new R2StorageService(
+                s3Client,
+                imageOptimizationService,
+                BUCKET_NAME
+        );
     }
 
     @Test
-    void shouldUploadJpegAndReturnGeneratedObjectKey() throws Exception {
+    void shouldUploadOptimizedJpegAndReturnGeneratedObjectKey() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "photo.jpeg",
                 "image/jpeg",
                 new byte[]{1, 2, 3}
+        );
+        when(imageOptimizationService.optimize(file)).thenReturn(
+                new OptimizedImage(
+                        new byte[]{4, 5},
+                        "image/jpeg",
+                        "jpg"
+                )
         );
 
         String objectKey = r2StorageService.upload(file);
@@ -71,9 +85,9 @@ class R2StorageServiceTest {
 
         RequestBody requestBody = bodyCaptor.getValue();
         assertThat(requestBody.contentStreamProvider().newStream().readAllBytes())
-                .containsExactly(1, 2, 3);
+                .containsExactly(4, 5);
         assertThat(requestBody.contentStreamProvider().newStream().readAllBytes())
-                .containsExactly(1, 2, 3);
+                .containsExactly(4, 5);
     }
 
     @Test
@@ -93,6 +107,7 @@ class R2StorageServiceTest {
                 any(PutObjectRequest.class),
                 any(RequestBody.class)
         );
+        verify(imageOptimizationService, never()).optimize(any());
     }
 
     @Test
@@ -112,6 +127,7 @@ class R2StorageServiceTest {
                 any(PutObjectRequest.class),
                 any(RequestBody.class)
         );
+        verify(imageOptimizationService, never()).optimize(any());
     }
 
     @Test
@@ -127,6 +143,7 @@ class R2StorageServiceTest {
                 any(PutObjectRequest.class),
                 any(RequestBody.class)
         );
+        verify(imageOptimizationService, never()).optimize(any());
     }
 
     @Test
@@ -151,6 +168,13 @@ class R2StorageServiceTest {
                 "photo.png",
                 "image/png",
                 new byte[]{1, 2, 3}
+        );
+        when(imageOptimizationService.optimize(file)).thenReturn(
+                new OptimizedImage(
+                        new byte[]{4, 5},
+                        "image/jpeg",
+                        "jpg"
+                )
         );
         when(s3Client.putObject(
                 any(PutObjectRequest.class),

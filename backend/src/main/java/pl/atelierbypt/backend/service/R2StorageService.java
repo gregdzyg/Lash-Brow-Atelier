@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.OptimizedImage;
 import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.exception.R2StorageException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -12,8 +13,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -22,39 +22,46 @@ public class R2StorageService {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private static final String OBJECT_KEY_PREFIX = "gallery/";
-    private static final Map<String, String> EXTENSIONS_BY_CONTENT_TYPE = Map.of(
-            "image/jpeg", "jpg",
-            "image/png", "png"
+    private static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
+            "image/jpeg",
+            "image/png"
     );
 
     private final S3Client s3Client;
+    private final ImageOptimizationService imageOptimizationService;
     private final String bucketName;
 
     public R2StorageService(
             S3Client s3Client,
+            ImageOptimizationService imageOptimizationService,
             @Value("${app.r2.bucket}") String bucketName
     ) {
         this.s3Client = s3Client;
+        this.imageOptimizationService = imageOptimizationService;
         this.bucketName = bucketName;
     }
 
     public String upload(MultipartFile file) {
-        String fileExtension = validateAndGetFileExtension(file);
-        String objectKey = OBJECT_KEY_PREFIX + UUID.randomUUID() + "." + fileExtension;
+        validateFile(file);
+        OptimizedImage optimizedImage = imageOptimizationService.optimize(file);
+        String objectKey = OBJECT_KEY_PREFIX
+                + UUID.randomUUID()
+                + "."
+                + optimizedImage.fileExtension();
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(objectKey)
-                .contentType(file.getContentType())
+                .contentType(optimizedImage.contentType())
                 .build();
 
         try {
             s3Client.putObject(
                     request,
-                    RequestBody.fromBytes(file.getBytes())
+                    RequestBody.fromBytes(optimizedImage.content())
             );
             return objectKey;
-        } catch (IOException | SdkException exception) {
+        } catch (SdkException exception) {
             throw new R2StorageException("Nie udało się wysłać zdjęcia.", exception);
         }
     }
@@ -76,7 +83,7 @@ public class R2StorageService {
         }
     }
 
-    private String validateAndGetFileExtension(MultipartFile file) {
+    private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("Plik zdjęcia nie może być pusty.");
         }
@@ -85,11 +92,8 @@ public class R2StorageService {
             throw new BadRequestException("Plik zdjęcia nie może być większy niż 10 MB.");
         }
 
-        String fileExtension = EXTENSIONS_BY_CONTENT_TYPE.get(file.getContentType());
-        if (fileExtension == null) {
+        if (!SUPPORTED_CONTENT_TYPES.contains(file.getContentType())) {
             throw new BadRequestException("Dozwolone formaty zdjęć to JPEG i PNG.");
         }
-
-        return fileExtension;
     }
 }
