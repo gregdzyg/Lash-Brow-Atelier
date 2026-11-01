@@ -10,7 +10,6 @@ export const createNewsPost = async ({
     content,
     category,
     image,
-    imageAltText,
 }) => {
     const formData = new FormData();
     formData.append("title", title.trim());
@@ -19,10 +18,6 @@ export const createNewsPost = async ({
 
     if (image) {
         formData.append("image", image);
-
-        if (imageAltText.trim()) {
-            formData.append("imageAltText", imageAltText.trim());
-        }
     }
 
     const response = await apiClient.post("/api/admin/news-posts", formData);

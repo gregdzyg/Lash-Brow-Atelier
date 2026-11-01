@@ -11,6 +11,7 @@ const Navbar = () => {
         { name: "Home", href: '/'},
         { name: "O mnie", href: '/about'},
         { name: 'Galeria', href: '/gallery'},
+        { name: 'Aktualności', href: '/news'},
         { name: 'Oferta', href: '/offer'},
         { name: 'Kontakt', href: '/contact'},
     ];
@@ -47,7 +48,7 @@ const Navbar = () => {
                         </div>
                     </Link>
 
-                    <div className="hidden items-center gap-1 md:flex">
+                    <div className="hidden items-center gap-1 lg:flex">
                         {navigation.map((item) => (
                             <NavLink
                                 key={item.name}
@@ -68,7 +69,7 @@ const Navbar = () => {
                         ))}
                     </div>
 
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <button
                             type="button"
                             aria-label={isOpen ? "Zamknij menu" : "Otwórz menu"}
@@ -89,7 +90,7 @@ const Navbar = () => {
                 </div>
 
                 {isOpen && (
-                    <div className="grid gap-1 border-t border-[var(--gold)]/15 py-4 md:hidden">
+                    <div className="grid gap-1 border-t border-[var(--gold)]/15 py-4 lg:hidden">
                         {navigation.map((item) => (
                             <NavLink
                                 key={item.name}

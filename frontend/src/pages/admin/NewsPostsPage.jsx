@@ -51,7 +51,6 @@ const NewsPostsPage = () => {
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("NEWS");
     const [image, setImage] = useState(null);
-    const [imageAltText, setImageAltText] = useState("");
     const [newsPosts, setNewsPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,7 +105,6 @@ const NewsPostsPage = () => {
 
     const clearImage = () => {
         setImage(null);
-        setImageAltText("");
 
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -138,7 +136,6 @@ const NewsPostsPage = () => {
                 content,
                 category,
                 image,
-                imageAltText,
             });
             setNewsPosts((currentNewsPosts) => [
                 createdNewsPost,
@@ -312,29 +309,9 @@ const NewsPostsPage = () => {
                             )}
                         </div>
 
-                        <div>
-                            <label
-                                htmlFor="news-image-alt"
-                                className="mb-2 block text-sm font-medium text-white/85"
-                            >
-                                Opis zdjęcia
-                            </label>
-                            <textarea
-                                id="news-image-alt"
-                                rows={4}
-                                maxLength={500}
-                                disabled={isSubmitting || !image}
-                                value={imageAltText}
-                                onChange={(event) => setImageAltText(event.target.value)}
-                                placeholder={image
-                                    ? "Krótko opisz, co znajduje się na zdjęciu"
-                                    : "Najpierw wybierz zdjęcie"}
-                                className={`${inputClassName} resize-y leading-6`}
-                            />
-                            <p className="mt-2 text-xs leading-5 text-white/40">
-                                Opis ułatwia korzystanie ze strony osobom używającym czytników ekranu.
-                            </p>
-                        </div>
+                        <p className="rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-3 text-xs leading-5 text-white/40">
+                            Zdjęcie jest wizualnym uzupełnieniem wpisu i nie otrzymuje osobnego podpisu.
+                        </p>
                     </div>
                 </div>
 

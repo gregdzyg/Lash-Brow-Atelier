@@ -4,6 +4,7 @@ import PublicLayout from './layouts/PublicLayout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Gallery from './pages/Galery';
+import News from './pages/News';
 import Offer from './pages/Offer';
 import Contact from './pages/Contact';
 import ScrollToTop from './components/public/ScrollToTop';
@@ -38,6 +39,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path='about' element={<About />} />
           <Route path='gallery' element={<Gallery />} />
+          <Route path='news' element={<News />} />
           <Route path='offer' element={<Offer />} />
           <Route path='contact' element={<Contact />} />
           <Route path="polityka-prywatnosci" element={<Privacy />} />

@@ -14,3 +14,8 @@ export const getPublicGalleryImages = async () => {
   const response = await apiClient.get("/api/public/gallery-images");
   return response.data;
 };
+
+export const getPublicNewsPosts = async () => {
+  const response = await apiClient.get("/api/public/news-posts");
+  return response.data;
+};
