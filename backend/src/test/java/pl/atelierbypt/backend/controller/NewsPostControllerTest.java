@@ -18,6 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -93,6 +95,22 @@ class NewsPostControllerTest {
                 .andExpect(jsonPath("$[0].isActive").value(true))
                 .andExpect(jsonPath("$[1].id").value(2))
                 .andExpect(jsonPath("$[1].isActive").value(false));
+    }
+
+    @Test
+    void shouldChangeNewsPostVisibility() throws Exception {
+        NewsPostResponse hiddenPost = newsPostResponse(1L, false);
+        when(newsPostManagementService.setNewsPostVisibility(1L, false))
+                .thenReturn(hiddenPost);
+
+        mockMvc.perform(patch("/api/admin/news-posts/1/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.isActive").value(false));
+
+        verify(newsPostManagementService).setNewsPostVisibility(1L, false);
     }
 
     private NewsPostResponse newsPostResponse(Long id, boolean isActive) {

@@ -2,6 +2,8 @@ import {
     AlertCircle,
     CalendarDays,
     CheckCircle2,
+    Eye,
+    EyeOff,
     ImagePlus,
     LoaderCircle,
     Newspaper,
@@ -12,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
     createNewsPost,
     getAdminNewsPosts,
+    setNewsPostVisibility,
 } from "../../api/apiNewsPosts";
 
 const CATEGORY_OPTIONS = [
@@ -57,6 +60,8 @@ const NewsPostsPage = () => {
     const [listError, setListError] = useState("");
     const [submitError, setSubmitError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [visibilityError, setVisibilityError] = useState("");
+    const [updatingNewsPostId, setUpdatingNewsPostId] = useState(null);
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -150,6 +155,31 @@ const NewsPostsPage = () => {
         } finally {
             submissionInProgress.current = false;
             setIsSubmitting(false);
+        }
+    };
+
+    const handleVisibilityChange = async (newsPost) => {
+        setUpdatingNewsPostId(newsPost.id);
+        setVisibilityError("");
+
+        try {
+            const updatedNewsPost = await setNewsPostVisibility(
+                newsPost.id,
+                !newsPost.isActive,
+            );
+            setNewsPosts((currentNewsPosts) =>
+                currentNewsPosts.map((currentNewsPost) =>
+                    currentNewsPost.id === updatedNewsPost.id
+                        ? updatedNewsPost
+                        : currentNewsPost
+                )
+            );
+        } catch {
+            setVisibilityError(
+                "Nie udało się zmienić widoczności wpisu. Spróbuj ponownie.",
+            );
+        } finally {
+            setUpdatingNewsPostId(null);
         }
     };
 
@@ -399,6 +429,16 @@ const NewsPostsPage = () => {
                     </div>
                 )}
 
+                {visibilityError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {visibilityError}
+                    </div>
+                )}
+
                 {!isLoading && !listError && newsPosts.length === 0 && (
                     <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
                         <Newspaper
@@ -448,6 +488,29 @@ const NewsPostsPage = () => {
                                         <CalendarDays aria-hidden="true" size={15} />
                                         {formatDate(newsPost.createdAt)}
                                     </p>
+                                    <button
+                                        type="button"
+                                        disabled={updatingNewsPostId !== null}
+                                        onClick={() => handleVisibilityChange(newsPost)}
+                                        className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/55 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:bg-[var(--gold)] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {updatingNewsPostId === newsPost.id ? (
+                                            <LoaderCircle
+                                                aria-hidden="true"
+                                                size={16}
+                                                className="animate-spin"
+                                            />
+                                        ) : newsPost.isActive ? (
+                                            <EyeOff aria-hidden="true" size={16} />
+                                        ) : (
+                                            <Eye aria-hidden="true" size={16} />
+                                        )}
+                                        {updatingNewsPostId === newsPost.id
+                                            ? "Zapisywanie…"
+                                            : newsPost.isActive
+                                                ? "Ukryj wpis"
+                                                : "Opublikuj ponownie"}
+                                    </button>
                                 </div>
                             </article>
                         ))}

@@ -5,6 +5,14 @@ export const getAdminNewsPosts = async () => {
     return response.data;
 };
 
+export const setNewsPostVisibility = async (newsPostId, active) => {
+    const response = await apiClient.patch(
+        `/api/admin/news-posts/${newsPostId}/visibility`,
+        { active },
+    );
+    return response.data;
+};
+
 export const createNewsPost = async ({
     title,
     content,

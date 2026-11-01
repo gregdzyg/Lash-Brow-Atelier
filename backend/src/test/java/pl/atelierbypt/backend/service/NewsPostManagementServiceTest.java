@@ -16,6 +16,7 @@ import pl.atelierbypt.backend.enums.NewsPostCategory;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,6 +96,21 @@ class NewsPostManagementServiceTest {
         assertThat(response.getFirst().imageUrl())
                 .isEqualTo("https://atelier.example.com/news/image.jpg");
         assertThat(response.get(1).imageUrl()).isNull();
+    }
+
+    @Test
+    void shouldChangeNewsPostVisibility() {
+        NewsPost newsPost = newsPost(1L, true, IMAGE_OBJECT_KEY);
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+        when(newsPostRepository.save(newsPost)).thenReturn(newsPost);
+
+        NewsPostResponse response = newsPostManagementService
+                .setNewsPostVisibility(1L, false);
+
+        assertThat(newsPost.isActive()).isFalse();
+        assertThat(response.isActive()).isFalse();
+        verify(newsPostRepository).save(newsPost);
+        verify(r2StorageService, never()).delete(any());
     }
 
     @Test

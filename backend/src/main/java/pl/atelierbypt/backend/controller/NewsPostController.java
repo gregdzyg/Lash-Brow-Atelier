@@ -8,13 +8,17 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
+import pl.atelierbypt.backend.dto.NewsPostVisibilityRequest;
 import pl.atelierbypt.backend.service.NewsPostManagementService;
 
 import java.util.List;
@@ -30,6 +34,19 @@ public class NewsPostController {
     @GetMapping
     public ResponseEntity<List<NewsPostResponse>> getNewsPosts() {
         return ResponseEntity.ok(newsPostManagementService.getNewsPosts());
+    }
+
+    @PatchMapping("/{newsPostId}/visibility")
+    public ResponseEntity<NewsPostResponse> setNewsPostVisibility(
+            @PathVariable Long newsPostId,
+            @Valid @RequestBody NewsPostVisibilityRequest request
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.setNewsPostVisibility(
+                        newsPostId,
+                        request.active()
+                )
+        );
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

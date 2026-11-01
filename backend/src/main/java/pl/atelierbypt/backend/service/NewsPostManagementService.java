@@ -9,6 +9,7 @@ import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.entity.NewsPost;
 import pl.atelierbypt.backend.enums.ImageStorageFolder;
+import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
 import java.util.List;
@@ -37,6 +38,20 @@ public class NewsPostManagementService {
                 .stream()
                 .map(this::mapToNewsPostResponse)
                 .toList();
+    }
+
+    @Transactional
+    public NewsPostResponse setNewsPostVisibility(
+            Long newsPostId,
+            boolean isActive
+    ) {
+        NewsPost newsPost = newsPostRepository.findById(newsPostId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono aktualności o id: " + newsPostId
+                ));
+
+        newsPost.setActive(isActive);
+        return mapToNewsPostResponse(newsPostRepository.save(newsPost));
     }
 
     @Transactional
