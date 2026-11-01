@@ -113,6 +113,39 @@ class NewsPostControllerTest {
         verify(newsPostManagementService).setNewsPostVisibility(1L, false);
     }
 
+    @Test
+    void shouldUpdateNewsPostDetails() throws Exception {
+        NewsPostResponse updatedPost = new NewsPostResponse(
+                1L,
+                "Nowy tytuł",
+                "Nowa treść",
+                NewsPostCategory.EVENT,
+                null,
+                null,
+                true,
+                LocalDateTime.of(2026, 11, 1, 19, 0),
+                LocalDateTime.of(2026, 11, 1, 20, 0)
+        );
+        when(newsPostManagementService.updateNewsPostDetails(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(updatedPost);
+
+        mockMvc.perform(patch("/api/admin/news-posts/1")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Nowy tytuł",
+                                  "content": "Nowa treść",
+                                  "category": "EVENT"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Nowy tytuł"))
+                .andExpect(jsonPath("$.content").value("Nowa treść"))
+                .andExpect(jsonPath("$.category").value("EVENT"));
+    }
+
     private NewsPostResponse newsPostResponse(Long id, boolean isActive) {
         return new NewsPostResponse(
                 id,

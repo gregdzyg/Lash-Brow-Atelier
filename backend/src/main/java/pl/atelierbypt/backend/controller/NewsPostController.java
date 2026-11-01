@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.NewsPostDetailsRequest;
 import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.dto.NewsPostVisibilityRequest;
@@ -45,6 +46,19 @@ public class NewsPostController {
                 newsPostManagementService.setNewsPostVisibility(
                         newsPostId,
                         request.active()
+                )
+        );
+    }
+
+    @PatchMapping("/{newsPostId}")
+    public ResponseEntity<NewsPostResponse> updateNewsPostDetails(
+            @PathVariable Long newsPostId,
+            @Valid @RequestBody NewsPostDetailsRequest request
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.updateNewsPostDetails(
+                        newsPostId,
+                        request
                 )
         );
     }

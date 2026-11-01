@@ -13,6 +13,14 @@ export const setNewsPostVisibility = async (newsPostId, active) => {
     return response.data;
 };
 
+export const updateNewsPostDetails = async (newsPostId, details) => {
+    const response = await apiClient.patch(
+        `/api/admin/news-posts/${newsPostId}`,
+        details,
+    );
+    return response.data;
+};
+
 export const createNewsPost = async ({
     title,
     content,

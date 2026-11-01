@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.NewsPostDetailsRequest;
 import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.entity.NewsPost;
@@ -111,6 +112,27 @@ class NewsPostManagementServiceTest {
         assertThat(response.isActive()).isFalse();
         verify(newsPostRepository).save(newsPost);
         verify(r2StorageService, never()).delete(any());
+    }
+
+    @Test
+    void shouldUpdateNewsPostDetailsWithoutChangingImage() {
+        NewsPost newsPost = newsPost(1L, true, IMAGE_OBJECT_KEY);
+        NewsPostDetailsRequest details = new NewsPostDetailsRequest(
+                "  Nowy tytuł  ",
+                "  Nowa treść  ",
+                NewsPostCategory.EVENT
+        );
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+        when(newsPostRepository.save(newsPost)).thenReturn(newsPost);
+
+        NewsPostResponse response = newsPostManagementService
+                .updateNewsPostDetails(1L, details);
+
+        assertThat(response.title()).isEqualTo("Nowy tytuł");
+        assertThat(response.content()).isEqualTo("Nowa treść");
+        assertThat(response.category()).isEqualTo(NewsPostCategory.EVENT);
+        assertThat(response.imageUrl())
+                .isEqualTo("https://atelier.example.com/news/image.jpg");
     }
 
     @Test

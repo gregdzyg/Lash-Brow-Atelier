@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.NewsPostDetailsRequest;
 import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.entity.NewsPost;
@@ -45,12 +46,21 @@ public class NewsPostManagementService {
             Long newsPostId,
             boolean isActive
     ) {
-        NewsPost newsPost = newsPostRepository.findById(newsPostId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Nie znaleziono aktualności o id: " + newsPostId
-                ));
+        NewsPost newsPost = findNewsPost(newsPostId);
 
         newsPost.setActive(isActive);
+        return mapToNewsPostResponse(newsPostRepository.save(newsPost));
+    }
+
+    @Transactional
+    public NewsPostResponse updateNewsPostDetails(
+            Long newsPostId,
+            NewsPostDetailsRequest request
+    ) {
+        NewsPost newsPost = findNewsPost(newsPostId);
+        newsPost.setTitle(request.title().trim());
+        newsPost.setContent(request.content().trim());
+        newsPost.setCategory(request.category());
         return mapToNewsPostResponse(newsPostRepository.save(newsPost));
     }
 
@@ -99,6 +109,13 @@ public class NewsPostManagementService {
                 newsPost.getCreatedAt(),
                 newsPost.getUpdatedAt()
         );
+    }
+
+    private NewsPost findNewsPost(Long newsPostId) {
+        return newsPostRepository.findById(newsPostId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono aktualności o id: " + newsPostId
+                ));
     }
 
     private void deleteUploadedObject(

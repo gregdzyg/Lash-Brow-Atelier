@@ -7,6 +7,8 @@ import {
     ImagePlus,
     LoaderCircle,
     Newspaper,
+    Pencil,
+    Save,
     Send,
     X,
 } from "lucide-react";
@@ -15,6 +17,7 @@ import {
     createNewsPost,
     getAdminNewsPosts,
     setNewsPostVisibility,
+    updateNewsPostDetails,
 } from "../../api/apiNewsPosts";
 
 const CATEGORY_OPTIONS = [
@@ -62,6 +65,12 @@ const NewsPostsPage = () => {
     const [successMessage, setSuccessMessage] = useState("");
     const [visibilityError, setVisibilityError] = useState("");
     const [updatingNewsPostId, setUpdatingNewsPostId] = useState(null);
+    const [editingNewsPostId, setEditingNewsPostId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editContent, setEditContent] = useState("");
+    const [editCategory, setEditCategory] = useState("NEWS");
+    const [editError, setEditError] = useState("");
+    const [isSavingDetails, setIsSavingDetails] = useState(false);
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -180,6 +189,45 @@ const NewsPostsPage = () => {
             );
         } finally {
             setUpdatingNewsPostId(null);
+        }
+    };
+
+    const startEditing = (newsPost) => {
+        setEditingNewsPostId(newsPost.id);
+        setEditTitle(newsPost.title);
+        setEditContent(newsPost.content);
+        setEditCategory(newsPost.category);
+        setEditError("");
+    };
+
+    const cancelEditing = () => {
+        setEditingNewsPostId(null);
+        setEditError("");
+    };
+
+    const handleDetailsSubmit = async (event, newsPostId) => {
+        event.preventDefault();
+        setIsSavingDetails(true);
+        setEditError("");
+
+        try {
+            const updatedNewsPost = await updateNewsPostDetails(newsPostId, {
+                title: editTitle.trim(),
+                content: editContent.trim(),
+                category: editCategory,
+            });
+            setNewsPosts((currentNewsPosts) =>
+                currentNewsPosts.map((currentNewsPost) =>
+                    currentNewsPost.id === updatedNewsPost.id
+                        ? updatedNewsPost
+                        : currentNewsPost
+                )
+            );
+            setEditingNewsPostId(null);
+        } catch {
+            setEditError("Nie udało się zapisać zmian we wpisie.");
+        } finally {
+            setIsSavingDetails(false);
         }
     };
 
@@ -478,19 +526,106 @@ const NewsPostsPage = () => {
                                         </span>
                                     </div>
 
-                                    <h3 className="mt-4 text-xl font-semibold text-white">
-                                        {newsPost.title}
-                                    </h3>
-                                    <p className="mt-3 whitespace-pre-line text-sm leading-6 text-white/60">
-                                        {newsPost.content}
-                                    </p>
-                                    <p className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-white/35">
-                                        <CalendarDays aria-hidden="true" size={15} />
-                                        {formatDate(newsPost.createdAt)}
-                                    </p>
+                                    {editingNewsPostId === newsPost.id ? (
+                                        <form
+                                            onSubmit={(event) => handleDetailsSubmit(
+                                                event,
+                                                newsPost.id,
+                                            )}
+                                            className="mt-5 space-y-4"
+                                        >
+                                            <input
+                                                type="text"
+                                                required
+                                                maxLength={255}
+                                                disabled={isSavingDetails}
+                                                value={editTitle}
+                                                onChange={(event) => setEditTitle(event.target.value)}
+                                                aria-label="Tytuł wpisu"
+                                                className={inputClassName}
+                                            />
+                                            <select
+                                                required
+                                                disabled={isSavingDetails}
+                                                value={editCategory}
+                                                onChange={(event) => setEditCategory(event.target.value)}
+                                                aria-label="Kategoria wpisu"
+                                                className={inputClassName}
+                                            >
+                                                {CATEGORY_OPTIONS.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <textarea
+                                                required
+                                                rows={6}
+                                                disabled={isSavingDetails}
+                                                value={editContent}
+                                                onChange={(event) => setEditContent(event.target.value)}
+                                                aria-label="Treść wpisu"
+                                                className={`${inputClassName} resize-y leading-6`}
+                                            />
+                                            {editError && (
+                                                <p role="alert" className="text-xs text-red-300">
+                                                    {editError}
+                                                </p>
+                                            )}
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={isSavingDetails}
+                                                    onClick={cancelEditing}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/25 px-3 py-2.5 text-xs font-semibold text-white/65 transition hover:border-white/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    <X aria-hidden="true" size={15} />
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSavingDetails || !editTitle.trim() || !editContent.trim()}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-3 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {isSavingDetails ? (
+                                                        <LoaderCircle
+                                                            aria-hidden="true"
+                                                            size={15}
+                                                            className="animate-spin"
+                                                        />
+                                                    ) : (
+                                                        <Save aria-hidden="true" size={15} />
+                                                    )}
+                                                    {isSavingDetails ? "Zapisywanie…" : "Zapisz"}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <h3 className="mt-4 text-xl font-semibold text-white">
+                                                {newsPost.title}
+                                            </h3>
+                                            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-white/60">
+                                                {newsPost.content}
+                                            </p>
+                                            <p className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-white/35">
+                                                <CalendarDays aria-hidden="true" size={15} />
+                                                {formatDate(newsPost.createdAt)}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                disabled={editingNewsPostId !== null || updatingNewsPostId !== null}
+                                                onClick={() => startEditing(newsPost)}
+                                                className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Pencil aria-hidden="true" size={16} />
+                                                Edytuj wpis
+                                            </button>
+                                        </>
+                                    )}
                                     <button
                                         type="button"
-                                        disabled={updatingNewsPostId !== null}
+                                        disabled={updatingNewsPostId !== null || editingNewsPostId !== null}
                                         onClick={() => handleVisibilityChange(newsPost)}
                                         className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/55 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:bg-[var(--gold)] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
                                     >
