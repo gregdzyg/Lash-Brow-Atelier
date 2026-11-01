@@ -17,8 +17,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 class GalleryImageControllerTest {
 
@@ -105,6 +107,30 @@ class GalleryImageControllerTest {
                 .andExpect(jsonPath("$[0].isActive").value(true))
                 .andExpect(jsonPath("$[1].id").value(2))
                 .andExpect(jsonPath("$[1].isActive").value(false));
+    }
+
+    @Test
+    void shouldChangeGalleryImageVisibility() throws Exception {
+        GalleryImageResponse hiddenImage = new GalleryImageResponse(
+                1L,
+                "https://example.r2.dev/gallery/image.jpg",
+                "Zdjęcie",
+                null,
+                0,
+                false
+        );
+        when(galleryImageManagementService.setGalleryImageVisibility(1L, false))
+                .thenReturn(hiddenImage);
+
+        mockMvc.perform(patch("/api/admin/gallery-images/1/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.isActive").value(false));
+
+        verify(galleryImageManagementService)
+                .setGalleryImageVisibility(1L, false);
     }
 
     @Test

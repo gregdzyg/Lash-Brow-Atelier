@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
+import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
 import java.util.List;
@@ -36,6 +37,21 @@ public class GalleryImageManagementService {
                 .stream()
                 .map(this::mapToGalleryImageResponse)
                 .toList();
+    }
+
+    @Transactional
+    public GalleryImageResponse setGalleryImageVisibility(
+            Long imageId,
+            boolean isActive
+    ) {
+        GalleryImage galleryImage = galleryImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono zdjęcia galerii o id: " + imageId
+                ));
+
+        galleryImage.setActive(isActive);
+        GalleryImage savedImage = galleryImageRepository.save(galleryImage);
+        return mapToGalleryImageResponse(savedImage);
     }
 
     @Transactional

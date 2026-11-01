@@ -5,6 +5,14 @@ export const getAdminGalleryImages = async () => {
     return response.data;
 };
 
+export const setGalleryImageVisibility = async (imageId, active) => {
+    const response = await apiClient.patch(
+        `/api/admin/gallery-images/${imageId}/visibility`,
+        { active },
+    );
+    return response.data;
+};
+
 export const uploadGalleryImage = async ({ file, title, altText }) => {
     const formData = new FormData();
     formData.append("file", file);

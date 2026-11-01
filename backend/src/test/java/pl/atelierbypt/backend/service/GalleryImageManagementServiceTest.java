@@ -13,6 +13,7 @@ import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -104,6 +105,27 @@ class GalleryImageManagementServiceTest {
         assertThat(response.get(1).imageUrl())
                 .isEqualTo("https://gallery.example.com/gallery/inactive.jpg");
         assertThat(response.get(1).isActive()).isFalse();
+    }
+
+    @Test
+    void shouldChangeGalleryImageVisibility() {
+        GalleryImage galleryImage = galleryImage(
+                1L,
+                "gallery/image.jpg",
+                "Zdjęcie",
+                true
+        );
+        when(galleryImageRepository.findById(1L))
+                .thenReturn(Optional.of(galleryImage));
+        when(galleryImageRepository.save(galleryImage))
+                .thenReturn(galleryImage);
+
+        GalleryImageResponse response = galleryImageManagementService
+                .setGalleryImageVisibility(1L, false);
+
+        assertThat(galleryImage.isActive()).isFalse();
+        assertThat(response.isActive()).isFalse();
+        verify(galleryImageRepository).save(galleryImage);
     }
 
     @Test
