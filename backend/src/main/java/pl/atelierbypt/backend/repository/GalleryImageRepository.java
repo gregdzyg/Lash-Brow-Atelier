@@ -10,6 +10,8 @@ public interface GalleryImageRepository extends Repository<GalleryImage, Long> {
 
     GalleryImage save(GalleryImage galleryImage);
 
+    GalleryImage saveAndFlush(GalleryImage galleryImage);
+
     Optional<GalleryImage> findById(Long id);
 
     List<GalleryImage> findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc();
