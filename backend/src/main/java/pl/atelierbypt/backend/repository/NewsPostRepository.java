@@ -14,6 +14,8 @@ public interface NewsPostRepository extends Repository<NewsPost, Long> {
 
     Optional<NewsPost> findById(Long id);
 
+    void delete(NewsPost newsPost);
+
     List<NewsPost> findAllByOrderByCreatedAtDesc();
 
     List<NewsPost> findByIsActiveTrueOrderByCreatedAtDesc();

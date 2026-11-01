@@ -12,6 +12,7 @@ import {
     Pencil,
     Save,
     Send,
+    Trash2,
     X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +23,7 @@ import {
     updateNewsPostDetails,
     removeNewsPostImage,
     replaceNewsPostImage,
+    deleteNewsPost,
 } from "../../api/apiNewsPosts";
 
 const CATEGORY_OPTIONS = [
@@ -78,6 +80,9 @@ const NewsPostsPage = () => {
     const [updatingImageNewsPostId, setUpdatingImageNewsPostId] = useState(null);
     const [imageRemovalConfirmationId, setImageRemovalConfirmationId] = useState(null);
     const [imageError, setImageError] = useState("");
+    const [deleteConfirmationId, setDeleteConfirmationId] = useState(null);
+    const [deletingNewsPostId, setDeletingNewsPostId] = useState(null);
+    const [deleteError, setDeleteError] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -177,6 +182,8 @@ const NewsPostsPage = () => {
     const handleVisibilityChange = async (newsPost) => {
         setUpdatingNewsPostId(newsPost.id);
         setVisibilityError("");
+        setDeleteConfirmationId(null);
+        setImageRemovalConfirmationId(null);
 
         try {
             const updatedNewsPost = await setNewsPostVisibility(
@@ -200,6 +207,8 @@ const NewsPostsPage = () => {
     };
 
     const startEditing = (newsPost) => {
+        setDeleteConfirmationId(null);
+        setImageRemovalConfirmationId(null);
         setEditingNewsPostId(newsPost.id);
         setEditTitle(newsPost.title);
         setEditContent(newsPost.content);
@@ -284,6 +293,27 @@ const NewsPostsPage = () => {
             setImageError("Nie udało się usunąć zdjęcia wpisu.");
         } finally {
             setUpdatingImageNewsPostId(null);
+        }
+    };
+
+    const handlePermanentDelete = async (newsPostId) => {
+        setDeletingNewsPostId(newsPostId);
+        setDeleteError("");
+
+        try {
+            await deleteNewsPost(newsPostId);
+            setNewsPosts((currentNewsPosts) =>
+                currentNewsPosts.filter(
+                    (currentNewsPost) => currentNewsPost.id !== newsPostId,
+                )
+            );
+            setDeleteConfirmationId(null);
+        } catch {
+            setDeleteError(
+                "Nie udało się trwale usunąć wpisu. Spróbuj ponownie.",
+            );
+        } finally {
+            setDeletingNewsPostId(null);
         }
     };
 
@@ -553,6 +583,16 @@ const NewsPostsPage = () => {
                     </div>
                 )}
 
+                {deleteError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {deleteError}
+                    </div>
+                )}
+
                 {!isLoading && !listError && newsPosts.length === 0 && (
                     <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
                         <Newspaper
@@ -785,6 +825,58 @@ const NewsPostsPage = () => {
                                                     Usuń trwale
                                                 </button>
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {!newsPost.isActive && (
+                                        <div className="mt-3 border-t border-red-400/15 pt-3">
+                                            {deleteConfirmationId === newsPost.id ? (
+                                                <div className="rounded-2xl border border-red-400/30 bg-red-500/[0.08] p-4">
+                                                    <p className="text-xs leading-5 text-red-100/80">
+                                                        Wpis zostanie usunięty z bazy, a jego zdjęcie z R2. Tej operacji nie można cofnąć.
+                                                    </p>
+                                                    <div className="mt-3 flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            disabled={deletingNewsPostId !== null}
+                                                            onClick={() => setDeleteConfirmationId(null)}
+                                                            className="flex-1 cursor-pointer rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-white/65 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            Anuluj
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={deletingNewsPostId !== null}
+                                                            onClick={() => handlePermanentDelete(newsPost.id)}
+                                                            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/60 bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {deletingNewsPostId === newsPost.id ? (
+                                                                <LoaderCircle
+                                                                    aria-hidden="true"
+                                                                    size={14}
+                                                                    className="animate-spin"
+                                                                />
+                                                            ) : (
+                                                                <Trash2 aria-hidden="true" size={14} />
+                                                            )}
+                                                            Usuń wpis
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    disabled={deletingNewsPostId !== null || updatingImageNewsPostId !== null || editingNewsPostId !== null}
+                                                    onClick={() => {
+                                                        setDeleteConfirmationId(newsPost.id);
+                                                        setImageRemovalConfirmationId(null);
+                                                    }}
+                                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/35 px-4 py-2.5 text-sm font-semibold text-red-200/80 transition hover:border-red-300/65 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    <Trash2 aria-hidden="true" size={16} />
+                                                    Usuń wpis trwale
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>

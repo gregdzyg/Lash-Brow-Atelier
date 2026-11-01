@@ -90,6 +90,14 @@ public class NewsPostController {
         );
     }
 
+    @DeleteMapping("/{newsPostId}")
+    public ResponseEntity<Void> deleteNewsPost(
+            @PathVariable Long newsPostId
+    ) {
+        newsPostManagementService.deleteNewsPost(newsPostId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<NewsPostResponse> createNewsPost(
             @Valid @ModelAttribute NewsPostRequest request,

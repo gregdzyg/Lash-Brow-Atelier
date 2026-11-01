@@ -10,6 +10,7 @@ import pl.atelierbypt.backend.dto.NewsPostRequest;
 import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.entity.NewsPost;
 import pl.atelierbypt.backend.enums.ImageStorageFolder;
+import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
@@ -105,6 +106,22 @@ public class NewsPostManagementService {
         NewsPost savedNewsPost = newsPostRepository.saveAndFlush(newsPost);
         r2StorageService.delete(objectKey);
         return mapToNewsPostResponse(savedNewsPost);
+    }
+
+    @Transactional
+    public void deleteNewsPost(Long newsPostId) {
+        NewsPost newsPost = findNewsPost(newsPostId);
+
+        if (newsPost.isActive()) {
+            throw new BusinessConflictException(
+                    "Przed trwałym usunięciem ukryj aktualność."
+            );
+        }
+
+        if (newsPost.getImageObjectKey() != null) {
+            r2StorageService.delete(newsPost.getImageObjectKey());
+        }
+        newsPostRepository.delete(newsPost);
     }
 
     @Transactional

@@ -184,6 +184,14 @@ class NewsPostControllerTest {
         verify(newsPostManagementService).removeNewsPostImage(1L);
     }
 
+    @Test
+    void shouldDeleteNewsPost() throws Exception {
+        mockMvc.perform(delete("/api/admin/news-posts/1"))
+                .andExpect(status().isNoContent());
+
+        verify(newsPostManagementService).deleteNewsPost(1L);
+    }
+
     private NewsPostResponse newsPostResponse(Long id, boolean isActive) {
         return new NewsPostResponse(
                 id,

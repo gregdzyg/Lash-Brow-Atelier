@@ -38,6 +38,10 @@ export const removeNewsPostImage = async (newsPostId) => {
     return response.data;
 };
 
+export const deleteNewsPost = async (newsPostId) => {
+    await apiClient.delete(`/api/admin/news-posts/${newsPostId}`);
+};
+
 export const createNewsPost = async ({
     title,
     content,

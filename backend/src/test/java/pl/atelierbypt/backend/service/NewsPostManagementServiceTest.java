@@ -14,6 +14,7 @@ import pl.atelierbypt.backend.dto.NewsPostResponse;
 import pl.atelierbypt.backend.entity.NewsPost;
 import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.enums.NewsPostCategory;
+import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
 import java.util.List;
@@ -180,6 +181,30 @@ class NewsPostManagementServiceTest {
         assertThat(response.imageUrl()).isNull();
         assertThat(newsPost.getImageObjectKey()).isNull();
         verify(r2StorageService).delete(IMAGE_OBJECT_KEY);
+    }
+
+    @Test
+    void shouldDeleteInactiveNewsPostAndItsImage() {
+        NewsPost newsPost = newsPost(1L, false, IMAGE_OBJECT_KEY);
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+
+        newsPostManagementService.deleteNewsPost(1L);
+
+        verify(r2StorageService).delete(IMAGE_OBJECT_KEY);
+        verify(newsPostRepository).delete(newsPost);
+    }
+
+    @Test
+    void shouldRejectPermanentDeletionOfActiveNewsPost() {
+        NewsPost newsPost = newsPost(1L, true, IMAGE_OBJECT_KEY);
+        when(newsPostRepository.findById(1L)).thenReturn(Optional.of(newsPost));
+
+        assertThatThrownBy(() -> newsPostManagementService.deleteNewsPost(1L))
+                .isInstanceOf(BusinessConflictException.class)
+                .hasMessage("Przed trwałym usunięciem ukryj aktualność.");
+
+        verify(r2StorageService, never()).delete(any());
+        verify(newsPostRepository, never()).delete(any());
     }
 
     @Test
