@@ -1,8 +1,9 @@
-import { AlertCircle, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Upload } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     getAdminGalleryImages,
     setGalleryImageVisibility,
+    updateGalleryImageDetails,
     uploadGalleryImage,
 } from "../../api/apiGallery";
 
@@ -38,6 +39,11 @@ const GalleryManagementPage = () => {
     const [galleryError, setGalleryError] = useState("");
     const [visibilityError, setVisibilityError] = useState("");
     const [updatingImageId, setUpdatingImageId] = useState(null);
+    const [editingImageId, setEditingImageId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editAltText, setEditAltText] = useState("");
+    const [editError, setEditError] = useState("");
+    const [isSavingDetails, setIsSavingDetails] = useState(false);
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -154,6 +160,43 @@ const GalleryManagementPage = () => {
             );
         } finally {
             setUpdatingImageId(null);
+        }
+    };
+
+    const startEditing = (image) => {
+        setEditingImageId(image.id);
+        setEditTitle(image.title ?? "");
+        setEditAltText(image.altText ?? "");
+        setEditError("");
+    };
+
+    const cancelEditing = () => {
+        setEditingImageId(null);
+        setEditError("");
+    };
+
+    const handleDetailsSubmit = async (event, imageId) => {
+        event.preventDefault();
+        setIsSavingDetails(true);
+        setEditError("");
+
+        try {
+            const updatedImage = await updateGalleryImageDetails(imageId, {
+                title: editTitle.trim() || null,
+                altText: editAltText.trim() || null,
+            });
+            setGalleryImages((currentImages) =>
+                currentImages.map((currentImage) =>
+                    currentImage.id === updatedImage.id
+                        ? updatedImage
+                        : currentImage
+                )
+            );
+            setEditingImageId(null);
+        } catch {
+            setEditError("Nie udało się zapisać opisu zdjęcia.");
+        } finally {
+            setIsSavingDetails(false);
         }
     };
 
@@ -388,15 +431,96 @@ const GalleryManagementPage = () => {
                                     </span>
                                 </div>
                                 <div className="space-y-2 p-5">
-                                    <h3 className="font-semibold text-white">
-                                        {image.title || "Bez tytułu"}
-                                    </h3>
-                                    <p className="min-h-10 text-sm leading-5 text-white/50">
-                                        {image.altText || "Brak tekstu alternatywnego"}
-                                    </p>
+                                    {editingImageId === image.id ? (
+                                        <form
+                                            onSubmit={(event) => handleDetailsSubmit(event, image.id)}
+                                            className="space-y-4"
+                                        >
+                                            <div>
+                                                <label
+                                                    htmlFor={`edit-title-${image.id}`}
+                                                    className="mb-1.5 block text-xs font-medium text-white/70"
+                                                >
+                                                    Tytuł
+                                                </label>
+                                                <input
+                                                    id={`edit-title-${image.id}`}
+                                                    type="text"
+                                                    maxLength={255}
+                                                    disabled={isSavingDetails}
+                                                    value={editTitle}
+                                                    onChange={(event) => setEditTitle(event.target.value)}
+                                                    className={inputClassName}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    htmlFor={`edit-alt-${image.id}`}
+                                                    className="mb-1.5 block text-xs font-medium text-white/70"
+                                                >
+                                                    Tekst alternatywny
+                                                </label>
+                                                <textarea
+                                                    id={`edit-alt-${image.id}`}
+                                                    rows={3}
+                                                    maxLength={500}
+                                                    disabled={isSavingDetails}
+                                                    value={editAltText}
+                                                    onChange={(event) => setEditAltText(event.target.value)}
+                                                    className={`${inputClassName} resize-y leading-5`}
+                                                />
+                                            </div>
+                                            {editError && (
+                                                <p role="alert" className="text-xs text-red-300">
+                                                    {editError}
+                                                </p>
+                                            )}
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={isSavingDetails}
+                                                    onClick={cancelEditing}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/25 px-3 py-2 text-xs font-semibold text-white/65 transition hover:border-white/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    <X aria-hidden="true" size={15} />
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSavingDetails}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-3 py-2 text-xs font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {isSavingDetails ? (
+                                                        <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
+                                                    ) : (
+                                                        <Save aria-hidden="true" size={15} />
+                                                    )}
+                                                    {isSavingDetails ? "Zapisywanie…" : "Zapisz"}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <h3 className="font-semibold text-white">
+                                                {image.title || "Bez tytułu"}
+                                            </h3>
+                                            <p className="min-h-10 text-sm leading-5 text-white/50">
+                                                {image.altText || "Brak tekstu alternatywnego"}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                disabled={editingImageId !== null || updatingImageId !== null}
+                                                onClick={() => startEditing(image)}
+                                                className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Pencil aria-hidden="true" size={16} />
+                                                Edytuj opis
+                                            </button>
+                                        </>
+                                    )}
                                     <button
                                         type="button"
-                                        disabled={updatingImageId !== null}
+                                        disabled={updatingImageId !== null || editingImageId !== null}
                                         onClick={() => handleVisibilityChange(image)}
                                         className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/45 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
                                     >

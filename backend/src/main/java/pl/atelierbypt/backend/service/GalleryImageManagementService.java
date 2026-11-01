@@ -44,12 +44,23 @@ public class GalleryImageManagementService {
             Long imageId,
             boolean isActive
     ) {
-        GalleryImage galleryImage = galleryImageRepository.findById(imageId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Nie znaleziono zdjęcia galerii o id: " + imageId
-                ));
+        GalleryImage galleryImage = findGalleryImage(imageId);
 
         galleryImage.setActive(isActive);
+        GalleryImage savedImage = galleryImageRepository.save(galleryImage);
+        return mapToGalleryImageResponse(savedImage);
+    }
+
+    @Transactional
+    public GalleryImageResponse updateGalleryImageDetails(
+            Long imageId,
+            String title,
+            String altText
+    ) {
+        GalleryImage galleryImage = findGalleryImage(imageId);
+        galleryImage.setTitle(normalizeOptionalText(title));
+        galleryImage.setAltText(normalizeOptionalText(altText));
+
         GalleryImage savedImage = galleryImageRepository.save(galleryImage);
         return mapToGalleryImageResponse(savedImage);
     }
@@ -83,6 +94,13 @@ public class GalleryImageManagementService {
         } catch (RuntimeException cleanupException) {
             originalException.addSuppressed(cleanupException);
         }
+    }
+
+    private GalleryImage findGalleryImage(Long imageId) {
+        return galleryImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono zdjęcia galerii o id: " + imageId
+                ));
     }
 
     private GalleryImageResponse mapToGalleryImageResponse(GalleryImage galleryImage) {

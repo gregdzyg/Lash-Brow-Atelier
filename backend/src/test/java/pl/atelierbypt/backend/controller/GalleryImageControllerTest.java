@@ -134,6 +134,42 @@ class GalleryImageControllerTest {
     }
 
     @Test
+    void shouldUpdateGalleryImageDetails() throws Exception {
+        GalleryImageResponse updatedImage = new GalleryImageResponse(
+                1L,
+                "https://example.r2.dev/gallery/image.jpg",
+                "Nowy tytuł",
+                "Nowy opis alternatywny",
+                0,
+                true
+        );
+        when(galleryImageManagementService.updateGalleryImageDetails(
+                1L,
+                "Nowy tytuł",
+                "Nowy opis alternatywny"
+        )).thenReturn(updatedImage);
+
+        mockMvc.perform(patch("/api/admin/gallery-images/1")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Nowy tytuł",
+                                  "altText": "Nowy opis alternatywny"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Nowy tytuł"))
+                .andExpect(jsonPath("$.altText")
+                        .value("Nowy opis alternatywny"));
+
+        verify(galleryImageManagementService).updateGalleryImageDetails(
+                1L,
+                "Nowy tytuł",
+                "Nowy opis alternatywny"
+        );
+    }
+
+    @Test
     void shouldReturnBadGatewayWhenR2UploadFails() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",

@@ -67,27 +67,34 @@ const Gallery = () => {
       {!isLoading && !hasError && galleryImages.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:gap-6">
           {galleryImages.map((image, index) => (
-            <div
+            <figure
               key={image.id}
               className="
-                group relative aspect-[4/5] overflow-hidden rounded-3xl
+                group overflow-hidden rounded-3xl
                 border border-[var(--gold)]/20 bg-white/[0.03]
                 shadow-[0_18px_45px_rgba(0,0,0,0.18)]
                 sm:even:translate-y-6
               "
             >
-              <img
-                src={image.imageUrl}
-                alt={image.altText || image.title || `Stylizacja rzęs i brwi – realizacja ${index + 1}`}
-                loading="lazy"
-                decoding="async"
-                className="
-                  h-full w-full object-cover transition duration-500 ease-out
-                  group-hover:scale-105 group-hover:brightness-110
-                "
-              />
-              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
-            </div>
+              <div className="relative aspect-[4/5] overflow-hidden">
+                <img
+                  src={image.imageUrl}
+                  alt={image.altText || image.title || `Stylizacja rzęs i brwi – realizacja ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="
+                    h-full w-full object-cover transition duration-500 ease-out
+                    group-hover:scale-105 group-hover:brightness-110
+                  "
+                />
+                <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
+              </div>
+              {image.title && (
+                <figcaption className="px-4 py-3 text-center text-xs font-medium tracking-wide text-white/65 sm:text-sm">
+                  {image.title}
+                </figcaption>
+              )}
+            </figure>
           ))}
         </div>
       )}

@@ -129,6 +129,34 @@ class GalleryImageManagementServiceTest {
     }
 
     @Test
+    void shouldUpdateGalleryImageDetails() {
+        GalleryImage galleryImage = galleryImage(
+                1L,
+                "gallery/image.jpg",
+                "Poprzedni tytuł",
+                true
+        );
+        when(galleryImageRepository.findById(1L))
+                .thenReturn(Optional.of(galleryImage));
+        when(galleryImageRepository.save(galleryImage))
+                .thenReturn(galleryImage);
+
+        GalleryImageResponse response = galleryImageManagementService
+                .updateGalleryImageDetails(
+                        1L,
+                        "  Nowy tytuł  ",
+                        "  Nowy opis alternatywny  "
+                );
+
+        assertThat(galleryImage.getTitle()).isEqualTo("Nowy tytuł");
+        assertThat(galleryImage.getAltText())
+                .isEqualTo("Nowy opis alternatywny");
+        assertThat(response.title()).isEqualTo("Nowy tytuł");
+        assertThat(response.altText()).isEqualTo("Nowy opis alternatywny");
+        verify(galleryImageRepository).save(galleryImage);
+    }
+
+    @Test
     void shouldDeleteUploadedObjectWhenSavingMetadataFails() {
         when(r2StorageService.upload(file)).thenReturn(OBJECT_KEY);
         when(galleryImageRepository.saveAndFlush(any(GalleryImage.class)))
