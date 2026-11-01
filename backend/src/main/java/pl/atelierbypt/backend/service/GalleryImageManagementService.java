@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
+import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
@@ -95,6 +96,20 @@ public class GalleryImageManagementService {
         return galleryImages.stream()
                 .map(this::mapToGalleryImageResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteGalleryImage(Long imageId) {
+        GalleryImage galleryImage = findGalleryImage(imageId);
+
+        if (galleryImage.isActive()) {
+            throw new BusinessConflictException(
+                    "Przed trwałym usunięciem ukryj zdjęcie."
+            );
+        }
+
+        r2StorageService.delete(galleryImage.getObjectKey());
+        galleryImageRepository.delete(galleryImage);
     }
 
     @Transactional

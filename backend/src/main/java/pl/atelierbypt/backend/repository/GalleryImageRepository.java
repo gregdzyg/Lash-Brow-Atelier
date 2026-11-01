@@ -14,6 +14,8 @@ public interface GalleryImageRepository extends Repository<GalleryImage, Long> {
 
     List<GalleryImage> saveAll(Iterable<GalleryImage> galleryImages);
 
+    void delete(GalleryImage galleryImage);
+
     Optional<GalleryImage> findById(Long id);
 
     List<GalleryImage> findAllByOrderBySortOrderAscCreatedAtDesc();

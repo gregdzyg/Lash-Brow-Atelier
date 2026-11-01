@@ -1,6 +1,7 @@
-import { AlertCircle, ArrowDown, ArrowUp, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Upload, X } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+    deleteGalleryImage,
     getAdminGalleryImages,
     moveGalleryImage,
     setGalleryImageVisibility,
@@ -47,6 +48,9 @@ const GalleryManagementPage = () => {
     const [isSavingDetails, setIsSavingDetails] = useState(false);
     const [movingImageId, setMovingImageId] = useState(null);
     const [moveError, setMoveError] = useState("");
+    const [deleteConfirmationId, setDeleteConfirmationId] = useState(null);
+    const [deletingImageId, setDeletingImageId] = useState(null);
+    const [deleteError, setDeleteError] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -144,6 +148,7 @@ const GalleryManagementPage = () => {
     const handleVisibilityChange = async (image) => {
         setUpdatingImageId(image.id);
         setVisibilityError("");
+        setDeleteConfirmationId(null);
 
         try {
             const updatedImage = await setGalleryImageVisibility(
@@ -219,6 +224,25 @@ const GalleryManagementPage = () => {
             setMoveError("Nie udało się zmienić kolejności zdjęć.");
         } finally {
             setMovingImageId(null);
+        }
+    };
+
+    const handlePermanentDelete = async (imageId) => {
+        setDeletingImageId(imageId);
+        setDeleteError("");
+
+        try {
+            await deleteGalleryImage(imageId);
+            setGalleryImages((currentImages) =>
+                currentImages.filter((image) => image.id !== imageId)
+            );
+            setDeleteConfirmationId(null);
+        } catch {
+            setDeleteError(
+                "Nie udało się trwale usunąć zdjęcia. Spróbuj ponownie."
+            );
+        } finally {
+            setDeletingImageId(null);
         }
     };
 
@@ -434,6 +458,16 @@ const GalleryManagementPage = () => {
                     </div>
                 )}
 
+                {deleteError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {deleteError}
+                    </div>
+                )}
+
                 {!isGalleryLoading && !galleryError && galleryImages.length === 0 && (
                     <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
                         <ImagePlus aria-hidden="true" size={30} className="mx-auto text-[var(--gold)]/70" />
@@ -471,7 +505,7 @@ const GalleryManagementPage = () => {
                                             <button
                                                 type="button"
                                                 aria-label="Przenieś zdjęcie wyżej"
-                                                disabled={imageIndex === 0 || movingImageId !== null || editingImageId !== null || updatingImageId !== null}
+                                                disabled={imageIndex === 0 || movingImageId !== null || editingImageId !== null || updatingImageId !== null || deletingImageId !== null}
                                                 onClick={() => handleMove(image.id, "UP")}
                                                 className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
                                             >
@@ -484,7 +518,7 @@ const GalleryManagementPage = () => {
                                             <button
                                                 type="button"
                                                 aria-label="Przenieś zdjęcie niżej"
-                                                disabled={imageIndex === galleryImages.length - 1 || movingImageId !== null || editingImageId !== null || updatingImageId !== null}
+                                                disabled={imageIndex === galleryImages.length - 1 || movingImageId !== null || editingImageId !== null || updatingImageId !== null || deletingImageId !== null}
                                                 onClick={() => handleMove(image.id, "DOWN")}
                                                 className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
                                             >
@@ -574,7 +608,7 @@ const GalleryManagementPage = () => {
                                             </p>
                                             <button
                                                 type="button"
-                                                disabled={editingImageId !== null || updatingImageId !== null || movingImageId !== null}
+                                                disabled={editingImageId !== null || updatingImageId !== null || movingImageId !== null || deletingImageId !== null}
                                                 onClick={() => startEditing(image)}
                                                 className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
@@ -585,7 +619,7 @@ const GalleryManagementPage = () => {
                                     )}
                                     <button
                                         type="button"
-                                        disabled={updatingImageId !== null || editingImageId !== null || movingImageId !== null}
+                                        disabled={updatingImageId !== null || editingImageId !== null || movingImageId !== null || deletingImageId !== null}
                                         onClick={() => handleVisibilityChange(image)}
                                         className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/45 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
                                     >
@@ -602,6 +636,53 @@ const GalleryManagementPage = () => {
                                                 ? "Ukryj zdjęcie"
                                                 : "Przywróć zdjęcie"}
                                     </button>
+                                    {!image.isActive && deleteConfirmationId !== image.id && (
+                                        <button
+                                            type="button"
+                                            disabled={deletingImageId !== null || editingImageId !== null || movingImageId !== null || updatingImageId !== null}
+                                            onClick={() => {
+                                                setDeleteConfirmationId(image.id);
+                                                setDeleteError("");
+                                            }}
+                                            className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/30 px-4 py-2.5 text-sm font-semibold text-red-300 transition-colors hover:border-red-400/60 hover:bg-red-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Trash2 aria-hidden="true" size={16} />
+                                            Usuń trwale
+                                        </button>
+                                    )}
+                                    {!image.isActive && deleteConfirmationId === image.id && (
+                                        <div className="mt-3 rounded-2xl border border-red-400/30 bg-red-400/10 p-4">
+                                            <p className="text-sm font-semibold text-red-200">
+                                                Usunąć zdjęcie bezpowrotnie?
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-red-200/65">
+                                                Plik zniknie również z R2. Tej operacji nie można cofnąć.
+                                            </p>
+                                            <div className="mt-4 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={deletingImageId !== null}
+                                                    onClick={() => setDeleteConfirmationId(null)}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full border border-white/25 px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-white/50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={deletingImageId !== null}
+                                                    onClick={() => handlePermanentDelete(image.id)}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400 bg-red-400 px-3 py-2 text-xs font-semibold text-black transition hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {deletingImageId === image.id ? (
+                                                        <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
+                                                    ) : (
+                                                        <Trash2 aria-hidden="true" size={15} />
+                                                    )}
+                                                    {deletingImageId === image.id ? "Usuwanie…" : "Usuń"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </article>
                         ))}

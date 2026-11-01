@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
+import pl.atelierbypt.backend.exception.BusinessConflictException;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -191,6 +193,44 @@ class GalleryImageManagementServiceTest {
         verify(galleryImageRepository).saveAll(
                 List.of(secondImage, firstImage, thirdImage)
         );
+    }
+
+    @Test
+    void shouldDeleteInactiveGalleryImageFromR2AndDatabase() {
+        GalleryImage galleryImage = galleryImage(
+                1L,
+                "gallery/image.jpg",
+                "Zdjęcie",
+                false
+        );
+        when(galleryImageRepository.findById(1L))
+                .thenReturn(Optional.of(galleryImage));
+
+        galleryImageManagementService.deleteGalleryImage(1L);
+
+        verify(r2StorageService).delete("gallery/image.jpg");
+        verify(galleryImageRepository).delete(galleryImage);
+    }
+
+    @Test
+    void shouldRejectPermanentDeletionOfActiveGalleryImage() {
+        GalleryImage galleryImage = galleryImage(
+                1L,
+                "gallery/image.jpg",
+                "Zdjęcie",
+                true
+        );
+        when(galleryImageRepository.findById(1L))
+                .thenReturn(Optional.of(galleryImage));
+
+        assertThatThrownBy(() ->
+                galleryImageManagementService.deleteGalleryImage(1L)
+        )
+                .isInstanceOf(BusinessConflictException.class)
+                .hasMessage("Przed trwałym usunięciem ukryj zdjęcie.");
+
+        verify(r2StorageService, never()).delete("gallery/image.jpg");
+        verify(galleryImageRepository, never()).delete(galleryImage);
     }
 
     @Test

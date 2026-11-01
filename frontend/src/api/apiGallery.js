@@ -29,6 +29,10 @@ export const moveGalleryImage = async (imageId, direction) => {
     return response.data;
 };
 
+export const deleteGalleryImage = async (imageId) => {
+    await apiClient.delete(`/api/admin/gallery-images/${imageId}`);
+};
+
 export const uploadGalleryImage = async ({ file, title, altText }) => {
     const formData = new FormData();
     formData.append("file", file);
