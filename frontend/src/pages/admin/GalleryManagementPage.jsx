@@ -1,7 +1,8 @@
-import { AlertCircle, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Upload, X } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     getAdminGalleryImages,
+    moveGalleryImage,
     setGalleryImageVisibility,
     updateGalleryImageDetails,
     uploadGalleryImage,
@@ -44,6 +45,8 @@ const GalleryManagementPage = () => {
     const [editAltText, setEditAltText] = useState("");
     const [editError, setEditError] = useState("");
     const [isSavingDetails, setIsSavingDetails] = useState(false);
+    const [movingImageId, setMovingImageId] = useState(null);
+    const [moveError, setMoveError] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -197,6 +200,25 @@ const GalleryManagementPage = () => {
             setEditError("Nie udało się zapisać opisu zdjęcia.");
         } finally {
             setIsSavingDetails(false);
+        }
+    };
+
+    const handleMove = async (imageId, direction) => {
+        setMovingImageId(imageId);
+        setMoveError("");
+
+        try {
+            const reorderedImages = await moveGalleryImage(
+                imageId,
+                direction,
+            );
+            setGalleryImages(
+                Array.isArray(reorderedImages) ? reorderedImages : []
+            );
+        } catch {
+            setMoveError("Nie udało się zmienić kolejności zdjęć.");
+        } finally {
+            setMovingImageId(null);
         }
     };
 
@@ -402,6 +424,16 @@ const GalleryManagementPage = () => {
                     </div>
                 )}
 
+                {moveError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {moveError}
+                    </div>
+                )}
+
                 {!isGalleryLoading && !galleryError && galleryImages.length === 0 && (
                     <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
                         <ImagePlus aria-hidden="true" size={30} className="mx-auto text-[var(--gold)]/70" />
@@ -413,7 +445,7 @@ const GalleryManagementPage = () => {
 
                 {!isGalleryLoading && !galleryError && galleryImages.length > 0 && (
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {galleryImages.map((image) => (
+                        {galleryImages.map((image, imageIndex) => (
                             <article
                                 key={image.id}
                                 className="overflow-hidden rounded-3xl border border-[var(--gold)]/25 bg-white/[0.045]"
@@ -431,6 +463,39 @@ const GalleryManagementPage = () => {
                                     </span>
                                 </div>
                                 <div className="space-y-2 p-5">
+                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                        <span className="text-xs font-medium uppercase tracking-wider text-white/35">
+                                            Pozycja {imageIndex + 1}
+                                        </span>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                aria-label="Przenieś zdjęcie wyżej"
+                                                disabled={imageIndex === 0 || movingImageId !== null || editingImageId !== null || updatingImageId !== null}
+                                                onClick={() => handleMove(image.id, "UP")}
+                                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
+                                            >
+                                                {movingImageId === image.id ? (
+                                                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                                                ) : (
+                                                    <ArrowUp aria-hidden="true" size={16} />
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label="Przenieś zdjęcie niżej"
+                                                disabled={imageIndex === galleryImages.length - 1 || movingImageId !== null || editingImageId !== null || updatingImageId !== null}
+                                                onClick={() => handleMove(image.id, "DOWN")}
+                                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
+                                            >
+                                                {movingImageId === image.id ? (
+                                                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                                                ) : (
+                                                    <ArrowDown aria-hidden="true" size={16} />
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
                                     {editingImageId === image.id ? (
                                         <form
                                             onSubmit={(event) => handleDetailsSubmit(event, image.id)}
@@ -509,7 +574,7 @@ const GalleryManagementPage = () => {
                                             </p>
                                             <button
                                                 type="button"
-                                                disabled={editingImageId !== null || updatingImageId !== null}
+                                                disabled={editingImageId !== null || updatingImageId !== null || movingImageId !== null}
                                                 onClick={() => startEditing(image)}
                                                 className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
@@ -520,7 +585,7 @@ const GalleryManagementPage = () => {
                                     )}
                                     <button
                                         type="button"
-                                        disabled={updatingImageId !== null || editingImageId !== null}
+                                        disabled={updatingImageId !== null || editingImageId !== null || movingImageId !== null}
                                         onClick={() => handleVisibilityChange(image)}
                                         className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/45 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
                                     >

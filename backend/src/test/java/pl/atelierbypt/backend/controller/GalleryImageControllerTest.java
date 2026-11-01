@@ -8,6 +8,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.exception.GlobalExceptionHandler;
 import pl.atelierbypt.backend.exception.R2StorageException;
+import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
 import pl.atelierbypt.backend.service.GalleryImageManagementService;
 
 import java.util.List;
@@ -166,6 +167,44 @@ class GalleryImageControllerTest {
                 1L,
                 "Nowy tytuł",
                 "Nowy opis alternatywny"
+        );
+    }
+
+    @Test
+    void shouldMoveGalleryImage() throws Exception {
+        GalleryImageResponse movedImage = new GalleryImageResponse(
+                2L,
+                "https://example.r2.dev/gallery/second.jpg",
+                "Drugie zdjęcie",
+                null,
+                0,
+                true
+        );
+        GalleryImageResponse followingImage = new GalleryImageResponse(
+                1L,
+                "https://example.r2.dev/gallery/first.jpg",
+                "Pierwsze zdjęcie",
+                null,
+                1,
+                true
+        );
+        when(galleryImageManagementService.moveGalleryImage(
+                2L,
+                GalleryImageMoveDirection.UP
+        )).thenReturn(List.of(movedImage, followingImage));
+
+        mockMvc.perform(patch("/api/admin/gallery-images/2/position")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"direction\":\"UP\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(2))
+                .andExpect(jsonPath("$[0].sortOrder").value(0))
+                .andExpect(jsonPath("$[1].id").value(1))
+                .andExpect(jsonPath("$[1].sortOrder").value(1));
+
+        verify(galleryImageManagementService).moveGalleryImage(
+                2L,
+                GalleryImageMoveDirection.UP
         );
     }
 

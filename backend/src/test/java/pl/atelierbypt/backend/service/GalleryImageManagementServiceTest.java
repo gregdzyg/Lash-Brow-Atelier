@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
+import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
 import java.util.List;
@@ -154,6 +155,42 @@ class GalleryImageManagementServiceTest {
         assertThat(response.title()).isEqualTo("Nowy tytuł");
         assertThat(response.altText()).isEqualTo("Nowy opis alternatywny");
         verify(galleryImageRepository).save(galleryImage);
+    }
+
+    @Test
+    void shouldMoveGalleryImageUpAndNormalizeSortOrder() {
+        GalleryImage firstImage = galleryImage(
+                1L,
+                "gallery/first.jpg",
+                "Pierwsze zdjęcie",
+                true
+        );
+        GalleryImage secondImage = galleryImage(
+                2L,
+                "gallery/second.jpg",
+                "Drugie zdjęcie",
+                true
+        );
+        GalleryImage thirdImage = galleryImage(
+                3L,
+                "gallery/third.jpg",
+                "Trzecie zdjęcie",
+                true
+        );
+        when(galleryImageRepository.findAllByOrderBySortOrderAscCreatedAtDesc())
+                .thenReturn(List.of(firstImage, secondImage, thirdImage));
+
+        List<GalleryImageResponse> response = galleryImageManagementService
+                .moveGalleryImage(2L, GalleryImageMoveDirection.UP);
+
+        assertThat(response).extracting(GalleryImageResponse::id)
+                .containsExactly(2L, 1L, 3L);
+        assertThat(secondImage.getSortOrder()).isZero();
+        assertThat(firstImage.getSortOrder()).isEqualTo(1);
+        assertThat(thirdImage.getSortOrder()).isEqualTo(2);
+        verify(galleryImageRepository).saveAll(
+                List.of(secondImage, firstImage, thirdImage)
+        );
     }
 
     @Test

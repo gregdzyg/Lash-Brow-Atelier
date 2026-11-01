@@ -12,6 +12,8 @@ public interface GalleryImageRepository extends Repository<GalleryImage, Long> {
 
     GalleryImage saveAndFlush(GalleryImage galleryImage);
 
+    List<GalleryImage> saveAll(Iterable<GalleryImage> galleryImages);
+
     Optional<GalleryImage> findById(Long id);
 
     List<GalleryImage> findAllByOrderBySortOrderAscCreatedAtDesc();

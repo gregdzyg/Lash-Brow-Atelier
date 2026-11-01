@@ -7,9 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
+import pl.atelierbypt.backend.enums.GalleryImageMoveDirection;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -66,6 +69,35 @@ public class GalleryImageManagementService {
     }
 
     @Transactional
+    public List<GalleryImageResponse> moveGalleryImage(
+            Long imageId,
+            GalleryImageMoveDirection direction
+    ) {
+        List<GalleryImage> galleryImages = new ArrayList<>(
+                galleryImageRepository
+                        .findAllByOrderBySortOrderAscCreatedAtDesc()
+        );
+        int currentIndex = findGalleryImageIndex(galleryImages, imageId);
+        int targetIndex = direction == GalleryImageMoveDirection.UP
+                ? currentIndex - 1
+                : currentIndex + 1;
+
+        if (targetIndex >= 0 && targetIndex < galleryImages.size()) {
+            Collections.swap(galleryImages, currentIndex, targetIndex);
+
+            for (int index = 0; index < galleryImages.size(); index++) {
+                galleryImages.get(index).setSortOrder(index);
+            }
+
+            galleryImageRepository.saveAll(galleryImages);
+        }
+
+        return galleryImages.stream()
+                .map(this::mapToGalleryImageResponse)
+                .toList();
+    }
+
+    @Transactional
     public GalleryImageResponse createGalleryImage(
             MultipartFile file,
             String title,
@@ -101,6 +133,21 @@ public class GalleryImageManagementService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Nie znaleziono zdjęcia galerii o id: " + imageId
                 ));
+    }
+
+    private int findGalleryImageIndex(
+            List<GalleryImage> galleryImages,
+            Long imageId
+    ) {
+        for (int index = 0; index < galleryImages.size(); index++) {
+            if (galleryImages.get(index).getId().equals(imageId)) {
+                return index;
+            }
+        }
+
+        throw new ResourceNotFoundException(
+                "Nie znaleziono zdjęcia galerii o id: " + imageId
+        );
     }
 
     private GalleryImageResponse mapToGalleryImageResponse(GalleryImage galleryImage) {

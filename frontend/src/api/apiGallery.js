@@ -21,6 +21,14 @@ export const updateGalleryImageDetails = async (imageId, details) => {
     return response.data;
 };
 
+export const moveGalleryImage = async (imageId, direction) => {
+    const response = await apiClient.patch(
+        `/api/admin/gallery-images/${imageId}/position`,
+        { direction },
+    );
+    return response.data;
+};
+
 export const uploadGalleryImage = async ({ file, title, altText }) => {
     const formData = new FormData();
     formData.append("file", file);

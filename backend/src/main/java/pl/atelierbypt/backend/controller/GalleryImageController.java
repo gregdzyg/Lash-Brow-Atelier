@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.GalleryImageDetailsRequest;
+import pl.atelierbypt.backend.dto.GalleryImageMoveRequest;
 import pl.atelierbypt.backend.dto.GalleryImageResponse;
 import pl.atelierbypt.backend.dto.GalleryImageVisibilityRequest;
 import pl.atelierbypt.backend.service.GalleryImageManagementService;
@@ -59,6 +60,19 @@ public class GalleryImageController {
                         imageId,
                         request.title(),
                         request.altText()
+                )
+        );
+    }
+
+    @PatchMapping("/{imageId}/position")
+    public ResponseEntity<List<GalleryImageResponse>> moveGalleryImage(
+            @PathVariable Long imageId,
+            @Valid @RequestBody GalleryImageMoveRequest request
+    ) {
+        return ResponseEntity.ok(
+                galleryImageManagementService.moveGalleryImage(
+                        imageId,
+                        request.direction()
                 )
         );
     }
