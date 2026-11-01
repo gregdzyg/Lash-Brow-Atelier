@@ -11,11 +11,13 @@ import pl.atelierbypt.backend.enums.NewsPostCategory;
 import pl.atelierbypt.backend.service.NewsPostManagementService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,5 +78,34 @@ class NewsPostControllerTest {
                 ));
 
         verify(newsPostManagementService).createNewsPost(request, image);
+    }
+
+    @Test
+    void shouldReturnAllNewsPostsForAdmin() throws Exception {
+        NewsPostResponse activePost = newsPostResponse(1L, true);
+        NewsPostResponse inactivePost = newsPostResponse(2L, false);
+        when(newsPostManagementService.getNewsPosts())
+                .thenReturn(List.of(activePost, inactivePost));
+
+        mockMvc.perform(get("/api/admin/news-posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].isActive").value(true))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].isActive").value(false));
+    }
+
+    private NewsPostResponse newsPostResponse(Long id, boolean isActive) {
+        return new NewsPostResponse(
+                id,
+                "Aktualność " + id,
+                "Treść wpisu",
+                NewsPostCategory.NEWS,
+                null,
+                null,
+                isActive,
+                LocalDateTime.of(2026, 11, 1, 19, 0),
+                LocalDateTime.of(2026, 11, 1, 19, 0)
+        );
     }
 }

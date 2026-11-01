@@ -11,6 +11,8 @@ import pl.atelierbypt.backend.entity.NewsPost;
 import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
+import java.util.List;
+
 @Service
 @ConditionalOnProperty(prefix = "app.r2", name = "enabled", havingValue = "true")
 public class NewsPostManagementService {
@@ -27,6 +29,14 @@ public class NewsPostManagementService {
         this.newsPostRepository = newsPostRepository;
         this.r2StorageService = r2StorageService;
         this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+    }
+
+    @Transactional(readOnly = true)
+    public List<NewsPostResponse> getNewsPosts() {
+        return newsPostRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::mapToNewsPostResponse)
+                .toList();
     }
 
     @Transactional

@@ -15,6 +15,8 @@ import pl.atelierbypt.backend.enums.ImageStorageFolder;
 import pl.atelierbypt.backend.enums.NewsPostCategory;
 import pl.atelierbypt.backend.repository.NewsPostRepository;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,6 +79,25 @@ class NewsPostManagementServiceTest {
     }
 
     @Test
+    void shouldReturnActiveAndInactiveNewsPosts() {
+        NewsPost activePost = newsPost(1L, true, IMAGE_OBJECT_KEY);
+        NewsPost inactivePost = newsPost(2L, false, null);
+        when(newsPostRepository.findAllByOrderByCreatedAtDesc())
+                .thenReturn(List.of(activePost, inactivePost));
+
+        List<NewsPostResponse> response =
+                newsPostManagementService.getNewsPosts();
+
+        assertThat(response).extracting(NewsPostResponse::id)
+                .containsExactly(1L, 2L);
+        assertThat(response).extracting(NewsPostResponse::isActive)
+                .containsExactly(true, false);
+        assertThat(response.getFirst().imageUrl())
+                .isEqualTo("https://atelier.example.com/news/image.jpg");
+        assertThat(response.get(1).imageUrl()).isNull();
+    }
+
+    @Test
     void shouldCreateNewsPostWithoutImage() {
         when(newsPostRepository.saveAndFlush(any(NewsPost.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -113,5 +134,20 @@ class NewsPostManagementServiceTest {
                 NewsPostCategory.PROMOTION,
                 "  Efekt zabiegu  "
         );
+    }
+
+    private NewsPost newsPost(
+            Long id,
+            boolean isActive,
+            String imageObjectKey
+    ) {
+        NewsPost newsPost = new NewsPost();
+        newsPost.setId(id);
+        newsPost.setTitle("Aktualność " + id);
+        newsPost.setContent("Treść wpisu");
+        newsPost.setCategory(NewsPostCategory.NEWS);
+        newsPost.setImageObjectKey(imageObjectKey);
+        newsPost.setActive(isActive);
+        return newsPost;
     }
 }

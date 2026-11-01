@@ -9,5 +9,7 @@ public interface NewsPostRepository extends Repository<NewsPost, Long> {
 
     NewsPost saveAndFlush(NewsPost newsPost);
 
+    List<NewsPost> findAllByOrderByCreatedAtDesc();
+
     List<NewsPost> findByIsActiveTrueOrderByCreatedAtDesc();
 }
