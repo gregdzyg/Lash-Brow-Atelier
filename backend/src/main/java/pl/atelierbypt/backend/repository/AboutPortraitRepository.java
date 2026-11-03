@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface AboutPortraitRepository extends Repository<AboutPortrait, Long> {
 
     Optional<AboutPortrait> findById(Long id);
+
+    AboutPortrait saveAndFlush(AboutPortrait aboutPortrait);
 }
