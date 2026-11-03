@@ -10,6 +10,8 @@ public interface ReviewImageRepository extends Repository<ReviewImage, Long> {
 
     ReviewImage save(ReviewImage reviewImage);
 
+    ReviewImage saveAndFlush(ReviewImage reviewImage);
+
     List<ReviewImage> saveAll(Iterable<ReviewImage> reviewImages);
 
     Optional<ReviewImage> findById(Long id);
