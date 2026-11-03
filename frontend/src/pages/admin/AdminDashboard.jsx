@@ -44,6 +44,12 @@ const adminSections = [
         icon: "✨",
         to: "/admin/about",
     },
+    {
+        title: "Opinie",
+        description: "Dodawaj i porządkuj screeny opinii",
+        icon: "💬",
+        to: "/admin/reviews",
+    },
 ];
 
 const AdminDashboard = () => {

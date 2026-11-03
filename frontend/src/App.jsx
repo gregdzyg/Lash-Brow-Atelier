@@ -30,6 +30,7 @@ import EditAppointmentPage from './pages/admin/EditAppointmentPage';
 import GalleryManagementPage from './pages/admin/GalleryManagementPage';
 import NewsPostsPage from './pages/admin/NewsPostsPage';
 import AboutManagementPage from './pages/admin/AboutManagementPage';
+import ReviewsManagementPage from './pages/admin/ReviewsManagementPage';
 
 const App = () => {
   return (
@@ -68,6 +69,7 @@ const App = () => {
           <Route path="gallery" element={<GalleryManagementPage />} />
           <Route path="news" element={<NewsPostsPage />} />
           <Route path="about" element={<AboutManagementPage />} />
+          <Route path="reviews" element={<ReviewsManagementPage />} />
         </Route>
         </Route>
       </Routes>

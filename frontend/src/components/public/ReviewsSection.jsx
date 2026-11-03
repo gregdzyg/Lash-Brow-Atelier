@@ -28,10 +28,10 @@ export default function ReviewsSection() {
 
     const fetchReviewImages = async () => {
       try {
-        const reviewImages = await getPublicReviewImages();
+        const response = await getPublicReviewImages();
 
-        if (isMounted && reviewImages.length > 0) {
-          setReviews(reviewImages);
+        if (isMounted && response?.configured) {
+          setReviews(Array.isArray(response.images) ? response.images : []);
         }
       } catch {
         // The bundled review screenshots remain visible as a safe fallback.
@@ -44,6 +44,10 @@ export default function ReviewsSection() {
       isMounted = false;
     };
   }, []);
+
+  if (reviews.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16 text-white sm:py-24">
