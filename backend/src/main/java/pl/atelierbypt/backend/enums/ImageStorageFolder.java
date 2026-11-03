@@ -1,6 +1,7 @@
 package pl.atelierbypt.backend.enums;
 
 public enum ImageStorageFolder {
+    ABOUT("about/"),
     GALLERY("gallery/"),
     NEWS("news/");
 
