@@ -65,14 +65,14 @@ public class QualificationManagementService {
                 qualificationRepository
                         .findAllByOrderBySortOrderAscCreatedAtAsc()
         );
-        int nextSortOrder = qualifications.stream()
-                .mapToInt(Qualification::getSortOrder)
-                .max()
-                .orElse(-1) + 1;
+        qualifications.forEach(qualification -> qualification.setSortOrder(
+                qualification.getSortOrder() + 1
+        ));
+        qualificationRepository.saveAll(qualifications);
         Qualification qualification = new Qualification();
         qualification.setTitle(request.title().strip());
         qualification.setDescription(request.description().strip());
-        qualification.setSortOrder(nextSortOrder);
+        qualification.setSortOrder(0);
         qualification.setActive(true);
 
         return mapQualification(

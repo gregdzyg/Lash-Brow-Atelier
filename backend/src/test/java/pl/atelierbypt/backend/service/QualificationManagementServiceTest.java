@@ -90,7 +90,7 @@ class QualificationManagementServiceTest {
     }
 
     @Test
-    void shouldCreateQualificationAtEndOfList() {
+    void shouldCreateQualificationAtTopOfList() {
         Qualification existingQualification = qualification();
         existingQualification.setSortOrder(4);
         QualificationRequest request = new QualificationRequest(
@@ -114,8 +114,12 @@ class QualificationManagementServiceTest {
         assertThat(response.title()).isEqualTo("Nowe szkolenie");
         assertThat(response.description())
                 .isEqualTo("Opis nowego szkolenia.");
-        assertThat(response.sortOrder()).isEqualTo(5);
+        assertThat(response.sortOrder()).isZero();
         assertThat(response.active()).isTrue();
+        assertThat(existingQualification.getSortOrder()).isEqualTo(5);
+        verify(qualificationRepository).saveAll(
+                List.of(existingQualification)
+        );
     }
 
     @Test
