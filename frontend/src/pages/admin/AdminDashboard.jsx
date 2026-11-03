@@ -38,6 +38,12 @@ const adminSections = [
         icon: "📰",
         to: "/admin/news",
     },
+    {
+        title: "O mnie",
+        description: "Zarządzaj portretem i treścią strony",
+        icon: "✨",
+        to: "/admin/about",
+    },
 ];
 
 const AdminDashboard = () => {
