@@ -29,3 +29,8 @@ export const getPublicAboutContent = async () => {
   const response = await apiClient.get("/api/public/about-content");
   return response.data;
 };
+
+export const getPublicQualifications = async () => {
+  const response = await apiClient.get("/api/public/qualifications");
+  return response.data;
+};

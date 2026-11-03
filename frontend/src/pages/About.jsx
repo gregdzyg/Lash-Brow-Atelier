@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import {
   getPublicAboutContent,
   getPublicAboutPortrait,
+  getPublicQualifications,
 } from "../api/apiPublicContent";
 import {
   DEFAULT_ABOUT_BIOGRAPHY,
   splitIntoParagraphs,
 } from "../utils/aboutContent";
 
-const qualifications = [
+const defaultQualifications = [
   {
     title: "Certyfikat Stylizacji Rzęs 1:1",
     description: "Podstawowe techniki przedłużania rzęs metodą klasyczną.",
@@ -37,10 +38,20 @@ const qualifications = [
   },
 ];
 
+const defaultQualificationSection = {
+  eyebrow: "Rozwój i doświadczenie",
+  title: "Moje kwalifikacje",
+  description: "Regularnie rozwijam warsztat, aby każda stylizacja łączyła bezpieczną technikę, trwałość i naturalny efekt.",
+  qualifications: defaultQualifications,
+};
+
 const About = () => {
   const [portraitUrl, setPortraitUrl] = useState(aboutImage);
   const [aboutBiography, setAboutBiography] = useState(
     DEFAULT_ABOUT_BIOGRAPHY,
+  );
+  const [qualificationSection, setQualificationSection] = useState(
+    defaultQualificationSection,
   );
 
   useEffect(() => {
@@ -59,6 +70,28 @@ const About = () => {
     };
 
     fetchAboutPortrait();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchQualifications = async () => {
+      try {
+        const section = await getPublicQualifications();
+
+        if (isMounted && Array.isArray(section?.qualifications)) {
+          setQualificationSection(section);
+        }
+      } catch {
+        // The original qualification section remains visible as a fallback.
+      }
+    };
+
+    fetchQualifications();
 
     return () => {
       isMounted = false;
@@ -156,23 +189,23 @@ const About = () => {
           <div className="lg:pt-2">
             <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-[#78652c]">
               <span className="h-px w-10 bg-[#78652c]/70" />
-              Rozwój i doświadczenie
+              {qualificationSection.eyebrow}
             </p>
             <h2 className="mt-6 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              Moje kwalifikacje
+              {qualificationSection.title}
             </h2>
             <p className="mt-6 max-w-md text-base leading-8 text-[#241d1e]/70">
-              Regularnie rozwijam warsztat, aby każda stylizacja łączyła bezpieczną technikę, trwałość i naturalny efekt.
+              {qualificationSection.description}
             </p>
             <p className="mt-8 text-6xl font-semibold tracking-tight text-[#241d1e]/10 sm:text-7xl">
-              {String(qualifications.length).padStart(2, '0')}
+              {String(qualificationSection.qualifications.length).padStart(2, '0')}
             </p>
           </div>
 
           <ol className="border-y border-[#241d1e]/20">
-            {qualifications.map((qualification, index) => (
+            {qualificationSection.qualifications.map((qualification, index) => (
               <li
-                key={qualification.title}
+                key={qualification.id ?? qualification.title}
                 className="group grid gap-3 border-b border-[#241d1e]/15 py-6 last:border-b-0 sm:grid-cols-[3rem_minmax(0,1fr)] sm:gap-5"
               >
                 <span className="text-sm font-semibold tracking-[0.16em] text-[#78652c]">
