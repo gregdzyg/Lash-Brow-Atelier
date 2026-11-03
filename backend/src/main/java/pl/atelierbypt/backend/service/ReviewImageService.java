@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.atelierbypt.backend.dto.PublicReviewImageResponse;
+import pl.atelierbypt.backend.dto.PublicReviewImagesResponse;
 import pl.atelierbypt.backend.entity.ReviewImage;
 import pl.atelierbypt.backend.repository.ReviewImageRepository;
 
@@ -24,12 +25,17 @@ public class ReviewImageService {
     }
 
     @Transactional(readOnly = true)
-    public List<PublicReviewImageResponse> getPublicReviewImages() {
-        return reviewImageRepository
+    public PublicReviewImagesResponse getPublicReviewImages() {
+        List<PublicReviewImageResponse> images = reviewImageRepository
                 .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc()
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+
+        return new PublicReviewImagesResponse(
+                reviewImageRepository.count() > 0,
+                images
+        );
     }
 
     private PublicReviewImageResponse mapToResponse(

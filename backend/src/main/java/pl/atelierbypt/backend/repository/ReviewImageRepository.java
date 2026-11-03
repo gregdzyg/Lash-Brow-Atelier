@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface ReviewImageRepository extends Repository<ReviewImage, Long> {
 
+    long count();
+
     ReviewImage save(ReviewImage reviewImage);
 
     ReviewImage saveAndFlush(ReviewImage reviewImage);

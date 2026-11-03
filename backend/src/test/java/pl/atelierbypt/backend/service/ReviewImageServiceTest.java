@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.atelierbypt.backend.dto.PublicReviewImageResponse;
+import pl.atelierbypt.backend.dto.PublicReviewImagesResponse;
 import pl.atelierbypt.backend.entity.ReviewImage;
 import pl.atelierbypt.backend.repository.ReviewImageRepository;
 
@@ -45,17 +45,33 @@ class ReviewImageServiceTest {
         when(reviewImageRepository
                 .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc())
                 .thenReturn(List.of(first, second));
+        when(reviewImageRepository.count()).thenReturn(2L);
 
-        List<PublicReviewImageResponse> response = reviewImageService
+        PublicReviewImagesResponse response = reviewImageService
                 .getPublicReviewImages();
 
-        assertThat(response).hasSize(2);
-        assertThat(response.getFirst().imageUrl())
+        assertThat(response.configured()).isTrue();
+        assertThat(response.images()).hasSize(2);
+        assertThat(response.images().getFirst().imageUrl())
                 .isEqualTo("https://example.r2.dev/reviews/first.png");
-        assertThat(response.getFirst().altText())
+        assertThat(response.images().getFirst().altText())
                 .isEqualTo("Opinia klientki o stylizacji rzęs");
-        assertThat(response.getLast().imageUrl())
+        assertThat(response.images().getLast().imageUrl())
                 .isEqualTo("https://example.r2.dev/reviews/second.png");
+    }
+
+    @Test
+    void shouldRemainConfiguredWhenAllReviewImagesAreHidden() {
+        when(reviewImageRepository
+                .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc())
+                .thenReturn(List.of());
+        when(reviewImageRepository.count()).thenReturn(2L);
+
+        PublicReviewImagesResponse response = reviewImageService
+                .getPublicReviewImages();
+
+        assertThat(response.configured()).isTrue();
+        assertThat(response.images()).isEmpty();
     }
 
     private ReviewImage reviewImage(
