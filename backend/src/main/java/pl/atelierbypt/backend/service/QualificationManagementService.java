@@ -8,10 +8,12 @@ import pl.atelierbypt.backend.dto.QualificationRequest;
 import pl.atelierbypt.backend.dto.QualificationSectionRequest;
 import pl.atelierbypt.backend.entity.Qualification;
 import pl.atelierbypt.backend.entity.QualificationSection;
+import pl.atelierbypt.backend.enums.QualificationMoveDirection;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.QualificationRepository;
 import pl.atelierbypt.backend.repository.QualificationSectionRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -59,8 +61,10 @@ public class QualificationManagementService {
     public AdminQualificationResponse createQualification(
             QualificationRequest request
     ) {
-        List<Qualification> qualifications = qualificationRepository
-                .findAllByOrderBySortOrderAscCreatedAtAsc();
+        List<Qualification> qualifications = new ArrayList<>(
+                qualificationRepository
+                        .findAllByOrderBySortOrderAscCreatedAtAsc()
+        );
         int nextSortOrder = qualifications.stream()
                 .mapToInt(Qualification::getSortOrder)
                 .max()
@@ -90,6 +94,66 @@ public class QualificationManagementService {
         );
     }
 
+    @Transactional
+    public AdminQualificationResponse setQualificationVisibility(
+            Long qualificationId,
+            boolean active
+    ) {
+        Qualification qualification = findQualification(qualificationId);
+        qualification.setActive(active);
+
+        return mapQualification(
+                qualificationRepository.save(qualification)
+        );
+    }
+
+    @Transactional
+    public void deleteQualification(Long qualificationId) {
+        List<Qualification> qualifications = qualificationRepository
+                .findAllByOrderBySortOrderAscCreatedAtAsc();
+        Qualification qualification = qualifications.stream()
+                .filter(item -> item.getId().equals(qualificationId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono kwalifikacji o id: " + qualificationId
+                ));
+        List<Qualification> remainingQualifications = qualifications.stream()
+                .filter(item -> !item.getId().equals(qualificationId))
+                .toList();
+
+        qualificationRepository.delete(qualification);
+        normalizeSortOrder(remainingQualifications);
+        qualificationRepository.saveAll(remainingQualifications);
+    }
+
+    @Transactional
+    public void moveQualification(
+            Long qualificationId,
+            QualificationMoveDirection direction
+    ) {
+        List<Qualification> qualifications = new ArrayList<>(
+                qualificationRepository
+                        .findAllByOrderBySortOrderAscCreatedAtAsc()
+        );
+        int currentIndex = findQualificationIndex(
+                qualifications,
+                qualificationId
+        );
+        int targetIndex = direction == QualificationMoveDirection.UP
+                ? currentIndex - 1
+                : currentIndex + 1;
+
+        if (targetIndex < 0 || targetIndex >= qualifications.size()) {
+            return;
+        }
+
+        Qualification current = qualifications.get(currentIndex);
+        qualifications.set(currentIndex, qualifications.get(targetIndex));
+        qualifications.set(targetIndex, current);
+        normalizeSortOrder(qualifications);
+        qualificationRepository.saveAll(qualifications);
+    }
+
     private QualificationSection findSection() {
         return qualificationSectionRepository
                 .findById(QualificationSection.SINGLETON_ID)
@@ -103,6 +167,27 @@ public class QualificationManagementService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Nie znaleziono kwalifikacji o id: " + qualificationId
                 ));
+    }
+
+    private int findQualificationIndex(
+            List<Qualification> qualifications,
+            Long qualificationId
+    ) {
+        for (int index = 0; index < qualifications.size(); index++) {
+            if (qualifications.get(index).getId().equals(qualificationId)) {
+                return index;
+            }
+        }
+
+        throw new ResourceNotFoundException(
+                "Nie znaleziono kwalifikacji o id: " + qualificationId
+        );
+    }
+
+    private void normalizeSortOrder(List<Qualification> qualifications) {
+        for (int index = 0; index < qualifications.size(); index++) {
+            qualifications.get(index).setSortOrder(index);
+        }
     }
 
     private AdminQualificationSectionResponse mapSection(

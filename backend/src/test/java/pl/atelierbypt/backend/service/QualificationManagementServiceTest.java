@@ -11,6 +11,7 @@ import pl.atelierbypt.backend.dto.QualificationRequest;
 import pl.atelierbypt.backend.dto.QualificationSectionRequest;
 import pl.atelierbypt.backend.entity.Qualification;
 import pl.atelierbypt.backend.entity.QualificationSection;
+import pl.atelierbypt.backend.enums.QualificationMoveDirection;
 import pl.atelierbypt.backend.repository.QualificationRepository;
 import pl.atelierbypt.backend.repository.QualificationSectionRepository;
 
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -138,6 +140,80 @@ class QualificationManagementServiceTest {
         assertThat(response.active()).isFalse();
     }
 
+    @Test
+    void shouldChangeQualificationVisibility() {
+        Qualification qualification = qualification();
+        qualification.setActive(true);
+        when(qualificationRepository.findById(1L))
+                .thenReturn(Optional.of(qualification));
+        when(qualificationRepository.save(qualification))
+                .thenReturn(qualification);
+
+        AdminQualificationResponse response = qualificationManagementService
+                .setQualificationVisibility(1L, false);
+
+        assertThat(response.active()).isFalse();
+        verify(qualificationRepository).save(qualification);
+    }
+
+    @Test
+    void shouldDeleteQualificationAndNormalizeOrder() {
+        Qualification first = qualification(1L, 0);
+        Qualification removed = qualification(2L, 3);
+        Qualification last = qualification(3L, 7);
+        when(qualificationRepository
+                .findAllByOrderBySortOrderAscCreatedAtAsc())
+                .thenReturn(List.of(first, removed, last));
+
+        qualificationManagementService.deleteQualification(2L);
+
+        assertThat(first.getSortOrder()).isZero();
+        assertThat(last.getSortOrder()).isEqualTo(1);
+        verify(qualificationRepository).delete(removed);
+        verify(qualificationRepository).saveAll(List.of(first, last));
+    }
+
+    @Test
+    void shouldMoveQualificationDownAndNormalizeOrder() {
+        Qualification first = qualification(1L, 4);
+        Qualification second = qualification(2L, 8);
+        Qualification third = qualification(3L, 12);
+        when(qualificationRepository
+                .findAllByOrderBySortOrderAscCreatedAtAsc())
+                .thenReturn(new java.util.ArrayList<>(
+                        List.of(first, second, third)
+                ));
+
+        qualificationManagementService.moveQualification(
+                1L,
+                QualificationMoveDirection.DOWN
+        );
+
+        assertThat(second.getSortOrder()).isZero();
+        assertThat(first.getSortOrder()).isEqualTo(1);
+        assertThat(third.getSortOrder()).isEqualTo(2);
+        verify(qualificationRepository).saveAll(
+                List.of(second, first, third)
+        );
+    }
+
+    @Test
+    void shouldNotSaveWhenMovingFirstQualificationUp() {
+        Qualification first = qualification(1L, 0);
+        when(qualificationRepository
+                .findAllByOrderBySortOrderAscCreatedAtAsc())
+                .thenReturn(List.of(first));
+
+        qualificationManagementService.moveQualification(
+                1L,
+                QualificationMoveDirection.UP
+        );
+
+        verify(qualificationRepository)
+                .findAllByOrderBySortOrderAscCreatedAtAsc();
+        verify(qualificationRepository, never()).saveAll(any());
+    }
+
     private QualificationSection qualificationSection() {
         QualificationSection section = new QualificationSection();
         section.setEyebrow("Rozwój i doświadczenie");
@@ -152,6 +228,13 @@ class QualificationManagementServiceTest {
         qualification.setTitle("Stylizacja rzęs 1:1");
         qualification.setDescription("Technika klasyczna.");
         qualification.setSortOrder(0);
+        return qualification;
+    }
+
+    private Qualification qualification(Long id, int sortOrder) {
+        Qualification qualification = qualification();
+        qualification.setId(id);
+        qualification.setSortOrder(sortOrder);
         return qualification;
     }
 }
