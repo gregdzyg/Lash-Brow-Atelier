@@ -34,3 +34,8 @@ export const getPublicQualifications = async () => {
   const response = await apiClient.get("/api/public/qualifications");
   return response.data;
 };
+
+export const getPublicReviewImages = async () => {
+  const response = await apiClient.get("/api/public/review-images");
+  return response.data;
+};
