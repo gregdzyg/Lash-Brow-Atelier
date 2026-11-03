@@ -1,15 +1,19 @@
 import {
     AlertCircle,
     CheckCircle2,
+    FileText,
     ImageUp,
     LoaderCircle,
+    Save,
     Upload,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import aboutImage from "../../assets/head-images/about.jpg";
 import {
+    getAboutContent,
     getAboutPortrait,
     replaceAboutPortrait,
+    updateAboutContent,
 } from "../../api/apiAbout";
 
 const AboutManagementPage = () => {
@@ -21,6 +25,12 @@ const AboutManagementPage = () => {
     const [loadError, setLoadError] = useState("");
     const [submitError, setSubmitError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [homeIntroduction, setHomeIntroduction] = useState("");
+    const [aboutBiography, setAboutBiography] = useState("");
+    const [isContentLoading, setIsContentLoading] = useState(true);
+    const [isContentSubmitting, setIsContentSubmitting] = useState(false);
+    const [contentError, setContentError] = useState("");
+    const [contentSuccess, setContentSuccess] = useState("");
     const fileInputRef = useRef(null);
     const submissionInProgress = useRef(false);
 
@@ -68,6 +78,37 @@ const AboutManagementPage = () => {
         };
     }, []);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchContent = async () => {
+            try {
+                const content = await getAboutContent();
+
+                if (isMounted) {
+                    setHomeIntroduction(content.homeIntroduction);
+                    setAboutBiography(content.aboutBiography);
+                }
+            } catch {
+                if (isMounted) {
+                    setContentError(
+                        "Nie udało się pobrać tekstów. Odśwież stronę i spróbuj ponownie.",
+                    );
+                }
+            } finally {
+                if (isMounted) {
+                    setIsContentLoading(false);
+                }
+            }
+        };
+
+        fetchContent();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
     const handleFileChange = (event) => {
         setSelectedImage(event.target.files?.[0] ?? null);
         setSubmitError("");
@@ -106,6 +147,34 @@ const AboutManagementPage = () => {
         }
     };
 
+    const handleContentSubmit = async (event) => {
+        event.preventDefault();
+
+        if (isContentSubmitting) {
+            return;
+        }
+
+        setIsContentSubmitting(true);
+        setContentError("");
+        setContentSuccess("");
+
+        try {
+            const content = await updateAboutContent({
+                homeIntroduction,
+                aboutBiography,
+            });
+            setHomeIntroduction(content.homeIntroduction);
+            setAboutBiography(content.aboutBiography);
+            setContentSuccess("Teksty zostały zapisane i są już widoczne na stronie.");
+        } catch {
+            setContentError(
+                "Nie udało się zapisać tekstów. Sprawdź ich treść i spróbuj ponownie.",
+            );
+        } finally {
+            setIsContentSubmitting(false);
+        }
+    };
+
     return (
         <section className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16">
             <div className="mb-10 max-w-2xl sm:mb-12">
@@ -117,7 +186,7 @@ const AboutManagementPage = () => {
                     O mnie
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-white/60 sm:text-base">
-                    Zarządzaj zdjęciem prezentowanym w publicznej sekcji „O mnie”.
+                    Zarządzaj portretem oraz tekstami prezentowanymi na stronie.
                 </p>
             </div>
 
@@ -261,6 +330,113 @@ const AboutManagementPage = () => {
                             <Upload aria-hidden="true" size={17} />
                         )}
                         {isSubmitting ? "Zapisywanie…" : "Zapisz portret"}
+                    </button>
+                </div>
+            </form>
+
+            <form
+                onSubmit={handleContentSubmit}
+                className="mt-8 overflow-hidden rounded-4xl border border-[var(--gold)]/30 bg-gradient-to-br from-white/[0.08] to-white/[0.025] backdrop-blur-xl"
+            >
+                <div className="border-b border-[var(--gold)]/20 px-6 py-6 sm:px-8 lg:px-10">
+                    <div className="flex items-start gap-4">
+                        <span className="rounded-2xl bg-[var(--gold)]/10 p-3 text-[var(--gold)]">
+                            <FileText aria-hidden="true" size={22} />
+                        </span>
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">
+                                Teksty sekcji „O mnie”
+                            </h2>
+                            <p className="mt-1 text-sm leading-6 text-white/45">
+                                Pusta linia rozpoczyna nowy akapit. Liczba akapitów jest dowolna.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-2 lg:p-10">
+                    <label className="block">
+                        <span className="text-sm font-semibold text-white/80">
+                            „Kilka słów o Atelier” — strona główna
+                        </span>
+                        <textarea
+                            value={homeIntroduction}
+                            maxLength={5000}
+                            required
+                            disabled={isContentLoading || isContentSubmitting}
+                            onChange={(event) => {
+                                setHomeIntroduction(event.target.value);
+                                setContentError("");
+                                setContentSuccess("");
+                            }}
+                            rows={13}
+                            className="mt-3 w-full resize-y rounded-3xl border border-white/15 bg-black/20 px-5 py-4 text-sm leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-[var(--gold)]/70 focus:ring-2 focus:ring-[var(--gold)]/15 disabled:opacity-50"
+                        />
+                        <span className="mt-2 block text-right text-xs text-white/35">
+                            {homeIntroduction.length} / 5000
+                        </span>
+                    </label>
+
+                    <label className="block">
+                        <span className="text-sm font-semibold text-white/80">
+                            Biografia — strona „O mnie”
+                        </span>
+                        <textarea
+                            value={aboutBiography}
+                            maxLength={5000}
+                            required
+                            disabled={isContentLoading || isContentSubmitting}
+                            onChange={(event) => {
+                                setAboutBiography(event.target.value);
+                                setContentError("");
+                                setContentSuccess("");
+                            }}
+                            rows={13}
+                            className="mt-3 w-full resize-y rounded-3xl border border-white/15 bg-black/20 px-5 py-4 text-sm leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-[var(--gold)]/70 focus:ring-2 focus:ring-[var(--gold)]/15 disabled:opacity-50"
+                        />
+                        <span className="mt-2 block text-right text-xs text-white/35">
+                            {aboutBiography.length} / 5000
+                        </span>
+                    </label>
+                </div>
+
+                {(contentError || contentSuccess) && (
+                    <div className="px-6 pb-6 sm:px-8 lg:px-10">
+                        <div
+                            role={contentError ? "alert" : "status"}
+                            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${contentError ? "border-red-500/30 bg-red-500/10 text-red-300" : "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"}`}
+                        >
+                            {contentError ? (
+                                <AlertCircle aria-hidden="true" size={18} />
+                            ) : (
+                                <CheckCircle2 aria-hidden="true" size={18} />
+                            )}
+                            {contentError || contentSuccess}
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex justify-end border-t border-[var(--gold)]/20 bg-black/10 px-6 py-5 sm:px-8 lg:px-10">
+                    <button
+                        type="submit"
+                        disabled={
+                            isContentLoading ||
+                            isContentSubmitting ||
+                            !homeIntroduction.trim() ||
+                            !aboutBiography.trim()
+                        }
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-[var(--gold)] bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isContentSubmitting ? (
+                            <LoaderCircle
+                                aria-hidden="true"
+                                size={17}
+                                className="animate-spin"
+                            />
+                        ) : (
+                            <Save aria-hidden="true" size={17} />
+                        )}
+                        {isContentSubmitting ? "Zapisywanie…" : "Zapisz teksty"}
                     </button>
                 </div>
             </form>

@@ -1,9 +1,41 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import heroImage from "../assets/images/hero.jpg";
 import ReviewsSection from "../components/public/ReviewsSection";
 import PublicOfferCards from "../components/public/PublicOfferCards";
+import { getPublicAboutContent } from "../api/apiPublicContent";
+import {
+  DEFAULT_HOME_INTRODUCTION,
+  splitIntoParagraphs,
+} from "../utils/aboutContent";
 
 const Home = () => {
+  const [homeIntroduction, setHomeIntroduction] = useState(
+    DEFAULT_HOME_INTRODUCTION,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAboutContent = async () => {
+      try {
+        const content = await getPublicAboutContent();
+
+        if (isMounted && content?.homeIntroduction) {
+          setHomeIntroduction(content.homeIntroduction);
+        }
+      } catch {
+        // The original text remains visible when the API is unavailable.
+      }
+    };
+
+    fetchAboutContent();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="mx-auto w-full max-w-7xl px-5 pb-8 pt-6 text-white sm:px-8 sm:pt-10 lg:px-12">
       {/* Hero Image */}
@@ -90,13 +122,14 @@ const Home = () => {
           </div>
 
           <div className="border-t border-[#241d1e]/20 pt-7 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-            <p className="text-base leading-8 text-[#241d1e]/75 sm:text-lg">
-              W Lash&amp;Brow Atelier wierzymy, że piękno tkwi w detalach – w subtelnym spojrzeniu, delikatnym łuku brwi,
-              naturalnym podkreśleniu kobiecego uroku.
-            </p>
-            <p className="mt-4 text-base leading-8 text-[#241d1e]/75 sm:text-lg">
-              Moją misją jest wydobycie Twojego wewnętrznego piękna w sposób, który daje pewność siebie – każdego dnia.
-            </p>
+            {splitIntoParagraphs(homeIntroduction).map((paragraph, index) => (
+              <p
+                key={`${index}-${paragraph.slice(0, 32)}`}
+                className={`${index > 0 ? "mt-4 " : ""}text-base leading-8 text-[#241d1e]/75 sm:text-lg`}
+              >
+                {paragraph}
+              </p>
+            ))}
 
             <Link
               to="/about"

@@ -14,3 +14,16 @@ export const replaceAboutPortrait = async (image) => {
     );
     return response.data;
 };
+
+export const getAboutContent = async () => {
+    const response = await apiClient.get("/api/admin/about-content");
+    return response.data;
+};
+
+export const updateAboutContent = async (aboutContent) => {
+    const response = await apiClient.put(
+        "/api/admin/about-content",
+        aboutContent,
+    );
+    return response.data;
+};

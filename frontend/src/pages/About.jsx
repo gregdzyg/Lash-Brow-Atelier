@@ -1,7 +1,14 @@
 import aboutImage from "../assets/head-images/about.jpg";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getPublicAboutPortrait } from "../api/apiPublicContent";
+import {
+  getPublicAboutContent,
+  getPublicAboutPortrait,
+} from "../api/apiPublicContent";
+import {
+  DEFAULT_ABOUT_BIOGRAPHY,
+  splitIntoParagraphs,
+} from "../utils/aboutContent";
 
 const qualifications = [
   {
@@ -32,6 +39,9 @@ const qualifications = [
 
 const About = () => {
   const [portraitUrl, setPortraitUrl] = useState(aboutImage);
+  const [aboutBiography, setAboutBiography] = useState(
+    DEFAULT_ABOUT_BIOGRAPHY,
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -54,6 +64,47 @@ const About = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAboutContent = async () => {
+      try {
+        const content = await getPublicAboutContent();
+
+        if (isMounted && content?.aboutBiography) {
+          setAboutBiography(content.aboutBiography);
+        }
+      } catch {
+        // The original biography remains visible when the API is unavailable.
+      }
+    };
+
+    fetchAboutContent();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const renderBiography = (paragraph) => {
+    const highlightedName = "Paulina Tarnowska";
+    const [beforeName, afterName] = paragraph.split(highlightedName);
+
+    if (afterName === undefined) {
+      return paragraph;
+    }
+
+    return (
+      <>
+        {beforeName}
+        <span className="font-semibold text-[var(--gold)]">
+          {highlightedName}
+        </span>
+        {afterName}
+      </>
+    );
+  };
 
   return (
     <section className="mx-auto w-full max-w-7xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
@@ -82,22 +133,11 @@ const About = () => {
 
         {/* Tekst */}
         <div className="space-y-5 text-base leading-8 text-white/65 sm:text-lg">
-          <p>
-            Nazywam się <span className="font-semibold text-[var(--gold)]">Paulina Tarnowska</span>, z pasją tworzę
-            piękne i naturalne stylizacje rzęs oraz brwi.
-            Każda klientka jest dla mnie wyjątkowa, dlatego każdy zabieg wykonuję z
-            pełnym zaangażowaniem, dbając o najmniejszy detal.
-          </p>
-          <p>
-            Moim celem jest podkreślenie naturalnego piękna w sposób subtelny i elegancki,
-            tak aby każda kobieta czuła się pewna siebie każdego dnia. Stale poszerzam swoje
-            umiejętności, uczestnicząc w szkoleniach i śledząc najnowsze trendy w branży beauty.
-          </p>
-          <p>
-            W moim atelier stawiam na indywidualne podejście i komfort każdej klientki.
-            Wierzę, że wizyta u stylistki rzęs i brwi to nie tylko zabieg, ale także chwila
-            relaksu i czasu dla siebie.
-          </p>
+          {splitIntoParagraphs(aboutBiography).map((paragraph, index) => (
+            <p key={`${index}-${paragraph.slice(0, 32)}`}>
+              {renderBiography(paragraph)}
+            </p>
+          ))}
         </div>
       </div>
 

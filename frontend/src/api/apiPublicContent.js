@@ -24,3 +24,8 @@ export const getPublicAboutPortrait = async () => {
   const response = await apiClient.get("/api/public/about-portrait");
   return response.data;
 };
+
+export const getPublicAboutContent = async () => {
+  const response = await apiClient.get("/api/public/about-content");
+  return response.data;
+};
