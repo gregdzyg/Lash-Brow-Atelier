@@ -27,3 +27,54 @@ export const updateAboutContent = async (aboutContent) => {
     );
     return response.data;
 };
+
+export const getAdminQualifications = async () => {
+    const response = await apiClient.get("/api/admin/qualifications");
+    return response.data;
+};
+
+export const updateQualificationSection = async (section) => {
+    const response = await apiClient.put(
+        "/api/admin/qualifications/section",
+        section,
+    );
+    return response.data;
+};
+
+export const createQualification = async (qualification) => {
+    const response = await apiClient.post(
+        "/api/admin/qualifications",
+        qualification,
+    );
+    return response.data;
+};
+
+export const updateQualification = async (qualificationId, qualification) => {
+    const response = await apiClient.put(
+        `/api/admin/qualifications/${qualificationId}`,
+        qualification,
+    );
+    return response.data;
+};
+
+export const setQualificationVisibility = async (
+    qualificationId,
+    active,
+) => {
+    const response = await apiClient.patch(
+        `/api/admin/qualifications/${qualificationId}/visibility`,
+        { active },
+    );
+    return response.data;
+};
+
+export const moveQualification = async (qualificationId, direction) => {
+    await apiClient.patch(
+        `/api/admin/qualifications/${qualificationId}/position`,
+        { direction },
+    );
+};
+
+export const deleteQualification = async (qualificationId) => {
+    await apiClient.delete(`/api/admin/qualifications/${qualificationId}`);
+};

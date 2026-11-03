@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import aboutImage from "../../assets/head-images/about.jpg";
+import QualificationManagementPanel from "../../components/admin/QualificationManagementPanel";
 import {
     getAboutContent,
     getAboutPortrait,
@@ -440,6 +441,8 @@ const AboutManagementPage = () => {
                     </button>
                 </div>
             </form>
+
+            <QualificationManagementPanel />
         </section>
     );
 };
