@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.atelierbypt.backend.dto.AdminQualificationResponse;
 import pl.atelierbypt.backend.dto.AdminQualificationSectionResponse;
+import pl.atelierbypt.backend.dto.QualificationRequest;
 import pl.atelierbypt.backend.dto.QualificationSectionRequest;
 import pl.atelierbypt.backend.entity.Qualification;
 import pl.atelierbypt.backend.entity.QualificationSection;
@@ -54,11 +55,53 @@ public class QualificationManagementService {
         );
     }
 
+    @Transactional
+    public AdminQualificationResponse createQualification(
+            QualificationRequest request
+    ) {
+        List<Qualification> qualifications = qualificationRepository
+                .findAllByOrderBySortOrderAscCreatedAtAsc();
+        int nextSortOrder = qualifications.stream()
+                .mapToInt(Qualification::getSortOrder)
+                .max()
+                .orElse(-1) + 1;
+        Qualification qualification = new Qualification();
+        qualification.setTitle(request.title().strip());
+        qualification.setDescription(request.description().strip());
+        qualification.setSortOrder(nextSortOrder);
+        qualification.setActive(true);
+
+        return mapQualification(
+                qualificationRepository.save(qualification)
+        );
+    }
+
+    @Transactional
+    public AdminQualificationResponse updateQualification(
+            Long qualificationId,
+            QualificationRequest request
+    ) {
+        Qualification qualification = findQualification(qualificationId);
+        qualification.setTitle(request.title().strip());
+        qualification.setDescription(request.description().strip());
+
+        return mapQualification(
+                qualificationRepository.save(qualification)
+        );
+    }
+
     private QualificationSection findSection() {
         return qualificationSectionRepository
                 .findById(QualificationSection.SINGLETON_ID)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Nie znaleziono treści sekcji kwalifikacji."
+                ));
+    }
+
+    private Qualification findQualification(Long qualificationId) {
+        return qualificationRepository.findById(qualificationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nie znaleziono kwalifikacji o id: " + qualificationId
                 ));
     }
 
