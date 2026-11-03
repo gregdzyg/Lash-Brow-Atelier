@@ -1,5 +1,7 @@
 import aboutImage from "../assets/head-images/about.jpg";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getPublicAboutPortrait } from "../api/apiPublicContent";
 
 const qualifications = [
   {
@@ -29,6 +31,30 @@ const qualifications = [
 ];
 
 const About = () => {
+  const [portraitUrl, setPortraitUrl] = useState(aboutImage);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAboutPortrait = async () => {
+      try {
+        const portrait = await getPublicAboutPortrait();
+
+        if (isMounted && portrait?.imageUrl) {
+          setPortraitUrl(portrait.imageUrl);
+        }
+      } catch {
+        // The bundled portrait remains a safe fallback when the API is unavailable.
+      }
+    };
+
+    fetchAboutPortrait();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="mx-auto w-full max-w-7xl px-5 py-14 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24">
       {/* Nagłówek */}
@@ -48,7 +74,7 @@ const About = () => {
         <div className="relative">
           <div className="absolute -inset-3 rounded-[2.25rem] border border-[var(--gold)]/20" />
           <img
-            src={aboutImage}
+            src={portraitUrl}
             alt="O mnie"
             className="relative max-h-[42rem] w-full rounded-[2rem] object-cover shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
           />
