@@ -2,10 +2,23 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPublicGalleryImages } from "../api/apiPublicContent";
 
+const localImages = import.meta.glob(
+  "../assets/images/gallery/*.{jpg,jpeg,png,JPG}",
+  { eager: true },
+);
+
+const defaultGalleryImages = Object.entries(localImages)
+  .sort(([firstPath], [secondPath]) => firstPath.localeCompare(secondPath))
+  .map(([, module], index) => ({
+    id: `local-${index + 1}`,
+    imageUrl: module.default,
+    title: null,
+    altText: `Stylizacja rzęs i brwi – realizacja ${index + 1}`,
+  }));
+
 const Gallery = () => {
-  const [galleryImages, setGalleryImages] = useState([]);
+  const [galleryImages, setGalleryImages] = useState(defaultGalleryImages);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -14,14 +27,11 @@ const Gallery = () => {
       try {
         const response = await getPublicGalleryImages();
 
-        if (isMounted) {
-          setGalleryImages(Array.isArray(response) ? response : []);
-          setHasError(false);
+        if (isMounted && response?.configured) {
+          setGalleryImages(Array.isArray(response.images) ? response.images : []);
         }
       } catch {
-        if (isMounted) {
-          setHasError(true);
-        }
+        // The bundled gallery remains visible as a safe fallback.
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -52,19 +62,13 @@ const Gallery = () => {
         </p>
       )}
 
-      {!isLoading && hasError && (
-        <p className="text-center text-white/65" role="alert">
-          Nie udało się pobrać galerii. Spróbuj ponownie później.
-        </p>
-      )}
-
-      {!isLoading && !hasError && galleryImages.length === 0 && (
+      {!isLoading && galleryImages.length === 0 && (
         <p className="text-center text-white/55">
           Galeria zostanie wkrótce uzupełniona.
         </p>
       )}
 
-      {!isLoading && !hasError && galleryImages.length > 0 && (
+      {!isLoading && galleryImages.length > 0 && (
         <div className="grid items-start grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:gap-6">
           {galleryImages.map((image, index) => (
             <figure

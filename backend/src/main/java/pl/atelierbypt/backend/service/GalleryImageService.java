@@ -3,6 +3,7 @@ package pl.atelierbypt.backend.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pl.atelierbypt.backend.dto.PublicGalleryImageResponse;
+import pl.atelierbypt.backend.dto.PublicGalleryImagesResponse;
 import pl.atelierbypt.backend.entity.GalleryImage;
 import pl.atelierbypt.backend.repository.GalleryImageRepository;
 
@@ -23,11 +24,17 @@ public class GalleryImageService {
         this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
     }
 
-    public List<PublicGalleryImageResponse> getPublicGalleryImages() {
-        return galleryImageRepository.findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc()
+    public PublicGalleryImagesResponse getPublicGalleryImages() {
+        List<PublicGalleryImageResponse> images = galleryImageRepository
+                .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc()
                 .stream()
                 .map(this::mapToPublicGalleryImageResponse)
                 .toList();
+
+        return new PublicGalleryImagesResponse(
+                galleryImageRepository.count() > 0,
+                images
+        );
     }
 
     private PublicGalleryImageResponse mapToPublicGalleryImageResponse(GalleryImage galleryImage) {

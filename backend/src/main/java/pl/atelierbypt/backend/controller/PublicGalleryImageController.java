@@ -5,10 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.atelierbypt.backend.dto.PublicGalleryImageResponse;
+import pl.atelierbypt.backend.dto.PublicGalleryImagesResponse;
 import pl.atelierbypt.backend.service.GalleryImageService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/gallery-images")
@@ -18,7 +16,7 @@ public class PublicGalleryImageController {
     private final GalleryImageService galleryImageService;
 
     @GetMapping
-    public ResponseEntity<List<PublicGalleryImageResponse>> getGalleryImages() {
+    public ResponseEntity<PublicGalleryImagesResponse> getGalleryImages() {
         return ResponseEntity.ok(galleryImageService.getPublicGalleryImages());
     }
 }
