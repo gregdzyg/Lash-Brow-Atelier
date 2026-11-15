@@ -5,16 +5,20 @@ Production accounts, billing and customer data should belong to the Atelier.
 
 ## Before the meeting
 
-- Start production with a clean database. The beta contains fictional data and
-  is not migrated.
+- Keep the existing production Neon database. It contains live business data
+  and must never be replaced with the demo database.
+- Confirm that the newest encrypted production backup completed successfully
+  before the release.
+- Record non-sensitive control counts for the existing production tables and
+  confirm that Flyway has successfully applied migrations through `V12`.
 - Keep the existing canonical public address:
   `https://www.atelierbypaula.pl`. The root domain should continue to redirect
   to `www`.
 - Save screenshots or an export of the current DNS zone. In particular, preserve
   all mail-related `MX`, SPF, DKIM and DMARC records.
 - Confirm that CI passes on the release commit.
-- Finalise the privacy policy, merge the accepted release into `main`, create
-  the permanent `demo` branch and point the developer-owned beta services to it.
+- Finalise the privacy policy and merge the accepted release from the permanent
+  `demo` branch into `main`.
 - Add an `X-Robots-Tag: noindex, nofollow` response header for `/*` on the demo
   Static Site so search engines do not index it as a duplicate of production.
 - Keep the existing beta frontend, backend and database unchanged.
@@ -31,23 +35,39 @@ The Atelier owner should have access to:
 Do not store passwords, database connection strings or JWT secrets in the
 repository or this document.
 
-## 1. Create the production Neon project
+## 1. Verify the existing production database
 
-1. Create the project in the Atelier owner's Neon account.
-2. Select a European region close to the Render backend.
-3. Keep the production branch empty; do not copy beta data.
-4. Record the database host, database name, role and password separately. The
-   Spring JDBC URL must use the form
-   `jdbc:postgresql://<host>/<database>?sslmode=require`.
-5. Open **Backup & Restore** and record the configured restore window.
-6. Enable two-factor authentication and store recovery information securely.
+1. Confirm that the Render production backend still points to the existing
+   production Neon database, not the demo database.
+2. Confirm that the newest encrypted backup exists in the private R2 backup
+   bucket and that the backup workflow succeeded.
+3. Read `flyway_schema_history` and confirm that all existing migrations through
+   `V12__restore_two_hour_public_start_interval.sql` succeeded.
+4. Record counts for `client`, `appointment`, `offer_item`, `working_hours`,
+   `availability_exception` and `app_user`. Do not display client details.
+5. Do not manually create the new tables. Flyway will add migrations `V13`
+   through `V18` when the new backend starts.
 
-The application applies Flyway migrations automatically when the backend starts.
-The expected latest migration is `V12__restore_two_hour_public_start_interval.sql`.
+The new migrations only add tables and seed public website content. They do not
+delete or alter existing clients, appointments, offers, working hours,
+availability exceptions or administrator accounts.
 
-## 2. Create the production backend on Render
+## 2. Prepare production media storage
 
-Create a **Web Service** with these settings:
+1. Create a dedicated public R2 bucket for production media, for example
+   `atelier-production-media`. Do not use the private production backup bucket
+   or the demo media bucket.
+2. Create an API token limited to read and write access for the production media
+   bucket.
+3. Enable the bucket's public development URL or connect its public custom
+   domain.
+4. Upload one harmless test image and open the exact public object URL before
+   configuring Render. Remove the test object afterwards.
+5. Store the token values only in Render and the owner's password manager.
+
+## 3. Update the production backend on Render
+
+Verify the existing **Web Service** uses these settings:
 
 | Setting | Value |
 | --- | --- |
@@ -67,40 +87,34 @@ Configure the following environment variables:
 | `SPRING_DATASOURCE_URL` | Neon JDBC connection URL |
 | `SPRING_DATASOURCE_USERNAME` | Neon database role |
 | `SPRING_DATASOURCE_PASSWORD` | Neon database password |
-| `JWT_SECRET` | New Base64 secret generated for production |
+| `JWT_SECRET` | Existing production JWT secret |
 | `JWT_EXPIRATION` | `3600000` |
 | `CORS_ALLOWED_ORIGIN` | `https://www.atelierbypaula.pl` |
-| `ADMIN_BOOTSTRAP_ENABLED` | `true` for the first successful start only |
-| `ADMIN_USERNAME` | Login agreed with the Atelier owner |
-| `ADMIN_PASSWORD` | Strong initial password |
+| `ADMIN_BOOTSTRAP_ENABLED` | `false` because the production administrator already exists |
 | `JPA_SHOW_SQL` | `false` |
 | `SPRINGDOC_API_DOCS_ENABLED` | `false` |
 | `SPRINGDOC_SWAGGER_UI_ENABLED` | `false` |
 | `LOGIN_MAX_FAILED_ATTEMPTS` | `5` |
 | `LOGIN_ATTEMPT_WINDOW_MINUTES` | `15` |
 | `LOGIN_LOCK_DURATION_MINUTES` | `15` |
+| `R2_ENABLED` | `true` |
+| `R2_ENDPOINT` | Cloudflare R2 S3 API endpoint |
+| `R2_ACCESS_KEY_ID` | Production media token access key ID |
+| `R2_SECRET_ACCESS_KEY` | Production media token secret access key |
+| `R2_BUCKET` | Production media bucket name |
+| `R2_PUBLIC_BASE_URL` | Exact public base URL for objects in the production media bucket |
 
-After the first successful deployment:
+After the backend deployment:
 
-1. Confirm in the logs that all Flyway migrations completed.
+1. Confirm in the logs that Flyway applied migrations `V13` through `V18`.
 2. Confirm that the administrator can log in.
-3. Set `ADMIN_BOOTSTRAP_ENABLED=false`.
-4. Remove `ADMIN_PASSWORD` from Render.
-5. Remove `ADMIN_USERNAME` from Render; the account remains in the database.
-6. Redeploy and verify that login still works.
+3. Confirm that existing appointments, offers and working hours remain present.
+4. Keep `ADMIN_USERNAME` and `ADMIN_PASSWORD` absent from Render. The existing
+   administrator account remains in the database.
 
-Generate `JWT_SECRET` locally during the meeting with:
+## 4. Update the production frontend on Render
 
-```bash
-openssl rand -base64 32
-```
-
-Copy it directly into Render and do not save it in the repository or deployment
-notes.
-
-## 3. Create the production frontend on Render
-
-Create a **Static Site** with these settings:
+Verify the existing **Static Site** uses these settings:
 
 | Setting | Value |
 | --- | --- |
@@ -125,7 +139,26 @@ Add the rewrite required by React Router:
 Deploy the site and test its temporary `onrender.com` address before changing
 the public domain.
 
-## 4. Verify before switching DNS
+## 5. Controlled deployment and verification
+
+1. Temporarily disable automatic frontend deployment.
+2. Merge the accepted `demo` branch into `main` and wait for CI to pass.
+3. Deploy the backend first. The existing frontend remains compatible with the
+   updated backend.
+4. Confirm in the backend logs that Flyway applied migrations `V13` through
+   `V18` successfully.
+5. Compare the control counts for the existing production tables with the
+   counts recorded before deployment.
+6. Check login, appointments, the offer and working hours before continuing.
+7. Deploy the frontend and re-enable its normal deployment setting only after
+   the backend checks pass.
+
+Until the first gallery record is added, the frontend displays the bundled
+gallery images. Adding the first image through the administration panel switches
+the public gallery to database and R2 content. The stylist should therefore add
+the complete initial gallery in one session.
+
+## 6. Verify before switching DNS
 
 - Open all public routes directly and refresh them.
 - Check the offer, working hours and public availability.
@@ -136,7 +169,7 @@ the public domain.
 - Check frontend console and backend logs.
 - Verify the site on a phone.
 
-## 5. Connect the public domain
+## 7. Connect the public domain
 
 1. Add the canonical domain to the production Render Static Site.
 2. Copy the exact DNS values shown by Render.
@@ -148,7 +181,7 @@ the public domain.
 7. Update `CORS_ALLOWED_ORIGIN` if the final canonical origin differs from the
    value used during verification.
 
-## 6. Production smoke test
+## 8. Production smoke test
 
 - Open every public route using the final domain.
 - Refresh `/contact`, `/offer`, `/admin/login` and an authenticated admin route.
