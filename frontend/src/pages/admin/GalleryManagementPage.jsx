@@ -1,0 +1,696 @@
+import { AlertCircle, ArrowDown, ArrowUp, CheckCircle2, Eye, EyeOff, ImagePlus, LoaderCircle, Pencil, Save, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    deleteGalleryImage,
+    getAdminGalleryImages,
+    moveGalleryImage,
+    setGalleryImageVisibility,
+    updateGalleryImageDetails,
+    uploadGalleryImage,
+} from "../../api/apiGallery";
+
+const inputClassName = `
+    w-full rounded-2xl border border-[var(--gold)]/35 bg-white/[0.05]
+    px-4 py-3 text-sm text-white outline-none transition duration-300
+    placeholder:text-white/25 hover:border-[var(--gold)]/60
+    focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20
+    disabled:cursor-not-allowed disabled:opacity-60
+`;
+
+const getImagesCountLabel = (count) => {
+    if (count === 1) {
+        return "1 zdjęcie";
+    }
+
+    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) {
+        return `${count} zdjęcia`;
+    }
+
+    return `${count} zdjęć`;
+};
+
+const GalleryManagementPage = () => {
+    const [file, setFile] = useState(null);
+    const [title, setTitle] = useState("");
+    const [altText, setAltText] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [uploadedImage, setUploadedImage] = useState(null);
+    const [galleryImages, setGalleryImages] = useState([]);
+    const [isGalleryLoading, setIsGalleryLoading] = useState(true);
+    const [galleryError, setGalleryError] = useState("");
+    const [visibilityError, setVisibilityError] = useState("");
+    const [updatingImageId, setUpdatingImageId] = useState(null);
+    const [editingImageId, setEditingImageId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editAltText, setEditAltText] = useState("");
+    const [editError, setEditError] = useState("");
+    const [isSavingDetails, setIsSavingDetails] = useState(false);
+    const [movingImageId, setMovingImageId] = useState(null);
+    const [moveError, setMoveError] = useState("");
+    const [deleteConfirmationId, setDeleteConfirmationId] = useState(null);
+    const [deletingImageId, setDeletingImageId] = useState(null);
+    const [deleteError, setDeleteError] = useState("");
+    const fileInputRef = useRef(null);
+    const submissionInProgress = useRef(false);
+
+    const previewUrl = useMemo(
+        () => file ? URL.createObjectURL(file) : "",
+        [file],
+    );
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchGalleryImages = async () => {
+            try {
+                const images = await getAdminGalleryImages();
+
+                if (isMounted) {
+                    setGalleryImages(Array.isArray(images) ? images : []);
+                }
+            } catch {
+                if (isMounted) {
+                    setGalleryError("Nie udało się pobrać zdjęć galerii.");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsGalleryLoading(false);
+                }
+            }
+        };
+
+        fetchGalleryImages();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const handleFileChange = (event) => {
+        setFile(event.target.files?.[0] ?? null);
+        setUploadedImage(null);
+        setError("");
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (submissionInProgress.current) {
+            return;
+        }
+
+        if (!file) {
+            setError("Wybierz zdjęcie, które chcesz dodać do galerii.");
+            return;
+        }
+
+        submissionInProgress.current = true;
+        setIsSubmitting(true);
+        setError("");
+        setUploadedImage(null);
+
+        try {
+            const createdImage = await uploadGalleryImage({
+                file,
+                title,
+                altText,
+            });
+
+            setUploadedImage(createdImage);
+            setGalleryImages((currentImages) => [
+                createdImage,
+                ...currentImages,
+            ]);
+            setFile(null);
+            setTitle("");
+            setAltText("");
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        } catch {
+            setError("Nie udało się dodać zdjęcia. Sprawdź plik i spróbuj ponownie.");
+        } finally {
+            submissionInProgress.current = false;
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleVisibilityChange = async (image) => {
+        setUpdatingImageId(image.id);
+        setVisibilityError("");
+        setDeleteConfirmationId(null);
+
+        try {
+            const updatedImage = await setGalleryImageVisibility(
+                image.id,
+                !image.isActive,
+            );
+            setGalleryImages((currentImages) =>
+                currentImages.map((currentImage) =>
+                    currentImage.id === updatedImage.id
+                        ? updatedImage
+                        : currentImage
+                )
+            );
+        } catch {
+            setVisibilityError(
+                "Nie udało się zmienić widoczności zdjęcia. Spróbuj ponownie."
+            );
+        } finally {
+            setUpdatingImageId(null);
+        }
+    };
+
+    const startEditing = (image) => {
+        setEditingImageId(image.id);
+        setEditTitle(image.title ?? "");
+        setEditAltText(image.altText ?? "");
+        setEditError("");
+    };
+
+    const cancelEditing = () => {
+        setEditingImageId(null);
+        setEditError("");
+    };
+
+    const handleDetailsSubmit = async (event, imageId) => {
+        event.preventDefault();
+        setIsSavingDetails(true);
+        setEditError("");
+
+        try {
+            const updatedImage = await updateGalleryImageDetails(imageId, {
+                title: editTitle.trim() || null,
+                altText: editAltText.trim() || null,
+            });
+            setGalleryImages((currentImages) =>
+                currentImages.map((currentImage) =>
+                    currentImage.id === updatedImage.id
+                        ? updatedImage
+                        : currentImage
+                )
+            );
+            setEditingImageId(null);
+        } catch {
+            setEditError("Nie udało się zapisać opisu zdjęcia.");
+        } finally {
+            setIsSavingDetails(false);
+        }
+    };
+
+    const handleMove = async (imageId, direction) => {
+        setMovingImageId(imageId);
+        setMoveError("");
+
+        try {
+            const reorderedImages = await moveGalleryImage(
+                imageId,
+                direction,
+            );
+            setGalleryImages(
+                Array.isArray(reorderedImages) ? reorderedImages : []
+            );
+        } catch {
+            setMoveError("Nie udało się zmienić kolejności zdjęć.");
+        } finally {
+            setMovingImageId(null);
+        }
+    };
+
+    const handlePermanentDelete = async (imageId) => {
+        setDeletingImageId(imageId);
+        setDeleteError("");
+
+        try {
+            await deleteGalleryImage(imageId);
+            setGalleryImages((currentImages) =>
+                currentImages.filter((image) => image.id !== imageId)
+            );
+            setDeleteConfirmationId(null);
+        } catch {
+            setDeleteError(
+                "Nie udało się trwale usunąć zdjęcia. Spróbuj ponownie."
+            );
+        } finally {
+            setDeletingImageId(null);
+        }
+    };
+
+    return (
+        <section className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16">
+            <div className="mb-10 max-w-2xl sm:mb-12">
+                <p className="mb-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--gold)]">
+                    <span className="h-px w-8 bg-[var(--gold)]/70" />
+                    Panel administracyjny
+                </p>
+                <h1 className="text-3xl font-bold text-white sm:text-4xl">
+                    Galeria
+                </h1>
+                <p className="mt-3 text-sm leading-6 text-white/60 sm:text-base">
+                    Dodawaj zdjęcia prezentowane w publicznej galerii Atelier.
+                </p>
+            </div>
+
+            <form
+                onSubmit={handleSubmit}
+                className="max-w-5xl overflow-hidden rounded-4xl border border-[var(--gold)]/30 bg-gradient-to-br from-white/[0.08] to-white/[0.025] backdrop-blur-xl"
+            >
+                <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:p-10">
+                    <div>
+                        <h2 className="text-lg font-semibold text-white">
+                            Nowe zdjęcie
+                        </h2>
+                        <p className="mt-1 text-sm leading-6 text-white/45">
+                            Obsługiwane formaty: JPG, JPEG i PNG, maksymalnie 10 MB.
+                        </p>
+
+                        <label
+                            htmlFor="gallery-file"
+                            className="mt-6 flex min-h-72 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-[var(--gold)]/45 bg-black/15 text-center transition hover:border-[var(--gold)] hover:bg-[var(--gold)]/[0.06]"
+                        >
+                            {previewUrl ? (
+                                <img
+                                    src={previewUrl}
+                                    alt="Podgląd wybranego zdjęcia"
+                                    className="h-72 w-full object-cover"
+                                />
+                            ) : (
+                                <div className="px-6 py-12">
+                                    <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--gold)]/30 bg-[var(--gold)]/10 text-[var(--gold)]">
+                                        <ImagePlus aria-hidden="true" size={30} />
+                                    </span>
+                                    <span className="mt-5 block text-sm font-semibold text-white">
+                                        Wybierz zdjęcie z komputera
+                                    </span>
+                                    <span className="mt-2 block text-xs text-white/45">
+                                        Kliknij tutaj, aby otworzyć wybór pliku
+                                    </span>
+                                </div>
+                            )}
+                        </label>
+                        <input
+                            ref={fileInputRef}
+                            id="gallery-file"
+                            type="file"
+                            accept="image/jpeg,image/png"
+                            required
+                            disabled={isSubmitting}
+                            onChange={handleFileChange}
+                            className="sr-only"
+                        />
+                        {file && (
+                            <p className="mt-3 truncate text-xs text-white/55">
+                                Wybrany plik: <span className="text-white/80">{file.name}</span>
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label
+                                htmlFor="gallery-title"
+                                className="mb-2 block text-sm font-medium text-white/85"
+                            >
+                                Tytuł
+                            </label>
+                            <input
+                                id="gallery-title"
+                                type="text"
+                                maxLength={255}
+                                disabled={isSubmitting}
+                                value={title}
+                                onChange={(event) => setTitle(event.target.value)}
+                                placeholder="Opcjonalny tytuł zdjęcia"
+                                className={inputClassName}
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="gallery-alt-text"
+                                className="mb-2 block text-sm font-medium text-white/85"
+                            >
+                                Tekst alternatywny
+                            </label>
+                            <textarea
+                                id="gallery-alt-text"
+                                rows={5}
+                                maxLength={500}
+                                disabled={isSubmitting}
+                                value={altText}
+                                onChange={(event) => setAltText(event.target.value)}
+                                placeholder="Krótko opisz, co znajduje się na zdjęciu"
+                                className={`${inputClassName} resize-y leading-6`}
+                            />
+                            <p className="mt-2 text-xs leading-5 text-white/40">
+                                Opis pomaga osobom korzystającym z czytników ekranu i pojawi się, jeśli zdjęcie nie zostanie załadowane.
+                            </p>
+                        </div>
+
+                        {error && (
+                            <div
+                                role="alert"
+                                className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+                            >
+                                {error}
+                            </div>
+                        )}
+
+                        {uploadedImage && (
+                            <div
+                                role="status"
+                                className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4"
+                            >
+                                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-300">
+                                    <CheckCircle2 aria-hidden="true" size={18} />
+                                    Zdjęcie zostało dodane do galerii.
+                                </div>
+                                <img
+                                    src={uploadedImage.imageUrl}
+                                    alt={uploadedImage.altText || uploadedImage.title || "Dodane zdjęcie"}
+                                    className="mt-4 h-36 w-full rounded-xl object-cover"
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex justify-end border-t border-[var(--gold)]/20 bg-black/10 px-6 py-5 sm:px-8 lg:px-10">
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || !file}
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-[var(--gold)] bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-transparent hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isSubmitting ? (
+                            <LoaderCircle aria-hidden="true" size={17} className="animate-spin" />
+                        ) : (
+                            <Upload aria-hidden="true" size={17} />
+                        )}
+                        {isSubmitting ? "Dodawanie…" : "Dodaj zdjęcie"}
+                    </button>
+                </div>
+            </form>
+
+            <div className="mt-12">
+                <div className="mb-6 flex items-end justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-semibold text-white">
+                            Zdjęcia w galerii
+                        </h2>
+                        <p className="mt-2 text-sm text-white/50">
+                            Wszystkie zdjęcia zapisane w panelu administracyjnym.
+                        </p>
+                    </div>
+                    {!isGalleryLoading && !galleryError && (
+                        <span className="shrink-0 text-sm text-white/45">
+                            {getImagesCountLabel(galleryImages.length)}
+                        </span>
+                    )}
+                </div>
+
+                {isGalleryLoading && (
+                    <div
+                        role="status"
+                        className="flex items-center justify-center gap-3 rounded-3xl border border-[var(--gold)]/20 bg-white/[0.035] px-6 py-12 text-sm text-white/55"
+                    >
+                        <LoaderCircle aria-hidden="true" size={20} className="animate-spin text-[var(--gold)]" />
+                        Pobieranie zdjęć…
+                    </div>
+                )}
+
+                {galleryError && (
+                    <div
+                        role="alert"
+                        className="flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {galleryError}
+                    </div>
+                )}
+
+                {visibilityError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {visibilityError}
+                    </div>
+                )}
+
+                {moveError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {moveError}
+                    </div>
+                )}
+
+                {deleteError && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+                    >
+                        <AlertCircle aria-hidden="true" size={20} />
+                        {deleteError}
+                    </div>
+                )}
+
+                {!isGalleryLoading && !galleryError && galleryImages.length === 0 && (
+                    <div className="rounded-3xl border border-dashed border-[var(--gold)]/30 bg-white/[0.025] px-6 py-12 text-center">
+                        <ImagePlus aria-hidden="true" size={30} className="mx-auto text-[var(--gold)]/70" />
+                        <p className="mt-4 text-sm font-medium text-white/70">
+                            Galeria jest jeszcze pusta.
+                        </p>
+                    </div>
+                )}
+
+                {!isGalleryLoading && !galleryError && galleryImages.length > 0 && (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {galleryImages.map((image, imageIndex) => (
+                            <article
+                                key={image.id}
+                                className="overflow-hidden rounded-3xl border border-[var(--gold)]/25 bg-white/[0.045]"
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={image.imageUrl}
+                                        alt={image.altText || image.title || "Zdjęcie galerii"}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className={`h-64 w-full object-cover ${image.isActive ? "" : "opacity-45 grayscale"}`}
+                                    />
+                                    <span className={`absolute right-3 top-3 rounded-full border px-3 py-1 text-xs font-semibold backdrop-blur-md ${image.isActive ? "border-emerald-300/40 bg-emerald-950/70 text-emerald-200" : "border-white/25 bg-black/70 text-white/70"}`}>
+                                        {image.isActive ? "Widoczne" : "Ukryte"}
+                                    </span>
+                                </div>
+                                <div className="space-y-2 p-5">
+                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                        <span className="text-xs font-medium uppercase tracking-wider text-white/35">
+                                            Pozycja {imageIndex + 1}
+                                        </span>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                aria-label="Przenieś zdjęcie wyżej"
+                                                disabled={imageIndex === 0 || movingImageId !== null || editingImageId !== null || updatingImageId !== null || deletingImageId !== null}
+                                                onClick={() => handleMove(image.id, "UP")}
+                                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
+                                            >
+                                                {movingImageId === image.id ? (
+                                                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                                                ) : (
+                                                    <ArrowUp aria-hidden="true" size={16} />
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label="Przenieś zdjęcie niżej"
+                                                disabled={imageIndex === galleryImages.length - 1 || movingImageId !== null || editingImageId !== null || updatingImageId !== null || deletingImageId !== null}
+                                                onClick={() => handleMove(image.id, "DOWN")}
+                                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/20 text-white/65 transition hover:border-[var(--gold)]/60 hover:text-[var(--gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-25"
+                                            >
+                                                {movingImageId === image.id ? (
+                                                    <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                                                ) : (
+                                                    <ArrowDown aria-hidden="true" size={16} />
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {editingImageId === image.id ? (
+                                        <form
+                                            onSubmit={(event) => handleDetailsSubmit(event, image.id)}
+                                            className="space-y-4"
+                                        >
+                                            <div>
+                                                <label
+                                                    htmlFor={`edit-title-${image.id}`}
+                                                    className="mb-1.5 block text-xs font-medium text-white/70"
+                                                >
+                                                    Tytuł
+                                                </label>
+                                                <input
+                                                    id={`edit-title-${image.id}`}
+                                                    type="text"
+                                                    maxLength={255}
+                                                    disabled={isSavingDetails}
+                                                    value={editTitle}
+                                                    onChange={(event) => setEditTitle(event.target.value)}
+                                                    className={inputClassName}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    htmlFor={`edit-alt-${image.id}`}
+                                                    className="mb-1.5 block text-xs font-medium text-white/70"
+                                                >
+                                                    Tekst alternatywny
+                                                </label>
+                                                <textarea
+                                                    id={`edit-alt-${image.id}`}
+                                                    rows={3}
+                                                    maxLength={500}
+                                                    disabled={isSavingDetails}
+                                                    value={editAltText}
+                                                    onChange={(event) => setEditAltText(event.target.value)}
+                                                    className={`${inputClassName} resize-y leading-5`}
+                                                />
+                                            </div>
+                                            {editError && (
+                                                <p role="alert" className="text-xs text-red-300">
+                                                    {editError}
+                                                </p>
+                                            )}
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={isSavingDetails}
+                                                    onClick={cancelEditing}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/25 px-3 py-2 text-xs font-semibold text-white/65 transition hover:border-white/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    <X aria-hidden="true" size={15} />
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSavingDetails}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)] bg-[var(--gold)] px-3 py-2 text-xs font-semibold text-black transition hover:bg-transparent hover:text-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {isSavingDetails ? (
+                                                        <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
+                                                    ) : (
+                                                        <Save aria-hidden="true" size={15} />
+                                                    )}
+                                                    {isSavingDetails ? "Zapisywanie…" : "Zapisz"}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <h3 className="font-semibold text-white">
+                                                {image.title || "Bez tytułu"}
+                                            </h3>
+                                            <p className="min-h-10 text-sm leading-5 text-white/50">
+                                                {image.altText || "Brak tekstu alternatywnego"}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                disabled={editingImageId !== null || updatingImageId !== null || movingImageId !== null || deletingImageId !== null}
+                                                onClick={() => startEditing(image)}
+                                                className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Pencil aria-hidden="true" size={16} />
+                                                Edytuj opis
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        type="button"
+                                        disabled={updatingImageId !== null || editingImageId !== null || movingImageId !== null || deletingImageId !== null}
+                                        onClick={() => handleVisibilityChange(image)}
+                                        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--gold)]/45 px-4 py-2.5 text-sm font-semibold text-[var(--gold)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {updatingImageId === image.id ? (
+                                            <LoaderCircle aria-hidden="true" size={16} className="animate-spin" />
+                                        ) : image.isActive ? (
+                                            <EyeOff aria-hidden="true" size={16} />
+                                        ) : (
+                                            <Eye aria-hidden="true" size={16} />
+                                        )}
+                                        {updatingImageId === image.id
+                                            ? "Zapisywanie…"
+                                            : image.isActive
+                                                ? "Ukryj zdjęcie"
+                                                : "Przywróć zdjęcie"}
+                                    </button>
+                                    {!image.isActive && deleteConfirmationId !== image.id && (
+                                        <button
+                                            type="button"
+                                            disabled={deletingImageId !== null || editingImageId !== null || movingImageId !== null || updatingImageId !== null}
+                                            onClick={() => {
+                                                setDeleteConfirmationId(image.id);
+                                                setDeleteError("");
+                                            }}
+                                            className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400/30 px-4 py-2.5 text-sm font-semibold text-red-300 transition-colors hover:border-red-400/60 hover:bg-red-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Trash2 aria-hidden="true" size={16} />
+                                            Usuń trwale
+                                        </button>
+                                    )}
+                                    {!image.isActive && deleteConfirmationId === image.id && (
+                                        <div className="mt-3 rounded-2xl border border-red-400/30 bg-red-400/10 p-4">
+                                            <p className="text-sm font-semibold text-red-200">
+                                                Usunąć zdjęcie bezpowrotnie?
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-red-200/65">
+                                                Plik zniknie również z R2. Tej operacji nie można cofnąć.
+                                            </p>
+                                            <div className="mt-4 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={deletingImageId !== null}
+                                                    onClick={() => setDeleteConfirmationId(null)}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full border border-white/25 px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-white/50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    Anuluj
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={deletingImageId !== null}
+                                                    onClick={() => handlePermanentDelete(image.id)}
+                                                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-red-400 bg-red-400 px-3 py-2 text-xs font-semibold text-black transition hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {deletingImageId === image.id ? (
+                                                        <LoaderCircle aria-hidden="true" size={15} className="animate-spin" />
+                                                    ) : (
+                                                        <Trash2 aria-hidden="true" size={15} />
+                                                    )}
+                                                    {deletingImageId === image.id ? "Usuwanie…" : "Usuń"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+};
+
+export default GalleryManagementPage;

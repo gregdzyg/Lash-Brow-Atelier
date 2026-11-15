@@ -4,6 +4,7 @@ import PublicLayout from './layouts/PublicLayout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Gallery from './pages/Galery';
+import News from './pages/News';
 import Offer from './pages/Offer';
 import Contact from './pages/Contact';
 import ScrollToTop from './components/public/ScrollToTop';
@@ -26,6 +27,10 @@ import AppointmentsPage from './pages/admin/AppointmentsPage';
 import NewAppointmentPage from './pages/admin/NewAppointmentPage';
 import AppointmentDetailsPage from './pages/admin/AppointmentDetailsPage';
 import EditAppointmentPage from './pages/admin/EditAppointmentPage';
+import GalleryManagementPage from './pages/admin/GalleryManagementPage';
+import NewsPostsPage from './pages/admin/NewsPostsPage';
+import AboutManagementPage from './pages/admin/AboutManagementPage';
+import ReviewsManagementPage from './pages/admin/ReviewsManagementPage';
 
 const App = () => {
   return (
@@ -36,6 +41,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path='about' element={<About />} />
           <Route path='gallery' element={<Gallery />} />
+          <Route path='news' element={<News />} />
           <Route path='offer' element={<Offer />} />
           <Route path='contact' element={<Contact />} />
           <Route path="polityka-prywatnosci" element={<Privacy />} />
@@ -60,6 +66,10 @@ const App = () => {
           <Route path="appointments/new" element={<NewAppointmentPage />} />
           <Route path="appointments/:appointmentId" element={<AppointmentDetailsPage />} />
           <Route path="appointments/:appointmentId/edit" element={<EditAppointmentPage />} />
+          <Route path="gallery" element={<GalleryManagementPage />} />
+          <Route path="news" element={<NewsPostsPage />} />
+          <Route path="about" element={<AboutManagementPage />} />
+          <Route path="reviews" element={<ReviewsManagementPage />} />
         </Route>
         </Route>
       </Routes>

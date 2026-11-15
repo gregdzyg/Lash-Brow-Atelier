@@ -1,0 +1,208 @@
+package pl.atelierbypt.backend.controller;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import pl.atelierbypt.backend.dto.NewsPostRequest;
+import pl.atelierbypt.backend.dto.NewsPostResponse;
+import pl.atelierbypt.backend.enums.NewsPostCategory;
+import pl.atelierbypt.backend.service.NewsPostManagementService;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+class NewsPostControllerTest {
+
+    private NewsPostManagementService newsPostManagementService;
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        newsPostManagementService = mock(NewsPostManagementService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                new NewsPostController(newsPostManagementService)
+        ).build();
+    }
+
+    @Test
+    void shouldCreateNewsPostWithOptionalImage() throws Exception {
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "promotion.jpg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+        NewsPostRequest request = new NewsPostRequest(
+                "Promocja listopadowa",
+                "Treść wpisu",
+                NewsPostCategory.PROMOTION,
+                "Efekt zabiegu"
+        );
+        NewsPostResponse response = new NewsPostResponse(
+                1L,
+                request.title(),
+                request.content(),
+                request.category(),
+                "https://example.r2.dev/news/promotion.jpg",
+                request.imageAltText(),
+                true,
+                LocalDateTime.of(2026, 11, 1, 19, 0),
+                LocalDateTime.of(2026, 11, 1, 19, 0)
+        );
+        when(newsPostManagementService.createNewsPost(request, image))
+                .thenReturn(response);
+
+        mockMvc.perform(multipart("/api/admin/news-posts")
+                        .file(image)
+                        .param("title", request.title())
+                        .param("content", request.content())
+                        .param("category", request.category().name())
+                        .param("imageAltText", request.imageAltText()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title")
+                        .value("Promocja listopadowa"))
+                .andExpect(jsonPath("$.category").value("PROMOTION"))
+                .andExpect(jsonPath("$.imageUrl").value(
+                        "https://example.r2.dev/news/promotion.jpg"
+                ));
+
+        verify(newsPostManagementService).createNewsPost(request, image);
+    }
+
+    @Test
+    void shouldReturnAllNewsPostsForAdmin() throws Exception {
+        NewsPostResponse activePost = newsPostResponse(1L, true);
+        NewsPostResponse inactivePost = newsPostResponse(2L, false);
+        when(newsPostManagementService.getNewsPosts())
+                .thenReturn(List.of(activePost, inactivePost));
+
+        mockMvc.perform(get("/api/admin/news-posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].isActive").value(true))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].isActive").value(false));
+    }
+
+    @Test
+    void shouldChangeNewsPostVisibility() throws Exception {
+        NewsPostResponse hiddenPost = newsPostResponse(1L, false);
+        when(newsPostManagementService.setNewsPostVisibility(1L, false))
+                .thenReturn(hiddenPost);
+
+        mockMvc.perform(patch("/api/admin/news-posts/1/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.isActive").value(false));
+
+        verify(newsPostManagementService).setNewsPostVisibility(1L, false);
+    }
+
+    @Test
+    void shouldUpdateNewsPostDetails() throws Exception {
+        NewsPostResponse updatedPost = new NewsPostResponse(
+                1L,
+                "Nowy tytuł",
+                "Nowa treść",
+                NewsPostCategory.EVENT,
+                null,
+                null,
+                true,
+                LocalDateTime.of(2026, 11, 1, 19, 0),
+                LocalDateTime.of(2026, 11, 1, 20, 0)
+        );
+        when(newsPostManagementService.updateNewsPostDetails(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(updatedPost);
+
+        mockMvc.perform(patch("/api/admin/news-posts/1")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Nowy tytuł",
+                                  "content": "Nowa treść",
+                                  "category": "EVENT"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Nowy tytuł"))
+                .andExpect(jsonPath("$.content").value("Nowa treść"))
+                .andExpect(jsonPath("$.category").value("EVENT"));
+    }
+
+    @Test
+    void shouldReplaceNewsPostImage() throws Exception {
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "new.jpg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+        NewsPostResponse response = newsPostResponse(1L, true);
+        when(newsPostManagementService.replaceNewsPostImage(1L, image))
+                .thenReturn(response);
+
+        mockMvc.perform(multipart("/api/admin/news-posts/1/image")
+                        .file(image)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(newsPostManagementService).replaceNewsPostImage(1L, image);
+    }
+
+    @Test
+    void shouldRemoveNewsPostImage() throws Exception {
+        NewsPostResponse response = newsPostResponse(1L, true);
+        when(newsPostManagementService.removeNewsPostImage(1L))
+                .thenReturn(response);
+
+        mockMvc.perform(delete("/api/admin/news-posts/1/image"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(newsPostManagementService).removeNewsPostImage(1L);
+    }
+
+    @Test
+    void shouldDeleteNewsPost() throws Exception {
+        mockMvc.perform(delete("/api/admin/news-posts/1"))
+                .andExpect(status().isNoContent());
+
+        verify(newsPostManagementService).deleteNewsPost(1L);
+    }
+
+    private NewsPostResponse newsPostResponse(Long id, boolean isActive) {
+        return new NewsPostResponse(
+                id,
+                "Aktualność " + id,
+                "Treść wpisu",
+                NewsPostCategory.NEWS,
+                null,
+                null,
+                isActive,
+                LocalDateTime.of(2026, 11, 1, 19, 0),
+                LocalDateTime.of(2026, 11, 1, 19, 0)
+        );
+    }
+}

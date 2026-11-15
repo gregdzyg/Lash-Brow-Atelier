@@ -1,0 +1,112 @@
+package pl.atelierbypt.backend.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.multipart.MultipartFile;
+import pl.atelierbypt.backend.dto.NewsPostDetailsRequest;
+import pl.atelierbypt.backend.dto.NewsPostRequest;
+import pl.atelierbypt.backend.dto.NewsPostResponse;
+import pl.atelierbypt.backend.dto.NewsPostVisibilityRequest;
+import pl.atelierbypt.backend.service.NewsPostManagementService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin/news-posts")
+@RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "app.r2", name = "enabled", havingValue = "true")
+public class NewsPostController {
+
+    private final NewsPostManagementService newsPostManagementService;
+
+    @GetMapping
+    public ResponseEntity<List<NewsPostResponse>> getNewsPosts() {
+        return ResponseEntity.ok(newsPostManagementService.getNewsPosts());
+    }
+
+    @PatchMapping("/{newsPostId}/visibility")
+    public ResponseEntity<NewsPostResponse> setNewsPostVisibility(
+            @PathVariable Long newsPostId,
+            @Valid @RequestBody NewsPostVisibilityRequest request
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.setNewsPostVisibility(
+                        newsPostId,
+                        request.active()
+                )
+        );
+    }
+
+    @PatchMapping("/{newsPostId}")
+    public ResponseEntity<NewsPostResponse> updateNewsPostDetails(
+            @PathVariable Long newsPostId,
+            @Valid @RequestBody NewsPostDetailsRequest request
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.updateNewsPostDetails(
+                        newsPostId,
+                        request
+                )
+        );
+    }
+
+    @PutMapping(
+            value = "/{newsPostId}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<NewsPostResponse> replaceNewsPostImage(
+            @PathVariable Long newsPostId,
+            @RequestParam MultipartFile image
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.replaceNewsPostImage(
+                        newsPostId,
+                        image
+                )
+        );
+    }
+
+    @DeleteMapping("/{newsPostId}/image")
+    public ResponseEntity<NewsPostResponse> removeNewsPostImage(
+            @PathVariable Long newsPostId
+    ) {
+        return ResponseEntity.ok(
+                newsPostManagementService.removeNewsPostImage(newsPostId)
+        );
+    }
+
+    @DeleteMapping("/{newsPostId}")
+    public ResponseEntity<Void> deleteNewsPost(
+            @PathVariable Long newsPostId
+    ) {
+        newsPostManagementService.deleteNewsPost(newsPostId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<NewsPostResponse> createNewsPost(
+            @Valid @ModelAttribute NewsPostRequest request,
+            @RequestParam(required = false) MultipartFile image
+    ) {
+        NewsPostResponse response = newsPostManagementService.createNewsPost(
+                request,
+                image
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+}

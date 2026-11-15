@@ -26,6 +26,30 @@ const adminSections = [
         icon: "⏰",
         to: "/admin/availability",
     },
+    {
+        title: "Galeria",
+        description: "Dodawaj i zarządzaj zdjęciami",
+        icon: "🖼️",
+        to: "/admin/gallery",
+    },
+    {
+        title: "Aktualności",
+        description: "Publikuj informacje, wydarzenia i promocje",
+        icon: "📰",
+        to: "/admin/news",
+    },
+    {
+        title: "O mnie",
+        description: "Zarządzaj portretem i treścią strony",
+        icon: "✨",
+        to: "/admin/about",
+    },
+    {
+        title: "Opinie",
+        description: "Dodawaj i porządkuj screeny opinii",
+        icon: "💬",
+        to: "/admin/reviews",
+    },
 ];
 
 const AdminDashboard = () => {

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getPublicReviewImages } from "../../api/apiPublicContent";
 
 import op1 from "../../assets/reviews/op1.png";
 import op2 from "../../assets/reviews/op2.png";
@@ -11,10 +12,42 @@ import op8 from "../../assets/reviews/op8.png";
 import op9 from "../../assets/reviews/op9.png";
 import op10 from "../../assets/reviews/op10.png";
 
-const reviews = [op1, op2, op3, op4, op5, op6, op7, op8, op9, op10];
+const defaultReviews = [op1, op2, op3, op4, op5, op6, op7, op8, op9, op10]
+  .map((imageUrl, index) => ({
+    id: `local-${index + 1}`,
+    imageUrl,
+    altText: `Opinia klientki ${index + 1}`,
+  }));
 
 export default function ReviewsSection() {
   const [preview, setPreview] = useState(null);
+  const [reviews, setReviews] = useState(defaultReviews);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchReviewImages = async () => {
+      try {
+        const response = await getPublicReviewImages();
+
+        if (isMounted && response?.configured) {
+          setReviews(Array.isArray(response.images) ? response.images : []);
+        }
+      } catch {
+        // The bundled review screenshots remain visible as a safe fallback.
+      }
+    };
+
+    fetchReviewImages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (reviews.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16 text-white sm:py-24">
@@ -24,22 +57,22 @@ export default function ReviewsSection() {
 
       {/* Większe karty + lepszy kontrast: białe tło pod screenami tekstu */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-        {reviews.map((src, i) => (
+        {reviews.map((review, index) => (
           <figure
-            key={i}
+            key={review.id}
             className="
               group cursor-zoom-in rounded-3xl border border-[var(--gold)]/20
               bg-white p-3 text-black shadow-[0_18px_45px_rgba(0,0,0,0.2)]
               transition duration-300 hover:-translate-y-1 hover:border-[var(--gold)]/55
               hover:shadow-[0_24px_60px_rgba(0,0,0,0.3)]
             "
-            onClick={() => setPreview(src)}
+            onClick={() => setPreview(review)}
           >
             {/* większa typografia pod screen, gdybyś kiedyś dodał podpis */}
             {/* <figcaption className="text-sm mb-2 text-center text-black/70">Opinia {i + 1}</figcaption> */}
             <img
-              src={src}
-              alt={`Opinia klientki ${i + 1}`}
+              src={review.imageUrl}
+              alt={review.altText || `Opinia klientki ${index + 1}`}
               loading="lazy"
               className="h-auto w-full rounded-2xl"
             />
@@ -57,8 +90,8 @@ export default function ReviewsSection() {
           aria-modal="true"
         >
           <img
-            src={preview}
-            alt="Podgląd opinii"
+            src={preview.imageUrl}
+            alt={preview.altText || "Podgląd opinii klientki"}
             className="max-h-[88vh] max-w-[92vw] rounded-2xl border border-[var(--gold)]/25 shadow-2xl"
           />
           <button
