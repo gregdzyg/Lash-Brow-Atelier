@@ -11,6 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import pl.atelierbypt.backend.config.SecurityConfig;
 import pl.atelierbypt.backend.controller.AdminAvailabilityController;
 import pl.atelierbypt.backend.controller.HealthController;
+import pl.atelierbypt.backend.controller.ClientController;
+import pl.atelierbypt.backend.service.ClientService;
+import pl.atelierbypt.backend.dto.ClientAppointmentHistoryResponse;
 import pl.atelierbypt.backend.controller.PublicAvailabilityController;
 import pl.atelierbypt.backend.service.AdminAvailabilityService;
 import pl.atelierbypt.backend.service.CustomUserDetailsService;
@@ -29,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = {
         HealthController.class,
         PublicAvailabilityController.class,
-        AdminAvailabilityController.class
+        AdminAvailabilityController.class,
+        ClientController.class
 })
 @Import({
         SecurityConfig.class,
@@ -46,11 +50,36 @@ class SecurityConfigTest {
     @MockitoBean
     private PublicAvailabilityService publicAvailabilityService;
     @MockitoBean
+    private ClientService clientService;
+    @MockitoBean
     private AdminAvailabilityService adminAvailabilityService;
     @MockitoBean
     private JwtService jwtService;
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @Test
+    void shouldRejectAnonymousClientHistoryAccess() throws Exception {
+        mockMvc.perform(get("/api/admin/clients/1/appointments"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldRejectNonAdminClientHistoryAccess() throws Exception {
+        mockMvc.perform(get("/api/admin/clients/1/appointments"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldAllowClientHistoryForAdmin() throws Exception {
+        when(clientService.getAppointmentHistory(1L, 0))
+                .thenReturn(new ClientAppointmentHistoryResponse(List.of(), 0, false));
+        mockMvc.perform(get("/api/admin/clients/1/appointments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.appointments").isEmpty());
+    }
 
     @Test
     void shouldAllowHealthCheckWithoutAuthentication() throws Exception {
