@@ -16,6 +16,13 @@ export const getClient = async (clientId) => {
     return response.data;
 };
 
+export const getClientAppointmentHistory = async (clientId, page = 0) => {
+    const response = await apiClient.get(`/api/admin/clients/${clientId}/appointments`, {
+        params: { page },
+    });
+    return response.data;
+};
+
 export const updateClient = async (clientId, clientRequest) => {
     const response = await apiClient.put(`/api/admin/clients/${clientId}`, clientRequest);
     return response.data;

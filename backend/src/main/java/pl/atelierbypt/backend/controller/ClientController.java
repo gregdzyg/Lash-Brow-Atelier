@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.atelierbypt.backend.dto.ClientDetailsResponse;
 import pl.atelierbypt.backend.dto.ClientRequest;
 import pl.atelierbypt.backend.dto.ClientResponse;
+import pl.atelierbypt.backend.dto.ClientAppointmentHistoryResponse;
 import pl.atelierbypt.backend.service.ClientService;
 
 import java.util.List;
@@ -27,6 +28,14 @@ public class ClientController {
     @GetMapping("/{id}")
     public ResponseEntity<ClientDetailsResponse> getClientById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getClientById(id));
+    }
+
+    @GetMapping("/{id}/appointments")
+    public ResponseEntity<ClientAppointmentHistoryResponse> getAppointmentHistory(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ResponseEntity.ok(clientService.getAppointmentHistory(id, page));
     }
 
     @PostMapping

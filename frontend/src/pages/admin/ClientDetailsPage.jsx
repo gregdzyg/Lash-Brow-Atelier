@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { deleteClient, getClient } from "../../api/apiClients";
 import { addMinutesToTime, formatLocalDate, formatLocalTime } from "../../utils/dateTime";
+import ClientAppointmentHistory from "../../components/admin/ClientAppointmentHistory";
 
 const ClientDetailsPage = () => {
     const [client, setClient] = useState(null);
@@ -313,6 +314,8 @@ const ClientDetailsPage = () => {
                             </div>
                         )}
                     </section>
+
+                    <ClientAppointmentHistory key={client.id} clientId={client.id} />
 
                     <div className="border-t border-[var(--gold)]/20 bg-black/10 px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
                         <div className="flex items-center gap-3">

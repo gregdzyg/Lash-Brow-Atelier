@@ -46,8 +46,10 @@ public class AppointmentService {
                 .map(this::mapAppointmentToResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public AppointmentResponse getAppointmentById(Long id) {
-        return mapAppointmentToResponse(findAppointmentById(id));
+        return mapAppointmentToResponse(appointmentRepository.findById(id).orElseThrow(() ->
+                new AppointmentNotFoundException("Nie znaleziono wizyty z id " + id)));
     }
 
     public List<SuggestedOfferItemResponse> getSuggestedOfferItems(Long clientId) {

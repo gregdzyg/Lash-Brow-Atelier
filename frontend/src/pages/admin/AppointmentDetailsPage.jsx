@@ -91,7 +91,7 @@ const AppointmentDetailsPage = () => {
     const [isArchiving, setIsArchiving] = useState(false);
     const [archiveError, setArchiveError] = useState("");
     const displayStatus = appointment ? getAppointmentDisplayStatus(appointment) : null;
-    const availableStatusActions = displayStatus === "ENDED"
+    const availableStatusActions = appointment?.isActive === false ? [] : displayStatus === "ENDED"
         ? endedAppointmentActions
         : statusActions[appointment?.status] || [];
 
@@ -246,6 +246,12 @@ const AppointmentDetailsPage = () => {
                         </span>
                     </div>
 
+                    {appointment.isActive === false && (
+                        <p className="border-b border-white/10 bg-white/5 px-6 py-4 text-sm text-white/60 sm:px-8 lg:px-10">
+                            Zarchiwizowana wizyta — podgląd danych. Nie jest widoczna w grafiku.
+                        </p>
+                    )}
+
                     <dl className="grid grid-cols-1 divide-y divide-[var(--gold)]/15 px-6 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-8 lg:px-10">
                         <div className="sm:pr-8">
                             <DetailItem icon={UserRound} label="Klientka">
@@ -283,7 +289,7 @@ const AppointmentDetailsPage = () => {
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/55">Zarządzaj wizytą</h2>
-                                <p className="mt-2 text-sm text-white/40">Edytuj dane lub zmień bieżący status.</p>
+                                <p className="mt-2 text-sm text-white/40">{appointment.isActive === false ? "Możesz umówić nowy termin na podstawie tej wizyty." : "Edytuj dane lub zmień bieżący status."}</p>
                             </div>
                             <div className="flex flex-wrap gap-3">
                                 <Link
@@ -294,7 +300,7 @@ const AppointmentDetailsPage = () => {
                                     Umów ponownie
                                 </Link>
 
-                                {!appointment.hasEnded && (
+                                {appointment.isActive !== false && !appointment.hasEnded && (
                                     <Link
                                         to={`/admin/appointments/${appointment.id}/edit`}
                                         className="flex w-fit items-center gap-2 rounded-full border border-[var(--gold)]/45 px-5 py-2.5 text-sm font-semibold text-[var(--gold)] transition hover:bg-[var(--gold)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
@@ -350,7 +356,7 @@ const AppointmentDetailsPage = () => {
                         )}
                     </div>
 
-                    <div className="border-t border-red-500/20 bg-red-950/[0.08] px-6 py-6 sm:px-8 lg:px-10">
+                    {appointment.isActive !== false && (<div className="border-t border-red-500/20 bg-red-950/[0.08] px-6 py-6 sm:px-8 lg:px-10">
                         {!isArchiveConfirmationVisible ? (
                             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
@@ -400,7 +406,7 @@ const AppointmentDetailsPage = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div>)}
                 </article>
             )}
         </section>
