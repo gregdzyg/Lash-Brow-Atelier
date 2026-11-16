@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleAlert, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     addDays,
@@ -9,6 +9,7 @@ import {
     timeToMinutes,
 } from "../../../utils/dateTime";
 import AppointmentCard from "./AppointmentCard";
+import CalendarExceptionSummary from "./CalendarExceptionSummary";
 
 const SLOT_HEIGHT = 54;
 const DEFAULT_START = 8 * 60;
@@ -112,25 +113,9 @@ const DailyCalendar = ({
             </div>
 
             {dayExceptions.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2">
+                <div className="mb-4 space-y-2">
                     {dayExceptions.map((item) => (
-                        <span
-                            key={item.id}
-                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] ${
-                                item.type === "EXTRA_OPEN"
-                                    ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-100"
-                                    : "border-red-300/25 bg-red-500/10 text-red-100/80"
-                            }`}
-                        >
-                            {item.type === "EXTRA_OPEN" ? (
-                                <Sparkles aria-hidden="true" size={12} />
-                            ) : (
-                                <CircleAlert aria-hidden="true" size={12} />
-                            )}
-                            {item.type === "CLOSED_DAY" && "Dzień zamknięty"}
-                            {item.type === "BLOCKED" && `Blokada ${formatLocalTime(item.startTime)}–${formatLocalTime(item.endTime)}`}
-                            {item.type === "EXTRA_OPEN" && `Dodatkowo otwarte ${formatLocalTime(item.startTime)}–${formatLocalTime(item.endTime)}`}
-                        </span>
+                        <CalendarExceptionSummary key={item.id} exception={item} />
                     ))}
                 </div>
             )}
