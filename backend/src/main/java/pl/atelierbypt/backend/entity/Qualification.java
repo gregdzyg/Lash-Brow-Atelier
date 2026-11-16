@@ -24,6 +24,9 @@ public class Qualification extends BaseEntity {
     @Column(nullable = false, length = 1000)
     private String description;
 
+    @Column(length = 512, unique = true)
+    private String certificateObjectKey;
+
     @NotNull
     @PositiveOrZero
     @Column(nullable = false)

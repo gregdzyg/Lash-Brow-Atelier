@@ -22,7 +22,10 @@ import {
   setQualificationVisibility,
   updateQualification,
   updateQualificationSection,
+  replaceQualificationCertificate,
+  removeQualificationCertificate,
 } from "../../api/apiAbout";
+import QualificationCertificateForm from "./QualificationCertificateForm";
 
 const emptyQualification = {
   title: "",
@@ -199,6 +202,42 @@ const QualificationManagementPanel = () => {
       setSuccess("Kwalifikacja została usunięta.");
     } catch {
       setError("Nie udało się usunąć kwalifikacji.");
+    } finally {
+      setBusyAction("");
+    }
+  };
+
+  const updateCertificateInList = (updated) => {
+    setSection((current) => ({
+      ...current,
+      qualifications: current.qualifications.map((item) => item.id === updated.id ? updated : item),
+    }));
+  };
+
+  const handleCertificateUpload = async (qualificationId, file) => {
+    setBusyAction(`certificate-${qualificationId}`);
+    clearMessages();
+    try {
+      updateCertificateInList(await replaceQualificationCertificate(qualificationId, file));
+      setSuccess("Zdjęcie certyfikatu zostało zapisane.");
+      return true;
+    } catch (uploadError) {
+      setError(uploadError.response?.data?.message || "Nie udało się zapisać certyfikatu.");
+      return false;
+    } finally {
+      setBusyAction("");
+    }
+  };
+
+  const handleCertificateRemove = async (qualification) => {
+    if (!window.confirm(`Usunąć zdjęcie certyfikatu „${qualification.title}”? Opis kwalifikacji pozostanie.`)) return;
+    setBusyAction(`certificate-${qualification.id}`);
+    clearMessages();
+    try {
+      updateCertificateInList(await removeQualificationCertificate(qualification.id));
+      setSuccess("Zdjęcie certyfikatu zostało usunięte.");
+    } catch (removeError) {
+      setError(removeError.response?.data?.message || "Nie udało się usunąć certyfikatu.");
     } finally {
       setBusyAction("");
     }
@@ -492,6 +531,12 @@ const QualificationManagementPanel = () => {
                         <p className="mt-3 text-sm leading-6 text-white/45">
                           {qualification.description}
                         </p>
+                        <QualificationCertificateForm
+                          qualification={qualification}
+                          disabled={isBusy}
+                          onUpload={handleCertificateUpload}
+                          onRemove={handleCertificateRemove}
+                        />
                       </div>
                     </div>
                   </li>

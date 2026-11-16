@@ -78,3 +78,20 @@ export const moveQualification = async (qualificationId, direction) => {
 export const deleteQualification = async (qualificationId) => {
     await apiClient.delete(`/api/admin/qualifications/${qualificationId}`);
 };
+
+export const replaceQualificationCertificate = async (qualificationId, image) => {
+    const formData = new FormData();
+    formData.append("image", image);
+    const response = await apiClient.put(
+        `/api/admin/qualifications/${qualificationId}/certificate`,
+        formData,
+    );
+    return response.data;
+};
+
+export const removeQualificationCertificate = async (qualificationId) => {
+    const response = await apiClient.delete(
+        `/api/admin/qualifications/${qualificationId}/certificate`,
+    );
+    return response.data;
+};

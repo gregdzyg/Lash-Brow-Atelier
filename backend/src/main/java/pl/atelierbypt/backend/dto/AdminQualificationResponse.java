@@ -5,6 +5,7 @@ public record AdminQualificationResponse(
         String title,
         String description,
         Integer sortOrder,
-        boolean active
+        boolean active,
+        String certificateUrl
 ) {
 }

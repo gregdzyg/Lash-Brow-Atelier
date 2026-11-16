@@ -1,7 +1,13 @@
 package pl.atelierbypt.backend.service;
 
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.AdminQualificationResponse;
 import pl.atelierbypt.backend.dto.AdminQualificationSectionResponse;
 import pl.atelierbypt.backend.dto.QualificationRequest;
@@ -9,6 +15,8 @@ import pl.atelierbypt.backend.dto.QualificationSectionRequest;
 import pl.atelierbypt.backend.entity.Qualification;
 import pl.atelierbypt.backend.entity.QualificationSection;
 import pl.atelierbypt.backend.enums.QualificationMoveDirection;
+import pl.atelierbypt.backend.enums.ImageStorageFolder;
+import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.exception.ResourceNotFoundException;
 import pl.atelierbypt.backend.repository.QualificationRepository;
 import pl.atelierbypt.backend.repository.QualificationSectionRepository;
@@ -17,17 +25,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class QualificationManagementService {
 
     private final QualificationSectionRepository qualificationSectionRepository;
     private final QualificationRepository qualificationRepository;
+    private final ObjectProvider<R2StorageService> storageProvider;
+    private final String publicBaseUrl;
 
     public QualificationManagementService(
             QualificationSectionRepository qualificationSectionRepository,
-            QualificationRepository qualificationRepository
+            QualificationRepository qualificationRepository,
+            ObjectProvider<R2StorageService> storageProvider,
+            @Value("${app.r2.public-base-url}") String publicBaseUrl
     ) {
         this.qualificationSectionRepository = qualificationSectionRepository;
         this.qualificationRepository = qualificationRepository;
+        this.storageProvider = storageProvider;
+        this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
     }
 
     @Transactional(readOnly = true)
@@ -121,6 +136,9 @@ public class QualificationManagementService {
                 .filter(item -> !item.getId().equals(qualificationId))
                 .toList();
 
+        if (qualification.getCertificateObjectKey() != null) {
+            scheduleCertificateCleanup(storage(), null, qualification.getCertificateObjectKey());
+        }
         qualificationRepository.delete(qualification);
         normalizeSortOrder(remainingQualifications);
         qualificationRepository.saveAll(remainingQualifications);
@@ -152,6 +170,65 @@ public class QualificationManagementService {
         qualifications.set(targetIndex, current);
         normalizeSortOrder(qualifications);
         qualificationRepository.saveAll(qualifications);
+    }
+
+    @Transactional
+    public AdminQualificationResponse replaceCertificate(Long qualificationId, MultipartFile image) {
+        Qualification qualification = findQualification(qualificationId);
+        R2StorageService storage = storage();
+        String previousKey = qualification.getCertificateObjectKey();
+        String newKey = storage.upload(image, ImageStorageFolder.CERTIFICATES);
+        scheduleCertificateCleanup(storage, newKey, previousKey);
+        qualification.setCertificateObjectKey(newKey);
+        return mapQualification(qualificationRepository.saveAndFlush(qualification));
+    }
+
+    @Transactional
+    public AdminQualificationResponse removeCertificate(Long qualificationId) {
+        Qualification qualification = findQualification(qualificationId);
+        if (qualification.getCertificateObjectKey() != null) {
+            scheduleCertificateCleanup(storage(), null, qualification.getCertificateObjectKey());
+            qualification.setCertificateObjectKey(null);
+            qualificationRepository.saveAndFlush(qualification);
+        }
+        return mapQualification(qualification);
+    }
+
+    private R2StorageService storage() {
+        R2StorageService storage = storageProvider.getIfAvailable();
+        if (storage == null) {
+            throw new BadRequestException("Przechowywanie zdjęć nie jest skonfigurowane.");
+        }
+        return storage;
+    }
+
+    private void scheduleCertificateCleanup(R2StorageService storage, String newKey, String previousKey) {
+        // Keep the old file until the database commit succeeds. On rollback,
+        // only the newly uploaded file is disposable.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                deleteUnusedCertificate(storage, previousKey);
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    deleteUnusedCertificate(storage, newKey);
+                }
+            }
+        });
+    }
+
+    private void deleteUnusedCertificate(R2StorageService storage, String key) {
+        if (key == null) {
+            return;
+        }
+        try {
+            storage.delete(key);
+        } catch (RuntimeException exception) {
+            log.warn("Could not remove unused qualification certificate objectKey={}", key, exception);
+        }
     }
 
     private QualificationSection findSection() {
@@ -212,7 +289,9 @@ public class QualificationManagementService {
                 qualification.getTitle(),
                 qualification.getDescription(),
                 qualification.getSortOrder(),
-                qualification.isActive()
+                qualification.isActive(),
+                qualification.getCertificateObjectKey() == null ? null
+                        : publicBaseUrl + "/" + qualification.getCertificateObjectKey()
         );
     }
 }

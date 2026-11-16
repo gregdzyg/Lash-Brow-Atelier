@@ -4,7 +4,8 @@ public enum ImageStorageFolder {
     ABOUT("about/"),
     GALLERY("gallery/"),
     NEWS("news/"),
-    REVIEWS("reviews/");
+    REVIEWS("reviews/"),
+    CERTIFICATES("certificates/");
 
     private final String objectKeyPrefix;
 

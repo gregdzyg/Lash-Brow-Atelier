@@ -218,6 +218,17 @@ const About = () => {
                   <p className="mt-1.5 text-sm leading-6 text-[#241d1e]/65 sm:text-base">
                     {qualification.description}
                   </p>
+                  {qualification.certificateUrl && (
+                    <a
+                      href={qualification.certificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Zobacz certyfikat: ${qualification.title} (nowa karta)`}
+                      className="mt-3 inline-flex rounded-sm text-sm font-semibold text-[#78652c] underline decoration-[#78652c]/40 underline-offset-4 transition hover:text-[#241d1e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#78652c]"
+                    >
+                      Zobacz certyfikat ↗
+                    </a>
+                  )}
                 </div>
               </li>
             ))}

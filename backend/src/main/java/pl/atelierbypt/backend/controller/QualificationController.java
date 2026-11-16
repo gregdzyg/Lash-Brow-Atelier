@@ -3,6 +3,7 @@ package pl.atelierbypt.backend.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import pl.atelierbypt.backend.dto.AdminQualificationResponse;
 import pl.atelierbypt.backend.dto.AdminQualificationSectionResponse;
 import pl.atelierbypt.backend.dto.QualificationMoveRequest;
@@ -93,6 +96,19 @@ public class QualificationController {
                 request.direction()
         );
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{qualificationId}/certificate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AdminQualificationResponse> replaceCertificate(
+            @PathVariable Long qualificationId,
+            @RequestParam MultipartFile image
+    ) {
+        return ResponseEntity.ok(qualificationManagementService.replaceCertificate(qualificationId, image));
+    }
+
+    @DeleteMapping("/{qualificationId}/certificate")
+    public ResponseEntity<AdminQualificationResponse> removeCertificate(@PathVariable Long qualificationId) {
+        return ResponseEntity.ok(qualificationManagementService.removeCertificate(qualificationId));
     }
 
     @DeleteMapping("/{qualificationId}")

@@ -35,7 +35,8 @@ class QualificationServiceTest {
     void setUp() {
         qualificationService = new QualificationService(
                 qualificationSectionRepository,
-                qualificationRepository
+                qualificationRepository,
+                "https://example.r2.dev/"
         );
     }
 
@@ -52,6 +53,7 @@ class QualificationServiceTest {
                 "Laminacja brwi",
                 "Modelowanie brwi."
         );
+        first.setCertificateObjectKey("certificates/course.jpg");
         when(qualificationSectionRepository.findById(
                 QualificationSection.SINGLETON_ID
         )).thenReturn(Optional.of(section));
@@ -67,6 +69,9 @@ class QualificationServiceTest {
         assertThat(response.qualifications())
                 .extracting("title")
                 .containsExactly("Stylizacja rzęs 1:1", "Laminacja brwi");
+        assertThat(response.qualifications().getFirst().certificateUrl())
+                .isEqualTo("https://example.r2.dev/certificates/course.jpg");
+        assertThat(response.qualifications().getLast().certificateUrl()).isNull();
     }
 
     @Test

@@ -33,13 +33,18 @@ class QualificationManagementServiceTest {
     @Mock
     private QualificationRepository qualificationRepository;
 
+    @Mock
+    private org.springframework.beans.factory.ObjectProvider<R2StorageService> storageProvider;
+
     private QualificationManagementService qualificationManagementService;
 
     @BeforeEach
     void setUp() {
         qualificationManagementService = new QualificationManagementService(
                 qualificationSectionRepository,
-                qualificationRepository
+                qualificationRepository,
+                storageProvider,
+                "https://example.r2.dev/"
         );
     }
 
