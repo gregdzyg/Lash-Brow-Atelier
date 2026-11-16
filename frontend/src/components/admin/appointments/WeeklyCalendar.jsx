@@ -8,6 +8,7 @@ import {
     timeToMinutes,
 } from "../../../utils/dateTime";
 import AppointmentCard from "./AppointmentCard";
+import CalendarExceptionSummary from "./CalendarExceptionSummary";
 
 const dayShortLabels = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"];
 const SLOT_HEIGHT = 34;
@@ -107,6 +108,11 @@ const WeeklyCalendar = ({
                                     }`}>
                                         {day.getDate()}
                                     </p>
+                                    <div className="mt-2 space-y-2">
+                                        {exceptions.filter((item) => item.date === dateValue).map((item) => (
+                                            <CalendarExceptionSummary key={item.id} exception={item} />
+                                        ))}
+                                    </div>
                                 </div>
                             );
                         })}

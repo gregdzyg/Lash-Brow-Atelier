@@ -3,15 +3,19 @@ package pl.atelierbypt.backend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import pl.atelierbypt.backend.dto.ClientAppointmentSummaryResponse;
 import pl.atelierbypt.backend.dto.ClientDetailsResponse;
 import pl.atelierbypt.backend.dto.ClientRequest;
 import pl.atelierbypt.backend.dto.ClientResponse;
+import pl.atelierbypt.backend.dto.ClientAppointmentHistoryItem;
+import pl.atelierbypt.backend.dto.ClientAppointmentHistoryResponse;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.Client;
 import pl.atelierbypt.backend.exception.ClientNotFoundException;
 import pl.atelierbypt.backend.exception.PhoneNumberConflictException;
+import pl.atelierbypt.backend.exception.BadRequestException;
 import pl.atelierbypt.backend.repository.AppointmentRepository;
 import pl.atelierbypt.backend.repository.ClientRepository;
 
@@ -57,6 +61,31 @@ public class ClientService {
                 client.isActive(),
                 upcomingAppointments
         );
+    }
+
+    @Transactional(readOnly = true)
+    public ClientAppointmentHistoryResponse getAppointmentHistory(Long clientId, int page) {
+        if (page < 0 || page > 100_000) {
+            throw new BadRequestException("Nieprawidłowy numer strony historii wizyt.");
+        }
+        findClientById(clientId);
+        LocalDateTime now = LocalDateTime.now(applicationClock);
+        var appointments = appointmentRepository.findHistoryByClientId(clientId, PageRequest.of(page, 20));
+        List<ClientAppointmentHistoryItem> items = appointments.getContent().stream()
+                .map(appointment -> new ClientAppointmentHistoryItem(
+                        appointment.getId(),
+                        appointment.getOfferItem().getName(),
+                        appointment.getAppointmentDate(),
+                        appointment.getStartTime(),
+                        appointment.getDurationMinutes(),
+                        appointment.getPrice(),
+                        appointment.getStatus(),
+                        appointment.isActive(),
+                        !LocalDateTime.of(appointment.getAppointmentDate(), appointment.getStartTime())
+                                .plusMinutes(appointment.getDurationMinutes()).isAfter(now)
+                ))
+                .toList();
+        return new ClientAppointmentHistoryResponse(items, page, appointments.hasNext());
     }
 
     public List<ClientResponse> getAllClients(){

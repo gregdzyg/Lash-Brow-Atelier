@@ -2,6 +2,8 @@ package pl.atelierbypt.backend.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.repository.query.Param;
 import pl.atelierbypt.backend.entity.Appointment;
 import pl.atelierbypt.backend.entity.OfferItem;
@@ -14,6 +16,15 @@ public interface AppointmentRepository extends Repository<Appointment, Long> {
 
     Appointment save(Appointment appointment);
     Optional<Appointment> findByIdAndIsActiveTrue(Long id);
+    Optional<Appointment> findById(Long id);
+
+    @Query("""
+    SELECT a FROM Appointment a
+    JOIN FETCH a.offerItem
+    WHERE a.client.id = :clientId
+    ORDER BY a.appointmentDate DESC, a.startTime DESC, a.id DESC
+    """)
+    Slice<Appointment> findHistoryByClientId(@Param("clientId") Long clientId, Pageable pageable);
 
     @Query("""
     SELECT a

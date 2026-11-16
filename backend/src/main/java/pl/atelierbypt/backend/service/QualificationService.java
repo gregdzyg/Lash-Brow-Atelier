@@ -1,6 +1,7 @@
 package pl.atelierbypt.backend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import pl.atelierbypt.backend.dto.QualificationResponse;
 import pl.atelierbypt.backend.dto.QualificationSectionResponse;
@@ -17,13 +18,16 @@ public class QualificationService {
 
     private final QualificationSectionRepository qualificationSectionRepository;
     private final QualificationRepository qualificationRepository;
+    private final String publicBaseUrl;
 
     public QualificationService(
             QualificationSectionRepository qualificationSectionRepository,
-            QualificationRepository qualificationRepository
+            QualificationRepository qualificationRepository,
+            @Value("${app.r2.public-base-url}") String publicBaseUrl
     ) {
         this.qualificationSectionRepository = qualificationSectionRepository;
         this.qualificationRepository = qualificationRepository;
+        this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +57,9 @@ public class QualificationService {
         return new QualificationResponse(
                 qualification.getId(),
                 qualification.getTitle(),
-                qualification.getDescription()
+                qualification.getDescription(),
+                qualification.getCertificateObjectKey() == null ? null
+                        : publicBaseUrl + "/" + qualification.getCertificateObjectKey()
         );
     }
 }

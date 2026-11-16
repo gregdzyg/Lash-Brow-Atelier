@@ -39,7 +39,8 @@ class PublicQualificationControllerTest {
                         List.of(new QualificationResponse(
                                 1L,
                                 "Stylizacja rzęs 1:1",
-                                "Technika klasyczna."
+                                "Technika klasyczna.",
+                                null
                         ))
                 ));
 

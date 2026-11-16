@@ -326,6 +326,19 @@ class AppointmentServiceAvailabilityTest {
         verify(appointmentRepository, never()).save(appointment);
     }
 
+    @Test
+    void shouldAllowReadingArchivedAppointmentButNotUpdatingIt() {
+        Appointment archived = createAppointment(20L, LocalTime.of(10, 0), 120);
+        archived.setActive(false);
+        when(appointmentRepository.findById(20L)).thenReturn(Optional.of(archived));
+        when(appointmentRepository.findByIdAndIsActiveTrue(20L)).thenReturn(Optional.empty());
+
+        assertThat(appointmentService.getAppointmentById(20L).isActive()).isFalse();
+        assertThatThrownBy(() -> appointmentService.updateAppointment(20L, createRequest(LocalTime.of(10, 0), 120)))
+                .isInstanceOf(pl.atelierbypt.backend.exception.AppointmentNotFoundException.class);
+        verify(appointmentRepository, never()).save(archived);
+    }
+
     private void prepareCreateDependencies() {
         when(clientRepository.findByIdAndIsActiveTrue(CLIENT_ID))
                 .thenReturn(Optional.of(client));

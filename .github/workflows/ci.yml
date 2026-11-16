@@ -8,6 +8,22 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: release-ci-test
+          POSTGRES_DB: atelier_release_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ATELIER_INTEGRATION_DB_URL: jdbc:postgresql://localhost:5432/atelier_release_test
+      ATELIER_INTEGRATION_DB_PASSWORD: release-ci-test
     defaults:
       run:
         working-directory: backend

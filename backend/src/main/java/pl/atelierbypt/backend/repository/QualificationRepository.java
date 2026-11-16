@@ -11,6 +11,8 @@ public interface QualificationRepository
 
     Qualification save(Qualification qualification);
 
+    Qualification saveAndFlush(Qualification qualification);
+
     List<Qualification> saveAll(Iterable<Qualification> qualifications);
 
     Optional<Qualification> findById(Long id);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import pl.atelierbypt.backend.dto.AdminQualificationResponse;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -114,7 +116,8 @@ class QualificationControllerTest {
                 "Stylizacja rzęs",
                 "Opis szkolenia.",
                 0,
-                false
+                false,
+                null
         ));
 
         mockMvc.perform(patch(
@@ -148,6 +151,31 @@ class QualificationControllerTest {
         verify(qualificationManagementService).deleteQualification(1L);
     }
 
+    @Test
+    void shouldUploadCertificateAndReturnItsPublicUrl() throws Exception {
+        MockMultipartFile image = new MockMultipartFile("image", "certificate.jpg", "image/jpeg", new byte[]{1});
+        when(qualificationManagementService.replaceCertificate(1L, image))
+                .thenReturn(new AdminQualificationResponse(
+                        1L, "Szkolenie", "Opis", 0, true,
+                        "https://example.r2.dev/certificates/course.jpg"
+                ));
+
+        mockMvc.perform(multipart("/api/admin/qualifications/1/certificate")
+                        .file(image).with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.certificateUrl").value("https://example.r2.dev/certificates/course.jpg"));
+        verify(qualificationManagementService).replaceCertificate(1L, image);
+    }
+
+    @Test
+    void shouldRemoveOnlyCertificateAttachment() throws Exception {
+        when(qualificationManagementService.removeCertificate(1L)).thenReturn(qualificationResponse());
+        mockMvc.perform(delete("/api/admin/qualifications/1/certificate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+        verify(qualificationManagementService).removeCertificate(1L);
+    }
+
     private AdminQualificationSectionResponse sectionResponse() {
         return new AdminQualificationSectionResponse(
                 "Rozwój",
@@ -163,7 +191,8 @@ class QualificationControllerTest {
                 "Stylizacja rzęs",
                 "Opis szkolenia.",
                 0,
-                true
+                true,
+                null
         );
     }
 }
